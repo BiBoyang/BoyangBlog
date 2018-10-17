@@ -30,6 +30,8 @@
 ## Runtime
 [@property的研究（一）](https://github.com/BiBoyang/Study/wiki/@property%E7%9A%84%E7%A0%94%E7%A9%B6%EF%BC%88%E4%B8%80%EF%BC%89)
 
+[@property的研究（二）](https://github.com/BiBoyang/Study/wiki/@property%E7%9A%84%E7%A0%94%E7%A9%B6%EF%BC%88%E4%BA%8C%EF%BC%89)
+
 
 ## 源码解读
 [MLeaksFinder源码解读](https://github.com/BiBoyang/Study/wiki/MLeaksFinder%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB)
