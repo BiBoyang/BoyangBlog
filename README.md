@@ -1,14 +1,14 @@
 # study 
 ## UIKit研究 
-[类簇（官方翻译）](https://github.com/BiBoyang/Study/wiki/%E7%B1%BB%E7%B0%87%EF%BC%88%E5%AE%98%E6%96%B9%E7%BF%BB%E8%AF%91%EF%BC%89)
+[类簇（官方翻译）](https://github.com/BiBoyang/Study/blob/master/File/001.md)
 
-[iOS中类簇的使用](https://github.com/BiBoyang/Study/wiki/iOS%E4%B8%AD%E7%B1%BB%E7%B0%87%E7%9A%84%E4%BD%BF%E7%94%A8)
+[iOS中类簇的使用](https://github.com/BiBoyang/Study/blob/master/File/002.md)
 
-[iOS四种倒计时记录](https://github.com/BiBoyang/Study/wiki/iOS%E5%9B%9B%E7%A7%8D%E5%80%92%E8%AE%A1%E6%97%B6%E8%AE%B0%E5%BD%95)
+[iOS四种倒计时记录](https://github.com/BiBoyang/Study/blob/master/File/003.md)
 
-[NSArray研究](https://github.com/BiBoyang/Study/wiki/NSArray%E7%A0%94%E7%A9%B6)
+[NSArray研究](https://github.com/BiBoyang/Study/blob/master/File/004.md)
 
-[iOS中isEqual和Hash的笔记（一）](https://github.com/BiBoyang/Study/wiki/iOS%E4%B8%ADisEqual%E5%92%8CHash%E7%9A%84%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)
+[iOS中isEqual和Hash的笔记（一）](https://github.com/BiBoyang/Study/blob/master/File/hash_01.md)
 ## 有趣的面试题摸索
 [有趣的面试题_1.GCD、property、Tagged Pointer](https://github.com/BiBoyang/Study/wiki/%E9%9D%A2%E8%AF%95%E9%A2%98(%E4%B8%80))
 
