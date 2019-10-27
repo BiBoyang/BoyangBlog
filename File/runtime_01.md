@@ -183,6 +183,7 @@ objc_msgSend会依据接收者与选择子的类型来调用适当的方法。�
 | OBJC_ASSOCIATION_COPY_NONATOMIC        |   nonatomic,copy    |  
 | OBJC_ASSOCIATION_RETAIN        |    retain    |  
 | OBJC_ASSOCIATION_COPY        |    copy    |  
+
 下列方法可以管理关联对象：
 
 > * void objc_setAssociatedObject(id object,void *key,id value,objc_AssociationPolicy policy)
