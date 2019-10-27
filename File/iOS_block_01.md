@@ -1,4 +1,3 @@
-# block(一)：block的本质
 
 ![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
 
