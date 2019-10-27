@@ -1,4 +1,3 @@
-# block(二)：block的copy
 ![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_2.png)
 
 

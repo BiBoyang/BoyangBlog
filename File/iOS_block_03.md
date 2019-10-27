@@ -1,4 +1,3 @@
-# block(三)：内存泄漏和关键字
 
 ![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_3.png)
 
