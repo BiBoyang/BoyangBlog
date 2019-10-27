@@ -184,11 +184,12 @@ objc_msgSend会依据接收者与选择子的类型来调用适当的方法。�
 | OBJC_ASSOCIATION_RETAIN        |    retain    |  
 | OBJC_ASSOCIATION_COPY        |    copy    |  
 下列方法可以管理关联对象：
-> * **void objc_setAssociatedObject(id object,void *key,id value,objc_AssociationPolicy policy)**   
+
+> * void objc_setAssociatedObject(id object,void *key,id value,objc_AssociationPolicy policy)
 此方法以给定的键和策略为某对象设置关联对象值
-> * **id objc_getAssociatedObject(id object,void *key)**     
+> * id objc_getAssociatedObject(id object,void *key)
 此方法根据给定的键和策略为某对象中获取相应的关联对象值
-> * **void objc_removeAssicuatedObjects(id object)**    
+> * void objc_removeAssicuatedObjects(id object)
 此方法移除指定对象的全部关联对象
 
 在设置关联对象值时，通常使用**静态全局变量**做键
