@@ -1,5 +1,6 @@
 # block(一)：block的本质
 
+![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
 
 ## 简单概述
 > block是C语言的扩充功能，我们可以认为它是 **带有自动变量的匿名函数**。

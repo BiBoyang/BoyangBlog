@@ -1,4 +1,7 @@
 # block（四）：修改block的实现
+
+![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_4.png)
+
 这里将通过几道面试题来扩展知识。
 这几道题取自[sunnyxx](http://blog.sunnyxx.com/)。
 ## Question1 如何在禁止直接调用block的情况下继续使用block?

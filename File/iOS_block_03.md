@@ -1,4 +1,7 @@
 # block(三)：内存泄漏和关键字
+
+![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_3.png)
+
 > 在不特殊说明是MRC的情况下，默认是ARC。
 [Objective-C Automatic Reference Counting (ARC)](http://clang.llvm.org/docs/AutomaticReferenceCounting.html)
 
