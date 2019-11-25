@@ -69,7 +69,8 @@ static __weak UIAlertView *alertView;
  **static __weak UIAlertView *alertView;**  
      
 第一次调用 **[alertView dismissWithClickedButtonIndex:0 animated:NO];** 这个方法的时候，alertView为nil,  **[alertView dismissWithClickedButtonIndex:0 animated:NO]** 不产生任何操作，只是一个弹框。
-     再次调用这个方法(即点击查看retain cycle)，会通过alertView来dimiss现有的弹框，再显示新的弹框。所以alertView是记录当前显示的内存泄漏的弹框。同时设置__weak修饰让这个全局变量弱引用。一旦弹框消失，自动设置为nil.
+        
+再次调用这个方法(即点击查看retain cycle)，会通过alertView来dimiss现有的弹框，再显示新的弹框。所以alertView是记录当前显示的内存泄漏的弹框。同时设置__weak修饰让这个全局变量弱引用。一旦弹框消失，自动设置为nil.
 
 ### 3.MLeakedObjectProxy
 这个文件是检测内存泄露的核心文件
@@ -78,10 +79,10 @@ static __weak UIAlertView *alertView;
 + (BOOL)isAnyObjectLeakedAtPtrs:(NSSet *)ptrs;
 + (void)addLeakedObject:(id)object;
 ```
-第一个方法用来判断ptrs（NSSet类型）中是否有泄漏的对象，如果有返回True
+第一个方法用来判断ptrs（NSSet类型）中是否有泄漏的对象，如果有返回True       
 第二个方法是将对象加入泄漏对象的集合，同时调用MLeaksMessenger的弹窗方法
-无论是判断还是比较，始终需要一个集合来保存所有泄漏对象。自然而然检查MLeakedObjectProxy。
-全局static变量**static NSMutableSet** * **leakedObjectPtrs;** 就是用来做比较的对象。
+无论是判断还是比较，始终需要一个集合来保存所有泄漏对象。自然而然检查MLeakedObjectProxy。               
+全局static变量**static NSMutableSet** * **leakedObjectPtrs;** 就是用来做比较的对象。       
 上面两个方法都只在 NSObject的category的 **assertNotDealloc** 中调用。
 让我们看一下.m文件中方法的实现：
 ```C++
@@ -146,8 +147,8 @@ static __weak UIAlertView *alertView;
 }
 ```
 在上述两个方法的实现中，我们发现了几个要点
-> * 使用这两个方法必须要在主线程中使用
->*  待检查的对象，必须要检查是否已经被记录，以防止重复添加，造成循环
+> *  使用这两个方法必须要在主线程中使用
+> *  待检查的对象，必须要检查是否已经被记录，以防止重复添加，造成循环
 
 展示循环引用的核心代码在下面：
 ```C++
@@ -215,10 +216,11 @@ static __weak UIAlertView *alertView;
     return result;
 }
 ```
-我们发现，MLeaksFinder在展示循环引用的时候，使用的是**Facebook**开源的 **FBRetainCycleDetector** 工具。       
-我们先通过 MLeaksFinder 找到内存泄漏的对象，然后再过 FBRetainCycleDetector 检测该对象有没有循环引用。       
-有关FBRetainCycleDetector，我们可以查阅[这篇文章](https://code.facebook.com/posts/583946315094347/automatic-memory-leak-detection-on-ios/?spm=a2c4e.11153940.blogcont68473.11.3d804fa4z2vkPs)（需要科学上网）。       
-我们实际上可以了解，FBRetainCycleDetector是将一个对象，一个ViewController,或者一个block当成一个节点，相关的强引用关系则是线。他们实际上会形成有向无环图（DAG 图），我们则需要在其中寻找可能存在的环，这里使用了深度优先搜索算法来遍历它，并找到循环节点。
+我们发现，MLeaksFinder在展示循环引用的时候，使用的是**Facebook**开源的 **FBRetainCycleDetector** 工具。               
+我们先通过 MLeaksFinder 找到内存泄漏的对象，然后再过 FBRetainCycleDetector 检测该对象有没有循环引用。               
+有关FBRetainCycleDetector，我们可以查阅[这篇文章](https://code.facebook.com/posts/583946315094347/automatic-memory-leak-detection-on-ios/?spm=a2c4e.11153940.blogcont68473.11.3d804fa4z2vkPs)（需要科学上网）。              
+我们实际上可以了解，FBRetainCycleDetector是将一个对象，一个ViewController,或者一个block当成一个节点，相关的强引用关系则是线。他们实际上会形成有向无环图（DAG 图），我们则需要在其中寻找可能存在的环，这里使用了深度优先搜索算法来遍历它，并找到循环节点。     
+
 ### 4.NSObject+MemoryLeak
 这个文件主要用来存储对象的父子节点的树形结构，method swizzle逻辑 ，白名单以及实施判断对象是否发生内存泄漏。
 ```C++
@@ -248,10 +250,10 @@ static __weak UIAlertView *alertView;
 > * __strong id strongSelf = weakSelf;中的strongify为nil.
 这里先设置 __weak id weakSelf = self;，然后在进行__strong id strongSelf = weakSelf，假如对象已经被释放，strongSelf为nil 调用该方法什么也不发生。
 
-这里我说明下第二条：       
+这里我说明下第二条：              
 正在执行target-Action的target对象不监测内存泄漏。当用户触发执行Target-Action方法的时候，实际上在执行action方法前，是sender对象先执行**sendAction:to:forEvent**方法，然后**UIApplicatoin**执行
 **sendAction:to:from:forEvent:**方法，其中from就是sender对象.
-这里使用方法交换截获**sendAction:to:from:forEvent:**,然后截获了当前sender对象保存在kLatestSenderKey中。判断两者是否相同。        
+这里使用方法交换截获**sendAction:to:from:forEvent:**,然后截获了当前sender对象保存在kLatestSenderKey中。判断两者是否相同。              
 这里的原因涉及到了target-action原理，当前实际上会形成一个循环引用，这里推荐[这篇文章](http://southpeak.github.io/2015/12/13/cocoa-uikit-uicontrol/),我们可以得出结论
 > * 对于_target成员变量，在UIControlTargetAction的初始化方法中调用了objc_storeWeak，即这个成员变量对外部传进来的target对象是以weak的方式引用的。
 
