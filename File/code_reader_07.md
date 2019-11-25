@@ -268,7 +268,7 @@ static __weak UIAlertView *alertView;
 }
 ```
 这里面就是直接的判断方法了，作用在之前提过。
-**-(void)willReleaseObject:(id)object relationship:(NSString *)relationship;***这个方法我没有查阅到相关引用，可能是已经废弃。如果有知道的，请不吝赐教。
+**-(void)willReleaseObject:(id)object relationship:(NSString *)relationship;** 这个方法我没有查阅到相关引用，可能是已经废弃。如果有知道的，请不吝赐教。
 
 接下来分析下面三个关键的方法：
 ```C++ 
@@ -319,6 +319,7 @@ static __weak UIAlertView *alertView;
 ```
 
 注释掉无关的代码，我们实际上发现，这里循环调用 **willDealloc** 方法。而注释掉的方法则是递归self.view，写入一个栈**viewStack**当中，最后在Alertview中展示出来。
+
 构造堆栈信息的原理就是，递归遍历子对象，然后将父对象 class name 加上子对象 class name，一步步构造出一个 view stack。出现泄漏则直接打印此对象的 view stack 即可。
 
 
