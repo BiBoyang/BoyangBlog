@@ -324,8 +324,8 @@ static __weak UIAlertView *alertView;
 
 构造堆栈信息的原理就是，递归遍历子对象，然后将父对象 class name 加上子对象 class name，一步步构造出一个 view stack。出现泄漏则直接打印此对象的 view stack 即可。
 
++(void)addClassNamesToWhitelist:(NSArray *)classNames;方法则一目了然，用于添加白名单。
 
-**+(void)addClassNamesToWhitelist:(NSArray *)classNames;** 方法则一目了然，用于添加白名单。
 最后一个方法
 ```C++
 + (void)swizzleSEL:(SEL)originalSEL withSEL:(SEL)swizzledSEL {
