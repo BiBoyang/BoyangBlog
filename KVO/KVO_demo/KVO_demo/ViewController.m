@@ -10,14 +10,14 @@
 #import "Fish.h"
 @import ObjectiveC.objc;
 @import ObjectiveC.runtime;
-
+#import "SmallFish.h"
 
 @interface ViewController ()
 
-@property (nonatomic,strong) Fish *saury;
+@property (nonatomic, strong) Fish *saury;
+@property (nonatomic, strong) Fish *carpio;
 
-@property (nonatomic,strong) Fish *carpio;
-
+@property (nonatomic, strong) SmallFish *smailSaury;
 
 @end
 
@@ -28,6 +28,7 @@
     // Do any additional setup after loading the view.
     
      //添加监听
+    
     self.saury = [[Fish alloc]init];
     [self.saury setValue:@"14.0" forKey:@"price"];
     [self.saury setValue:@"blue" forKey:@"color"];
@@ -46,6 +47,21 @@
     [self.saury description];
     [self.carpio description];
     
+    /*
+    self.smailSaury = [[SmallFish alloc]init];
+    [self.smailSaury setValue:@"14.0" forKey:@"price"];
+    [self.smailSaury description];
+    
+    [self.smailSaury addObserver:self forKeyPath:@"price" options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:"bbb"];
+    
+    
+     [self.smailSaury description];
+    */
+    
+    
+    
+    
+    
     
     
      UIButton *abtn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -62,6 +78,8 @@
 -(void)change {
     [self.saury setValue:@"34.0" forKey:@"price"];
     [self.saury setValue:@"red" forKey:@"color"];
+//    [self.smailSaury setValue:@"34.0" forKey:@"price"];
+    
 }
 
 -(void)dealloc {
@@ -71,6 +89,8 @@
     
     
 }
+
+
 
 //实现监听
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {

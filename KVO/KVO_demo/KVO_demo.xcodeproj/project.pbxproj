@@ -17,6 +17,7 @@
 		F19BF22C23A0C01D00FB5C35 /* KVO_demoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F19BF22B23A0C01D00FB5C35 /* KVO_demoTests.m */; };
 		F19BF23723A0C01D00FB5C35 /* KVO_demoUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = F19BF23623A0C01D00FB5C35 /* KVO_demoUITests.m */; };
 		F19BF24623A0C03900FB5C35 /* Fish.m in Sources */ = {isa = PBXBuildFile; fileRef = F19BF24523A0C03900FB5C35 /* Fish.m */; };
+		F19BF24923A1815200FB5C35 /* SmallFish.m in Sources */ = {isa = PBXBuildFile; fileRef = F19BF24823A1815200FB5C35 /* SmallFish.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,8 @@
 		F19BF23823A0C01D00FB5C35 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F19BF24423A0C03900FB5C35 /* Fish.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Fish.h; sourceTree = "<group>"; };
 		F19BF24523A0C03900FB5C35 /* Fish.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Fish.m; sourceTree = "<group>"; };
+		F19BF24723A1815200FB5C35 /* SmallFish.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SmallFish.h; sourceTree = "<group>"; };
+		F19BF24823A1815200FB5C35 /* SmallFish.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SmallFish.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,8 @@
 				F19BF21623A0C01900FB5C35 /* ViewController.m */,
 				F19BF24423A0C03900FB5C35 /* Fish.h */,
 				F19BF24523A0C03900FB5C35 /* Fish.m */,
+				F19BF24723A1815200FB5C35 /* SmallFish.h */,
+				F19BF24823A1815200FB5C35 /* SmallFish.m */,
 				F19BF21823A0C01900FB5C35 /* Main.storyboard */,
 				F19BF21B23A0C01D00FB5C35 /* Assets.xcassets */,
 				F19BF21D23A0C01D00FB5C35 /* LaunchScreen.storyboard */,
@@ -277,6 +282,7 @@
 				F19BF21123A0C01900FB5C35 /* AppDelegate.m in Sources */,
 				F19BF22223A0C01D00FB5C35 /* main.m in Sources */,
 				F19BF21423A0C01900FB5C35 /* SceneDelegate.m in Sources */,
+				F19BF24923A1815200FB5C35 /* SmallFish.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

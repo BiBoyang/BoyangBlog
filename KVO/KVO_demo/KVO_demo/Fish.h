@@ -9,11 +9,10 @@
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
-
 @interface Fish : NSObject
 
-@property (nonatomic,strong)NSString *color;
-@property (nonatomic,strong)NSString *price;
+@property (nonatomic, strong)NSString *color;
+@property (nonatomic, strong)NSString *price;
 
 @end
 
