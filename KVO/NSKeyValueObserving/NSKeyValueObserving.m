@@ -1387,9 +1387,9 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user) {
     /*
      * Get the observation information and remove this observation.
      */
-    info = (GSKVOInfo*)[self observationInfo];
-    forwarder = [info contextForObserver: anObserver ofKeyPath: aPath];
-    [info removeObserver: anObserver forKeyPath: aPath];
+    info = (GSKVOInfo*)[self observationInfo];//获取c观察者信息
+    forwarder = [info contextForObserver: anObserver ofKeyPath: aPath];//从全局map里获取观察者的context
+    [info removeObserver: anObserver forKeyPath: aPath];//去除info里的观察者信息
     if ([info isUnobserved] == YES) {
         /*
          * The instance is no longer being observed ... so we can

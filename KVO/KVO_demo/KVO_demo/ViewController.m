@@ -43,6 +43,8 @@
      
      [self.saury addObserver:self forKeyPath:@"color" options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)([NSString stringWithFormat:@"yellow"])];
     
+   
+    
     
     [self.saury description];
     [self.carpio description];
@@ -95,8 +97,9 @@
 //实现监听
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
        
+
     NSLog(@"keyPath is %@",keyPath);
-    NSLog(@"object is %@",object);
+    NSLog(@"object is %@----",object);
     NSLog(@"change is %@",change);
     
 
