@@ -1,5 +1,12 @@
 #  Threading Programming Guide(二)：RunLoop
 
+目录：
+* [Threading Programming Guide(一)：线程和线程管理](https://github.com/BiBoyang/Study/blob/master/File/Thread_00.md)
+* [Threading Programming Guide(二)：RunLoop](https://github.com/BiBoyang/Study/blob/master/File/Thread_01.md)
+* [Threading Programming Guide(三)：同步](https://github.com/BiBoyang/Study/blob/master/File/Thread_02.md)
+* [Threading Programming Guide(四)：线程安全和有关词汇](https://github.com/BiBoyang/Study/blob/master/File/Thread_03.md)
+
+
 RunLoop是与线程关联的基础架构的一部分。一个RunLoop是一个事件处理循环，你用它来安排工作，并协调接收传入的事件。RunLoop的目的是在有工作要做时让线程忙，而在没有工作时让线程进入睡眠状态。
 
 RunLoop管理不是完全自动的。您仍然必须设计线程的代码以在适当的时间启动RunLoop并响应传入的事件。Cocoa和Core Foundation都提供了RunLoop对象（NSRunLoop和CFRunLoop），以帮助您配置和管理线程的RunLoop。您的应用程序不需要显式创建这些对象。每个线程（包括应用程序的主线程）都有一个关联的RunLoop对象。但是，只有辅助线程需要显式地运行其RunLoop。在应用程序启动过程中，应用程序框架会自动在主线程上设置并运行RunLoop。

@@ -1,9 +1,10 @@
 # Threading Programming Guide(一)：线程和线程管理
 [Threading Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/Introduction/Introduction.html#//apple_ref/doc/uid/10000057i-CH1-SW1)学习记录。
-其余部分：
-* [Threading Programming Guide(二)：RunLoop](xx)
-* [Threading Programming Guide(三)：同步](xx)
-* [Threading Programming Guide(四)：线程安全和有关词汇](xx)
+目录：
+* [Threading Programming Guide(一)：线程和线程管理](https://github.com/BiBoyang/Study/blob/master/File/Thread_00.md)
+* [Threading Programming Guide(二)：RunLoop](https://github.com/BiBoyang/Study/blob/master/File/Thread_01.md)
+* [Threading Programming Guide(三)：同步](https://github.com/BiBoyang/Study/blob/master/File/Thread_02.md)
+* [Threading Programming Guide(四)：线程安全和有关词汇](https://github.com/BiBoyang/Study/blob/master/File/Thread_03.md)
 
 ## 介绍
 线程是使在单个应用程序中同时执行多个代码路径成为可能的几种技术之一。尽管诸如NSOperation和Grand Central Dispatch（GCD）之类的较新技术为实现并发提供了更现代，更高效的基础架构，但是OS X和iOS还提供了用于创建和管理线程的接口。
