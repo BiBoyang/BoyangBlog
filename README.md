@@ -24,17 +24,18 @@
 | **MLeaksFinder**  |  [MLeaksFinder源码解读](https://github.com/BiBoyang/Study/wiki/MLeaksFinder%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB)|v0.2 | 
 | **SDWebImage**  | [SDWebImage源码解读 (一)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_01.md)<br>[SDWebImage源码解读 (二)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_02.md)<br>[SDWebImage源码解读 (三)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_03.md)<br>[SDWebImage源码解读 (四)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_04.md)<br>[SDWebImage源码解读 (五)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_05.md)<br>[SDWebImage源码解读 (六)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_06.md)  |  v4.4.1 |
 
-##  📒笔记
+
+##  📒读书笔记
 |  Name | Article_Link  |  Info |
 |---|---|---|
 | Effective Objective-C  |  [读书小记](https://github.com/BiBoyang/Study/wiki/%E3%80%8AEffective-Objective-C-2.0%E7%BC%96%E5%86%99%E9%AB%98%E8%B4%A8%E9%87%8FiOS%E4%B8%8EOS-X%E4%BB%A3%E7%A0%81%E7%9A%8452%E4%B8%AA%E6%9C%89%E6%95%88%E6%96%B9%E6%B3%95%E3%80%8B%E8%AF%BB%E4%B9%A6%E5%B0%8F%E8%AE%B0) |   |
-| Memory | [内存笔记（一）](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)||
-|并发|[笔记](https://github.com/BiBoyang/Study/blob/master/File/CSAPP_12.md)||
+|深入理解计算机系统|[第九章：内存](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)<br>[第12章：并发](https://github.com/BiBoyang/Study/blob/master/File/CSAPP_12.md)||
 
-## 🍎 多线程
+## 🍎 操作系统
 |Name|Article_Link|Info|
 |---|---|---|
 |Threading Programming Guide|[Threading Programming Guide(一)：线程和线程管理](https://github.com/BiBoyang/Study/blob/master/File/Thread_00.md)<br>[Threading Programming Guide(二)：RunLoop](https://github.com/BiBoyang/Study/blob/master/File/Thread_01.md)<br>[Threading Programming Guide(三)：同步](https://github.com/BiBoyang/Study/blob/master/File/Thread_02.md)<br>[Threading Programming Guide(四)：线程安全和有关词汇](https://github.com/BiBoyang/Study/blob/master/File/Thread_03.md)||
+|Memory|[内存笔记(一)](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)||
 
 
 
