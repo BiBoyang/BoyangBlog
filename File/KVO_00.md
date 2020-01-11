@@ -4,17 +4,17 @@
 
 
 KVO 全称是**Key-Value Observing**,即键值观察者。是苹果官方提供的一种事件通知机制。
-键值观察提供了一种机制，该机制允许将其他对象的特定属性的更改通知对象。对于应用程序中模型层和控制器层之间的通信特别有用。控制器对象通常观察模型对象的属性，而视图对象通过控制器观察模型对象的属性。但是，此外，模型对象可以观察其他模型对象（通常用于确定从属值何时更改），甚至可以观察自身（再次确定从属值何时更改）。
-您可以观察属性，包括简单属性，一对一关系和**一对多**关系。一对多关系的观察者被告知所做更改的类型，以及更改涉及哪些对象。
+键值观察提供了一种机制，该机制允许将其他对象的特定属性的更改通知对象。对于应用程序中模型层和控制器层之间的通信特别有用。控制器对象通常观察模型对象的属性，而视图对象通过控制器观察模型对象的属性。但是，此外，模型对象可以观察其他模型对象（通常用于确定从属值何时更改），甚至可以观察自身（再次确定从属值何时更改）。		
+您可以观察属性，包括简单属性，一对一关系和**一对多**关系。一对多关系的观察者被告知所做更改的类型，以及更改涉及哪些对象。		
 KVO最大的优势在于不需要修改其内部代码即可实现监听，但是有利有弊，最大的问题也是出自这里。
 
 ## 基础使用
 > * 本文只说在自动观察的情况下的原理，KVO实际上有手动观察的状态，但是原理和自动观察一样，就不再多说了。
 
 一般情况下，我们使用KVO有以下三种步骤：
-> * 1.通过**- (void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void *)context;**方法注册观察者，观察者可以接收keyPath属性的变化事件,并且使用context加入信息；
-> * 2.实现**-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context**方法，当keypath对应的元素发生变化时，会发生回调；
-> * 3.如果不再需要监听，则需要使用**- (void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context;**方法来释放掉。
+> * 1.通过 **-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void *)context;** 方法注册观察者，观察者可以接收keyPath属性的变化事件,并且使用context加入信息；
+> * 2.实现 **-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context** 方法，当keypath对应的元素发生变化时，会发生回调；
+> * 3.如果不再需要监听，则需要使用 **-(void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context;** 方法来释放掉。
 
 这里稍微提一下NSKeyValueObservingOptions的种类：
 ```C++
@@ -62,7 +62,7 @@ NS_ASSUME_NONNULL_END
 好了，到这里，就该吐槽一下KVO的很多坑爹的地方了。
 > * 1. 每次都必须在可靠准确的时间点**手动**移除观察者；
 > * 2. 传递上下文使用context时非常别扭，因为这个是个void指针，需要神奇的桥接；
-    比如说我要传递一个字符串，添加观察者的时候使用**(__bridge void * _Nullable)([NSString stringWithFormat:@"yellow"])**，然后在接收的时候，需要使用**(__bridge NSString *)**来转换过来。
+    比如说我要传递一个字符串，添加观察者的时候使用 **(__bridge void * _Nullable)([NSString stringWithFormat:@"yellow"])** ，然后在接收的时候，需要使用**(__bridge NSString *)**来转换过来。
 > * 3. 如果有多个观察者，在手动移除的时候需要鉴别context来分别移除；
 > * 4. addObserver和removeObserver需要是成对的，如果remove多了就会发生crash，如果少remove了，就会在再次接收到回调的时候发生crash；
 > * 5. 一旦被观察的对象和属性很多时，就要分门别类的用if方法来分辨，代码写的奇丑无比。
@@ -76,13 +76,14 @@ NS_ASSUME_NONNULL_END
 
 在[官方文档](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html#//apple_ref/doc/uid/10000177-BCICJDHA)中有这样一句话。
 >  Automatic key-value observing is implemented using a technique called isa-swizzling.
-The isa pointer, as the name suggests, points to the object's class which maintains a dispatch table. This dispatch table essentially contains pointers to the methods the class implements, among other data.
-When an observer is registered for an attribute of an object the isa pointer of the observed object is modified, pointing to an intermediate class rather than at the true class. As a result the value of the isa pointer does not necessarily reflect the actual class of the instance.
-You should never rely on the isa pointer to determine class membership. Instead, you should use the class method to determine the class of an object instance.
-自动键值观察是使用isa-swizzling实现的。
-isa指针，顾名思义，指向对象的类，它保持一个调度表。该调度表实质上包含指向该类实现的方法的指针以及其他数据。
-在为对象的属性注册观察者时，将修改观察对象的isa指针，指向中间类而不是真实类。结果，isa指针的值不一定反映实例的实际类。
+The isa pointer, as the name suggests, points to the object's class which maintains a dispatch table. This dispatch table essentially contains pointers to the methods the class implements, among other data.		
+When an observer is registered for an attribute of an object the isa pointer of the observed object is modified, pointing to an intermediate class rather than at the true class. As a result the value of the isa pointer does not necessarily reflect the actual class of the instance.		
+You should never rely on the isa pointer to determine class membership. Instead, you should use the class method to determine the class of an object instance.		
+自动键值观察是使用isa-swizzling实现的。		
+isa指针，顾名思义，指向对象的类，它保持一个调度表。该调度表实质上包含指向该类实现的方法的指针以及其他数据。		
+在为对象的属性注册观察者时，将修改观察对象的isa指针，指向中间类而不是真实类。结果，isa指针的值不一定反映实例的实际类。		
 **您永远不要依靠isa指针来确定类成员。相反，您应该使用该class方法来确定对象实例的类。**
+
 
 配合demo代码，阐明了KVO的实现原理：
 > * 当某个类的属性对象被观察的时候，系统就会在运行期动态的创建一个派生类**NSKVONotifying_xx**。在这个派生类中重写被观察属性的setter方法和Class方法，dealloc，_isKVO方法，然后这个isa指针指向了这个新建的类（注意！Class方法指向的还是原有的类名）。派生类在被重写的setter方法中实现了真正的通知机制，而和原有的对象隔离开来。
@@ -92,14 +93,17 @@ isa指针，顾名思义，指向对象的类，它保持一个调度表。该�
 ![](https://user-gold-cdn.xitu.io/2019/1/31/168a2f3d09d33a5a?imageView2/0/w/1280/h/960/ignore-error/1)
 
 当然，到底是不是，看一下源码不就知道了。
+
 ### 查看源码
+
 尴尬的是，在runtime的源码当中，我们是找不到有关kvo的东西的。那么该怎么办呢？
 这里要先讲一点历史了。
 
-早在1985 年，Steve Jobs 离开苹果电脑(Apple) 后成立了NeXT 公司，并于1988 年推出了NeXT 电脑，使用NeXTStep 为操作系统。这也是现在Cocoa里面很多NS开头的类名的源头。在当时，NeXTStep 是相当先进的系统。 以Unix (BSD) 为基础，使用PostScript 提供高品质的图形界面，并以Objective-C 语言提供完整的面向对象环境。
-尽管NeXT 在软件上的优异，其硬体销售成绩不佳，不久之后，NeXT 便转型为软件公司。1994 年，NeXT 与Sun(Sun Microsystem) 合作推出OpenStep 界面，目标为跨平台的面向对象程式开发环境。NeXT 接着推出使用OpenStep 界面的OPENSTEP 系统，可在Mach, Microsoft Windows NT, Sun Solaris 及HP/UX 上执行。1996 年，苹果电脑买下NeXT，做为苹果电脑下一代操作系统的基础。 OPENSTEP 系统便演进成为MacOS X 的Cocoa 环境。
-在1995 年，自由软体基金会(Free Software Fundation) 开始了GNUstep 计划，目的在使用OpenStep 界面，以提供Linux/BSD 系统一个完整的程式发展环境，而GNUstep最初是GNU开发人员努力复制技术上雄心勃勃的NeXTSTEP的程序员友好功能。GNUstep是要早于Cocoa的实现的。我们可以从GNUstep的实现代码中，来参考KVO的设计思路。
+早在1985 年，Steve Jobs 离开苹果电脑(Apple) 后成立了NeXT 公司，并于1988 年推出了NeXT 电脑，使用NeXTStep 为操作系统。这也是现在Cocoa里面很多NS开头的类名的源头。在当时，NeXTStep 是相当先进的系统。 以Unix (BSD) 为基础，使用PostScript 提供高品质的图形界面，并以Objective-C 语言提供完整的面向对象环境。		
+尽管NeXT 在软件上的优异，其硬体销售成绩不佳，不久之后，NeXT 便转型为软件公司。1994 年，NeXT 与Sun(Sun Microsystem) 合作推出OpenStep 界面，目标为跨平台的面向对象程式开发环境。NeXT 接着推出使用OpenStep 界面的OPENSTEP 系统，可在Mach, Microsoft Windows NT, Sun Solaris 及HP/UX 上执行。1996 年，苹果电脑买下NeXT，做为苹果电脑下一代操作系统的基础。 OPENSTEP 系统便演进成为MacOS X 的Cocoa 环境。		
+在1995 年，自由软体基金会(Free Software Fundation) 开始了GNUstep 计划，目的在使用OpenStep 界面，以提供Linux/BSD 系统一个完整的程式发展环境，而GNUstep最初是GNU开发人员努力复制技术上雄心勃勃的NeXTSTEP的程序员友好功能。GNUstep是要早于Cocoa的实现的。我们可以从GNUstep的实现代码中，来参考KVO的设计思路。		
 你可以[点击这里](http://www.gnustep.org/resources/downloads.php)来找到GNUstep的源码，或者也可以直接查看我下载下来的[文件](https://github.com/BiBoyang/Study/tree/master/KVO/NSKeyValueObserving)，我们可以很惊奇的发现，至少在NSKeyValueObserving.h文件中，很多函数名是一样的。
+
 > * 当然还有很多不同，比如说对于context的支持就少很多，remove方法就没有支持context的函数。
 
 
@@ -173,6 +177,7 @@ isa指针，顾名思义，指向对象的类，它保持一个调度表。该�
 我们接着来分段看。
 
 #### setup();
+
 ```C++
 NSString *const NSKeyValueChangeIndexesKey = @"indexes";
 NSString *const NSKeyValueChangeKindKey = @"kind";
@@ -212,6 +217,7 @@ setup() {
 }
 ```
 创建了classTable、infoTable、dependentKeyTable来存储类名、观察者的信息、依赖者对应的key。
+
 #### [kvoLock lock];
 为了保证线程安全，这里使用了递归锁。
 递归锁的特点是：可以允许同一线程多次加锁，而不会造成死锁。**递归锁会跟踪它被lock的次数。每次成功的lock都必须平衡调用unlock操作。**只有所有达到这种平衡，锁最后才能被释放，以供其它线程使用。
@@ -237,7 +243,7 @@ static GSKVOReplacement *replacementForClass(Class c) {
     return r;
 }
 ```
-这里我们发现了**r = [[GSKVOReplacement alloc] initWithClass: c];**方法，它是GSKVOReplacement里的方法。它有三个成员变量。
+这里我们发现了 **r = [[GSKVOReplacement alloc] initWithClass: c];** 方法，它是GSKVOReplacement里的方法。它有三个成员变量。
 ```C++
 {
     Class         original;       /* The original class 原有类*/
@@ -273,8 +279,8 @@ static GSKVOReplacement *replacementForClass(Class c) {
     return self;
 }
 ```
-在**-(id)initWithClass:(Class)aClass**函数中，传入的原始class即是original，而原有的类名，会在前面拼接一个**"GSKVO"**字符串之后变成替代类的类名。
-而通过**GSObjCAddClassBehavior**方法，则会在将GSKVOBase的方法拷贝到replacement中去。
+在 **-(id)initWithClass:(Class)aClass** 函数中，传入的原始class即是original，而原有的类名，会在前面拼接一个 **"GSKVO"** 字符串之后变成替代类的类名。
+而通过 **GSObjCAddClassBehavior** 方法，则会在将GSKVOBase的方法拷贝到replacement中去。
 而GSKVOBase中有什么方法呢？
 ```C++
 - (void) dealloc;
@@ -288,7 +294,7 @@ static GSKVOReplacement *replacementForClass(Class c) {
 最关键的dealloc、class、superclass、setter方法都被重写。
 class、superclass方法都被加了一层**class_getSuperclass**，以避免干扰，还是能直接获取到正确的class名。
 
-这里结束不谈，回**- addObserver: forKeyPath: options: context:**。
+这里结束不谈，回 **- addObserver: forKeyPath: options: context:** 。
 接着我们创建观察者信息，并插入到infoTable中去。
 然后通过object_setClass方法将修改class名称，将被观察的对象的isa修改为新的KVO子类Class。
 
@@ -333,7 +339,7 @@ remainingKeyPath = [keyPath substringFromIndex: dot.location + 1];
 这个实际上是一个GSKVOInfo里的函数。
 在这里创建、存储KVO的信息，并处理一些细节问题:
 > 在上面，我特地提过NSKeyValueObservingOptions的种类。
-里面有个NSKeyValueObservingOptionInitial属性，当使用它的时候，需要在注册观察服务时会调用一次触发方法。这个时候就可以直接在判断完之后调用**-observeValueForKeyPath：ofObject：change：context**方法。
+里面有个NSKeyValueObservingOptionInitial属性，当使用它的时候，需要在注册观察服务时会调用一次触发方法。这个时候就可以直接在判断完之后调用 **-observeValueForKeyPath：ofObject：change：context** 方法。
 
 
 
@@ -403,7 +409,7 @@ remainingKeyPath = [keyPath substringFromIndex: dot.location + 1];
 }
 @end
 ```
-我们发现，不管怎样都是要调用**- (void) keyPathChanged:**，所以可以越过observeValueForKeyPath直接来看**- (void) keyPathChanged:**函数。
+我们发现，不管怎样都是要调用 **- (void) keyPathChanged:** ，所以可以越过observeValueForKeyPath直接来看 **- (void) keyPathChanged:** 函数。
 ```C++
 - (void) keyPathChanged: (id)objectToObserve {
     if (objectToObserve != nil) {
@@ -453,7 +459,7 @@ remainingKeyPath = [keyPath substringFromIndex: dot.location + 1];
 
 ```
 这段是个很长的代码，作用的将需要的数据不断的填充进应该的位置：
-里面四个主要的参数，实际上就是方法**-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context**里的数据。
+里面四个主要的参数，实际上就是方法 **-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context** 里的数据。
 
 
 ### 3. - removeObserver: forKeyPath: context:;
@@ -485,7 +491,7 @@ remainingKeyPath = [keyPath substringFromIndex: dot.location + 1];
 ```
 这里实际上就是添加观察者的反过程，不过多的说明。
 
-另外，因为并没有**- (void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context**方法的实现，我猜测了一下可能的实现。
+另外，因为并没有 **- (void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context** 方法的实现，我猜测了一下可能的实现。
 > * 对于infoTable可能设计的更加复杂，可以使用context作为key来添加和删除相同的被观察者的实例，即使是同一个被观察者对象，也可以通过context来创建不同的被观察实例。
 
 

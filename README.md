@@ -15,7 +15,7 @@
 | APM之路<br>(**天坑**) |  [iOS性能优化之路](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_04.md)<br>[iOS启动速度优化](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_03.md)<br>[检测内存泄漏](https://github.com/BiBoyang/Study/wiki/%E6%A3%80%E6%B5%8B%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F)<br>[iOS电量优化之路（一）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md)<br>[iOS电量优化之路（二）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_02.md)
  **Runtime** | [@property的研究（一）](https://github.com/BiBoyang/Study/wiki/@property%E7%9A%84%E7%A0%94%E7%A9%B6%EF%BC%88%E4%B8%80%EF%BC%89)<br>[@property的研究（二）](https://github.com/BiBoyang/Study/wiki/@property%E7%9A%84%E7%A0%94%E7%A9%B6%EF%BC%88%E4%BA%8C%EF%BC%89) |
 |  **Block** | [block(一)：block的本质](https://github.com/BiBoyang/Study/blob/master/File/iOS_block_01.md)<br>[block(二)：block的copy](https://github.com/BiBoyang/Study/blob/master/File/iOS_block_02.md)<br>[block(三)：内存泄漏](https://github.com/BiBoyang/Study/blob/master/File/iOS_block_03.md)<br>[block(四)：修改block的实现](https://github.com/BiBoyang/Study/blob/master/File/iOS_block_04.md)   |   |
-
+|KVO|[夜半无事--探究KVO的实现](https://github.com/BiBoyang/Study/blob/master/File/KVO_00.md)|  |
 
 
 ##  📖 源码解读
