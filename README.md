@@ -1,9 +1,14 @@
 # 伯阳的笔记地窖
 
 ![](https://github.com/BiBoyang/Study/blob/master/Image/changbaoshan.png?raw=true)
+标注：
+🚧：施工中 
+🤓：随便看看
+👀：值得细看
+🔄：需要返工
+🐕：需要返工
+🤔：正在学习
 
-
-能力有限，尽力而为。
 
 ## 📱 iOS
 |  Name | Article_Link  |  Info |
@@ -23,6 +28,8 @@
 |:-------:|:-------:|:------|
 | **MLeaksFinder**  |  [MLeaksFinder源码解读](https://github.com/BiBoyang/Study/wiki/MLeaksFinder%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB)|v0.2 | 
 | **SDWebImage**  | [SDWebImage源码解读 (一)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_01.md)<br>[SDWebImage源码解读 (二)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_02.md)<br>[SDWebImage源码解读 (三)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_03.md)<br>[SDWebImage源码解读 (四)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_04.md)<br>[SDWebImage源码解读 (五)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_05.md)<br>[SDWebImage源码解读 (六)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_06.md)  |  v4.4.1 |
+
+## 🐯汇编学习🚧
 
 
 ##  📒读书笔记
