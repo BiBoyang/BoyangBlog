@@ -72,7 +72,7 @@ NS_ASSUME_NONNULL_END
 当然，这个问题实际上非常普遍而且持续时间非常久，久到GUN的时代就有了，吐槽的文章也是很多，比如[这个](https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html)。这么多的缺点，也是KVOController诞生的主要原因。
 
 
-## 实现原理 
+## KVO实现原理 
 
 在[官方文档](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html#//apple_ref/doc/uid/10000177-BCICJDHA)中有这样一句话。
 >  Automatic key-value observing is implemented using a technique called isa-swizzling.
