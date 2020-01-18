@@ -32,7 +32,10 @@
 ## 🐯汇编学习🚧
 
 ## 📘内存管理🚧
-
+|Name|Article_Link|Info|
+|---|---|---|
+|Memory|[内存笔记(一)](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)||
+|Memory Usage Performance Guidelines|||
 
 ##  📒读书笔记
 |  Name | Article_Link  |  Info |
@@ -44,7 +47,7 @@
 |Name|Article_Link|Info|
 |---|---|---|
 |Threading Programming Guide|[Threading Programming Guide(一)：线程和线程管理](https://github.com/BiBoyang/Study/blob/master/File/Thread_00.md)<br>[Threading Programming Guide(二)：RunLoop](https://github.com/BiBoyang/Study/blob/master/File/Thread_01.md)<br>[Threading Programming Guide(三)：同步](https://github.com/BiBoyang/Study/blob/master/File/Thread_02.md)<br>[Threading Programming Guide(四)：线程安全和有关词汇](https://github.com/BiBoyang/Study/blob/master/File/Thread_03.md)||
-|Memory|[内存笔记(一)](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)||
+
 
 
 
