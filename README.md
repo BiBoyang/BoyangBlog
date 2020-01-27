@@ -48,6 +48,10 @@
 |---|---|---|
 |Threading Programming Guide|[Threading Programming Guide(一)：线程和线程管理](https://github.com/BiBoyang/Study/blob/master/File/Thread_00.md)<br>[Threading Programming Guide(二)：RunLoop](https://github.com/BiBoyang/Study/blob/master/File/Thread_01.md)<br>[Threading Programming Guide(三)：同步](https://github.com/BiBoyang/Study/blob/master/File/Thread_02.md)<br>[Threading Programming Guide(四)：线程安全和有关词汇](https://github.com/BiBoyang/Study/blob/master/File/Thread_03.md)||
 
+## 🍎Ruby
+
+## 🍎Python
+
 ## 杂谈
 [2019年终总结](https://github.com/BiBoyang/BoyangBlog/blob/master/File/005.md)
 
