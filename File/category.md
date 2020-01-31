@@ -1,2 +1,2 @@
 # Category探秘
-category是iOS中一种特殊的方法。
+category是iOS中一种特殊的方法。我们会在iOS中
