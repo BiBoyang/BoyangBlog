@@ -19,9 +19,9 @@
 
 没有单一原则可以减少设备中的执行次数,很多规则都取决于操作的本质, 以下是一些可以在应用中投入使用的最佳实践.
 
-*   针对不同的情况选择优化的算法 
-*   如果应用从服务器接受数据,尽量减少需要在客户端进行的处理 
-*   优化静态编译(ahead-of-time,AOT)处理 
+* 针对不同的情况选择优化的算法 
+* 如果应用从服务器接受数据,尽量减少需要在客户端进行的处理 
+* 优化静态编译(ahead-of-time,AOT)处理 
 动态编译处理的缺点在于他会强制用户等待操作完成, 但是激进的 AOT 处理则会导致计算资源的浪费, 需要根据应用和设备选择精确定量的 AOT 处理. 
 
 ### 2. 网络
@@ -32,15 +32,16 @@
 *   在进行任何网络操作之前,先检查合适的网络连接是否可用
 *   持续监视网络的可用性,并在链接状态发生变化时给与适当的反馈
 
->*官方提供了检查和监听网络状态的变化的代码，大多数人使用的网络库----AFNetWorking也提供了类似的代码，我们可以任选其一，亦或是自己编写（这段代码并不复杂）*
+> * 官方提供了检查和监听网络状态的变化的代码，大多数人使用的网络库----AFNetWorking也提供了类似的代码，我们可以任选其一，亦或是自己编写（这段代码并不复杂）*
 
 
 ### 3.  定位管理器和 GPS
 定位服务包括GPS（或GLONASS）和WIFI硬件以及蜂窝网络
->原文中只写了前两种，而我们知道iOS的定位是有三种的
->* 卫星定位
->* 蜂窝基站定位
->* Wi-Fi定位（WIFI定位的故事和缘由很有的一讲，在后面会说）
+
+> 原文中只写了前两种，而我们知道iOS的定位是有三种的
+> * 卫星定位
+> * 蜂窝基站定位
+> * Wi-Fi定位（WIFI定位的故事和缘由很有的一讲，在后面会说）
 
 我们都知道定位服务是很耗电的,使用 GPS 计算坐标需要确定两点信息:
 
@@ -51,7 +52,7 @@
 
  先来看一下初始化`CLLocationManager`并高效接受地理位置更新的典型代码
 
-```
+```C++
 .h文件
 @interface LLLocationViewController :UIViewController<CLLocationManagerDelegate>
 @property (nonatomic, strong)CLLocationManager *manager;
@@ -112,7 +113,7 @@
 
 `CLLocationManager`提供了一个替代的方法来监听位置的更新. `[self.manager startMonitoringSignificantLocationChanges]`可以帮助你在更远的距离跟踪运动.精确的值由内部决定,且与`distanceFilter`无关 使用这一模式可以在应用进入后台后继续跟踪运动,典型的做法是在应用进入后台时执行`startMonitoringSignificantLocationChanges`方法,而当应用回到前台时执行`startUpdatingLocation` 如下代码
 
-```
+```C++
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     [self.manager stopUpdatingLocation];
     [self.manager startMonitoringSignificantLocationChanges];
@@ -121,7 +122,6 @@
     [self.manager stopMonitoringSignificantLocationChanges];
     [self.manager startUpdatingLocation];    
 }
-
 ```
 ##### 3.5 在应用关闭后重启
 当应用位于后台时，任何定时器或线程都会挂起。但如果你在应用位于后台状态时申请了定位，那么应用会在每次收到更新后被短暂的唤醒。在此期间，线程和计时器都会被唤醒。
@@ -130,7 +130,7 @@
 
 在其他应用需要更多资源时, 后台的应用可能会被关闭.在这种情况下, 一旦发生位置变化,应用会被重启,因而需要重新初始化监听过程,若出现这种情况,`application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions`方法会受到键值为`UIApplicationLaunchOptionsLocationKey`的条目 如下代码: 在应用关闭后重新初始化监听
 
-```
+```C++
 - (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // 因缺乏资源而关闭应用后, 监测应用是否因为位置变化而被重启
     if (launchOptions[UIApplicationLaunchOptionsLocationKey]) {
@@ -141,7 +141,7 @@
 
 ```
 
-###4 屏幕 
+### 4 屏幕 
 屏幕非常耗电, 屏幕越大就越耗电.当然,如果你的应用在前台运行且与用户进行交互,则势必会使用屏幕并消耗电量 这里仍然有一些方案可以优化屏幕的使用
 
 ##### 4.1 动画
@@ -161,11 +161,10 @@
 
 处理这一场景的典型代码会涉及一下步骤
 
-*   1 在启动期间监测屏幕的数量 如果屏幕数量大于1,则进行切换
-*   2 监听屏幕在链接和断开时的通知. 如果有新的屏幕加入, 则进行切换. 如果所有的外部屏幕都被移除,则恢复到默认显示
+* 1. 在启动期间监测屏幕的数量 如果屏幕数量大于1,则进行切换
+* 2. 监听屏幕在链接和断开时的通知. 如果有新的屏幕加入, 则进行切换. 如果所有的外部屏幕都被移除,则恢复到默认显示
 
-```
-
+```C++
 @interface LLMultiScreenViewController ()
 @property (nonatomic, strong)UIWindow  *secondWindow;
 @end
@@ -256,7 +255,7 @@
 
 来看一下此处的代码实施
 
-```
+```C++
 - (BOOL)shouldProceedWithMinLevel:(NSUInteger)minLevel{
 
     UIDevice *device = [UIDevice currentDevice];
@@ -276,12 +275,11 @@
     }
     return NO;
 }
-
 ```
 
 我们也可以得到应用对 CPU 的利用率
 
-```
+```C++
 // 需要导入这两个头文件
 #import <mach/mach.h>
 #import <assert.h>
@@ -331,15 +329,14 @@
 
 以下的最佳实践可以确保对电量的谨慎使用, 遵循以下要点,应用可以实现对电量的高效使用.
 
-*   最小化硬件使用. 换句话说,尽可能晚的与硬件打交道, 并且一旦完成任务立即结束使用
-*   在进行密集型任务前, 检查电池电量和充电状态
-*   在电量低时, 提示用户是否确定要执行任务,并在用户同意后再执行
-*   或提供设置的选项,允许用户定义电量的阈值,以便在执行秘籍型操作前提示用户
+* 最小化硬件使用. 换句话说,尽可能晚的与硬件打交道, 并且一旦完成任务立即结束使用
+* 在进行密集型任务前, 检查电池电量和充电状态
+* 在电量低时, 提示用户是否确定要执行任务,并在用户同意后再执行
+* 或提供设置的选项,允许用户定义电量的阈值,以便在执行秘籍型操作前提示用户
 
 下边代码展示了设置电量的阈值以提示用户.
 
-```
-
+```C++
 - (IBAction)onIntensiveOperationButtonClick:(id)sender {
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
