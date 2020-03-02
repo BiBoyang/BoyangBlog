@@ -12,9 +12,9 @@ KVO最大的优势在于不需要修改其内部代码即可实现监听，但�
 > * 本文只说在自动观察的情况下的原理，KVO实际上有手动观察的状态，但是原理和自动观察一样，就不再多说了。
 
 一般情况下，我们使用KVO有以下三种步骤：
-> * 1.通过 **-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void *)context;** 方法注册观察者，观察者可以接收keyPath属性的变化事件,并且使用context加入信息；
-> * 2.实现 **-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context** 方法，当keypath对应的元素发生变化时，会发生回调；
-> * 3.如果不再需要监听，则需要使用 **-(void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context;** 方法来释放掉。
+> * 1.通过 `-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void *)context;` 方法注册观察者，观察者可以接收keyPath属性的变化事件,并且使用context加入信息；
+> * 2.实现 `-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context` 方法，当keypath对应的元素发生变化时，会发生回调；
+> * 3.如果不再需要监听，则需要使用 `-(void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context;` 方法来释放掉。
 
 这里稍微提一下NSKeyValueObservingOptions的种类：
 ```C++
