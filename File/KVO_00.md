@@ -12,11 +12,12 @@ KVO最大的优势在于不需要修改其内部代码即可实现监听，但�
 > * 本文只说在自动观察的情况下的原理，KVO实际上有手动观察的状态，但是原理和自动观察一样，就不再多说了。
 
 一般情况下，我们使用KVO有以下三种步骤：
-> * 1.通过 `-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void *)context;` 方法注册观察者，观察者可以接收keyPath属性的变化事件,并且使用context加入信息；
-> * 2.实现 `-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context` 方法，当keypath对应的元素发生变化时，会发生回调；
-> * 3.如果不再需要监听，则需要使用 `-(void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context;` 方法来释放掉。
+> * 1. 通过 `-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void *)context;` 方法注册观察者，观察者可以接收keyPath属性的变化事件,并且使用context加入信息；
+> * 2. 实现 `-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context` 方法，当keypath对应的元素发生变化时，会发生回调；
+> * 3. 如果不再需要监听，则需要使用 `-(void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath context:(nullable void *)context;` 方法来释放掉。
 
 这里稍微提一下NSKeyValueObservingOptions的种类：
+
 ```C++
 NSKeyValueObservingOptionNew = 0x01, 提供更改前的值
 NSKeyValueObservingOptionOld = 0x02, 提供更改后的值
@@ -62,14 +63,14 @@ NS_ASSUME_NONNULL_END
 好了，到这里，就该吐槽一下KVO的很多坑爹的地方了。
 > * 1. 每次都必须在可靠准确的时间点**手动**移除观察者；
 > * 2. 传递上下文使用context时非常别扭，因为这个是个void指针，需要神奇的桥接；
-    比如说我要传递一个字符串，添加观察者的时候使用 **(__bridge void * _Nullable)([NSString stringWithFormat:@"yellow"])** ，然后在接收的时候，需要使用**(__bridge NSString *)**来转换过来。
+    比如说我要传递一个字符串，添加观察者的时候使用 `(__bridge void * _Nullable)([NSString stringWithFormat:@"yellow"])` ，然后在接收的时候，需要使用`(__bridge NSString *)`来转换过来。
 > * 3. 如果有多个观察者，在手动移除的时候需要鉴别context来分别移除；
 > * 4. addObserver和removeObserver需要是成对的，如果remove多了就会发生crash，如果少remove了，就会在再次接收到回调的时候发生crash；
 > * 5. 一旦被观察的对象和属性很多时，就要分门别类的用if方法来分辨，代码写的奇丑无比。
 > * 6. KVO的实现是通过setter方法，使用KVO必须调用setter，直接访问属性对象是没有用的。
 > * 7. KVO在多线程的情况下并不安全。KVO是在setter的线程上获得通知，我们使用的时候一定要注意线程的问题。这里是[官方的解读](https://developer.apple.com/library/archive/documentation/General/Conceptual/CocoaEncyclopedia/ReceptionistPattern/ReceptionistPattern.html)，还有其他的[文章](https://inessential.com/2013/12/20/observers_and_thread_safety)来阐述这个事实。
 
-当然，这个问题实际上非常普遍而且持续时间非常久，久到GUN的时代就有了，吐槽的文章也是很多，比如[这个](https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html)。这么多的缺点，也是KVOController诞生的主要原因。
+当然，这个问题实际上非常普遍而且持续时间非常久，久到GUN的时代就有了，吐槽的文章也是很多，比如[这个](https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html)。这么多的缺点，也是各种KVO的封装，比如说KVOController诞生的主要原因。
 
 
 ## KVO实现原理 
@@ -667,5 +668,5 @@ ps:看完KVO其实比较无趣，因为你会发现KVO其实有不少优秀的�
 
 
 ## 引用
-[Key-Value Observing Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html#//apple_ref/doc/uid/10000177-BCICJDHA)
+[Key-Value Observing Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html#//apple_ref/doc/uid/10000177-BCICJDHA)      
 [Observers and Thread Safety](https://inessential.com/2013/12/20/observers_and_thread_safety)
