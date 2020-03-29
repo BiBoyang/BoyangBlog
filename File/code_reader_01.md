@@ -1,15 +1,14 @@
 # SDWebImage源码解读 (一)
 ###### SDWebImage (v4.4.1)
 特点:
->*  Categories for UIImageView, UIButton, MKAnnotationView adding web image and cache management
->* An asynchronous image downloader - 异步下载
->* An asynchronous memory + disk image caching with automatic cache expiration handling - 缓存自动到期，memory和disk缓存
->* A background image decompression - 后台解压
->* A guarantee that the same URL won't be downloaded several times - URL不会被多次下载
->* A guarantee that bogus URLs won't be retried again and again - 虚假的URL不会被持续重试
->* A guarantee that main thread will never be blocked
- Performances! - 主线程安全
->* Use GCD and ARC 
+> *  Categories for UIImageView, UIButton, MKAnnotationView adding web image and cache management
+> * An asynchronous image downloader - 异步下载
+> * An asynchronous memory + disk image caching with automatic cache expiration handling - 缓存自动到期，memory和disk缓存
+> * A background image decompression - 后台解压
+> * A guarantee that the same URL won't be downloaded several times - URL不会被多次下载
+> * A guarantee that bogus URLs won't be retried again and again - 虚假的URL不会被持续重试
+> * A guarantee that main thread will never be blocked Performances! - 主线程安全
+> * Use GCD and ARC 
 
 # 目录
 * **主要方法**
@@ -87,7 +86,7 @@
 ## SDWebImageCompat
 这里在最开始先是使用**__OBJC_GC__**宏来告知使用者，**SDWebimage**是不支持垃圾回收机制的。
 接着，作者在这里吐槽了一下Apple的平台判断宏。
-```
+```C++
  Apple's defines from TargetConditionals.h are a bit weird.
  Apple的从TargetConditionals.h引用的宏有点诡异。
  Seems like TARGET_OS_MAC is always defined (on all platforms).
@@ -96,7 +95,7 @@
 为了确定我们是否正在运行OSX，我们只能靠target_os_iphone = 0 和 其他所有的平台
 ```
 这里我标注一下这个宏的槽点
-```
+```C++
  +------------------------------------------------+
  |                TARGET_OS_MAC                   |
  | +---+  +-------------------------------------+ |
@@ -113,7 +112,7 @@
  
 #### 枚举宏的细节
  这里有一个很有意思的点是，作者把NS_ENUM和NS_OPTIONS的宏重写了一遍，改成了一样的位运算的样子。
- ```
+ ```C++
  #ifndef NS_ENUM
 #define NS_ENUM(_type, _name) enum _name : _type _name; enum _name : _type
 #endif
@@ -127,7 +126,7 @@
 #### 主线程判断
 **dispatch_main_sync_safe**宏是一个保证block在主线程执行的方法。
 在之前的版本中，主线程判断使用的是NSThread来判断
-```
+```C++
 #define dispatch_main_sync_safe(block)\
     if ([NSThread isMainThread]) {\
         block();\
@@ -137,7 +136,7 @@
 ``` 
 但是这个方法有个问题，**它只能判断线程是否是主线程，但是无法判断队列是否是当前队列**。
 现在更新了一个新的方法。
-```
+```C++
 #ifndef dispatch_queue_async_safe
 #define dispatch_queue_async_safe(queue, block)\
     if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(queue)) == 0) {\
@@ -154,10 +153,11 @@
  **strcmp()**是c语言的字符串比较函数. strcmp(s1，s2) 判断两个字符串s1和s2是否相同，相同== 0； 如果当前线程已经是主线程了，那么在调用**dispatch_async(dispatch_get_main_queue(), block)**有可能会出现crash；如果当前线程不是主线程，调用**dispatch_async(dispatch_get_main_queue(), block)**。
  通过这样的判断，可以保证是主线程当前队列。
   这么做的原因是可以[查看这个](https://github.com/lionheart/openradar-mirror/issues/7053)。以及张星宇的[这篇文章](https://bestswifter.com/zhu-xian-cheng-zhong-ye-bu-jue-dui-an-quan-de-ui-cao-zuo/)。
+  
 #### 修改图片尺寸
 有时候，后台传给我们的图片是有多张的，需要去适配屏幕大小。
 我们需要判断标识的比例来进行调整。
-```
+```C++
 inline UIImage *SDScaledImageForKey(NSString * _Nullable key, UIImage * _Nullable image) {
     if (!image)
     {
