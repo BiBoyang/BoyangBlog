@@ -296,14 +296,14 @@ struct weak_entry_t {
  
 我们在上边的代码中可以发现有两个 **weak_referrer_t**，第一个应该是我们正常情况下的weak表，第二个我有点没看明白，但是根据上下文，猜测可能是一个补充，在当前弱引用对象少于2个的时候，不在采用hash了，直接用数组去实现的。
 
-这里确实有点难懂，上面的内容也是我的猜测。
-里面还有些细节比如bad_weak_table神马的，有时间继续往下研究。要好好补一补数据结构的知识了。
- 这里直接那冬瓜的图片来总结SideTable。
- ![](http://7xwh85.com1.z0.glb.clouddn.com/sidetable.png)
- 里面还有旧对象解除注册操作 weak_unregister_no_lock和新对象添加注册操作 weak_register_no_lock。
- ```
- id 
-weak_register_no_lock(weak_table_t *weak_table, id referent_id, 
+这里确实有点难懂，上面的内容很多也是我的猜测。
+
+这里直接借用朋友的一张图来表示SideTable。
+ ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/sidetable.png?raw=true)
+ 
+在继续往下看，里面还有旧对象解除注册操作**weak_unregister_no_lock**和新对象添加注册操作**weak_register_no_lock**。
+ ```C++
+ id weak_register_no_lock(weak_table_t *weak_table, id referent_id, 
                       id *referrer_id, bool crashIfDeallocating)
 {
     objc_object *referent = (objc_object *)referent_id;
@@ -412,10 +412,10 @@ id weak_register_no_lock(weak_table_t *weak_table, id referent_id,
 
  
 ## hash表的动态调整 
-我们知道，理想的hash表的性能是有所有查找的性能最高的，但是理想毕竟是理想。在hash表中元素过多的时候，我们需要及时的扩容来提升性能。（尤其是开发地址法！）
+我们知道，理想状态下的哈希表的查找性能是有所有集合中查找性能最高的，但是理想毕竟是理想。在哈希表中元素过多的时候，我们需要及时的扩容来提升性能。（尤其是使用开发地址法的时候！）
  
  这里有一个 **append_referrer**函数
- ```
+ ```C++
  static void append_referrer(weak_entry_t *entry, objc_object **new_referrer) {
     if (! entry->out_of_line()) {
         // Try to insert inline.
@@ -461,8 +461,8 @@ id weak_register_no_lock(weak_table_t *weak_table, id referent_id,
     entry->num_refs++;
 }
  ```
- 这里的关键代码在于，标明了，weak的hash表，会在使用率在75%的时候进行扩充。扩充的方法是很简单的copy法。
- ```
+这里的关键代码在于，标明了，存储weak的哈希表，会在使用率在75%的时候进行扩充。扩充的方法是很简单的copy法。
+ ```C++
  __attribute__((noinline, used))
 static void grow_refs_and_insert(weak_entry_t *entry, 
                                  objc_object **new_referrer)
@@ -490,10 +490,11 @@ static void grow_refs_and_insert(weak_entry_t *entry,
     if (old_refs) free(old_refs);
 }
  ```
- 扩充一个容量是原来两倍的新hash表，并将老hash表的元素插入到新的hash表中。
- 那么既然有扩充，也势必会有缩小。如果hash表中内容过少，我们就应该及时的缩小这个hash表，以免空间的浪费。
+扩充一个容量是原来两倍的新的哈希表，并将旧哈希表的元素插入到新的哈希表中。
+ 
+那么既然有扩充，也势必会有缩小。如果哈希表中元素过少，我们就应该及时的缩小这个哈希表，以免造成空间的浪费。
 
- ```
+ ```C++
  static void weak_compact_maybe(weak_table_t *weak_table)
 {
     size_t old_size = TABLE_SIZE(weak_table);
@@ -507,16 +508,17 @@ static void grow_refs_and_insert(weak_entry_t *entry,
  如果空间使用率小于1/16的时候，就会把空间缩小为原有的1/8。
  
 ## 销毁过程
+
 释放对象的时候，基本流程如下
->1、调用objc_release
-2、因为对象的引用计数为0，所以执行dealloc
-3、_objc_rootDealloc
-4、object_dispose
-5、objc_destructInstance
-6、objc_clear_deallocating
+1. 调用objc_release
+2. 因为对象的引用计数为0，所以执行dealloc
+3. _objc_rootDealloc
+4. object_dispose
+5. objc_destructInstance
+6. objc_clear_deallocating
 
 objc_destructInstance方法
-```
+```C++
 void *objc_destructInstance(id obj) 
 {
     if (obj) {
@@ -536,11 +538,11 @@ void *objc_destructInstance(id obj)
     return obj;
 }
 ```
-这里的object_cxxDestruct方法可以查看[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)，最新版本的代码可能不想是文中所写，但是原理还是相同的：用来销毁对象的实例变量，并且调用父类的dealloc。
+这里的object_cxxDestruct方法可以查看[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)，最新版本的代码可能不是和文中所写完全相同，但是原理还是相同的----用来销毁对象的实例变量，并且调用父类的dealloc。
 
 调用objc_clear_deallocating函数。
 
-```
+```C++
 void objc_clear_deallocating(id obj) 
 {
     assert(obj);
@@ -550,13 +552,14 @@ void objc_clear_deallocating(id obj)
 }
 ```
 <!--我们顺着`clearDeallocating_slow`->`objc_object::clearDeallocating_slow`->`weak_clear_no_lock`->`weak_entry_remove`->`weak_compact_maybe`->......方法太多，总结起来太费事了（总算知道为什么大家的文章对于weak的释放写的那么语焉不详）。-->
-总结objc_clear_deallocating的作用		
-> 1、从weak表中获取废弃对象的地址为键值的记录		
-> 2、将包含在记录中的所有附有 weak修饰符变量的地址，赋值为nil	
-> 3、将weak表中该记录删除			
-> 4、从引用计数表中删除废弃对象的地址为键值的记录
 
-接下来
+总结objc_clear_deallocating的作用：
+1. 从weak表中获取废弃对象的地址为键值的记录;
+2. 将包含在记录中的所有附有 weak修饰符变量的地址，赋值为nil;
+3. 将weak表中该记录删除;
+4. 从引用计数表中删除废弃对象的地址为键值的记录。
+
+接下来接着看
 
 ```C++
 inline void 
@@ -576,7 +579,7 @@ objc_object::clearDeallocating()
 ```
 我们会发现这是个内联函数，内部有两个方法；这两个方法内部都是用过 **weak_clear_no_lock**来清除弱引用。我们直接来看这个方法:
 
-```
+```C++
 void 
 weak_clear_no_lock(weak_table_t *weak_table, id referent_id) 
 {
@@ -622,12 +625,12 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
     weak_entry_remove(weak_table, entry);
 }
 ```
-我们可以看到，这里清楚了对象所有的weak指针并设置为nil，同时从weak表中清楚了对应的 **weak_entry_t**对象。
+我们可以看到，这里清楚了对象所有的weak指针并设置为nil，同时从weak表中清除了对应的 **weak_entry_t**对象。
 
-## autorelease
+# autorelease
 在我们使用weak对象的时候，会把weak引用的对象自动加入到自动释放池中。
 
-```
+```C++
 {
 	id __weak obj1 = obj;
 	NSLog(@"%@", obj1);
@@ -635,7 +638,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 ```
 可以转换为
 
-```
+```C++
 id obj1;
 obj_initWeak(&obj1, obj);
 id tmp = objc_loadWeakRetained(&obj1);
@@ -645,14 +648,16 @@ objc_destory(&obj1);
 ```
 我们可以发现，比原有的多出了两个方法
 
-```
+```C++
 id tmp = objc_loadWeakRetained(&obj1);
 objc_autorelease(tmp);
 ```
-**objc_loadWeakRetained**函数会取出__weak修饰的对象并且retain；
-**objc_autorelease**函数会将对象注册到autoreleasepool当中。
-当原对象的引用计数变成0的时候,在一个运行循环内就可以将该对象以及该对象所有的弱引用释放掉了。
-这里也印证了一个问题，在使用weak修饰的对象的时候，如果不想被释放，最好要strong修饰一下。这也是所谓的 **weak-strong dance**而不是淡出的weak的原因。
+
+**objc_loadWeakRetained**函数会取出__weak修饰的对象并且retain；**objc_autorelease**函数会将对象注册到autoreleasepool当中。
+
+当原对象的引用计数变成0的时候,在一个RunLoop循环内就可以将该对象以及该对象所有的弱引用释放掉了。
+这里也印证了一个问题，在使用`weak`修饰的对象的时候，如果不想被立即释放，最好要使用`strong`修饰一下。这也是所谓的 **weak-strong dance**而不是只有的weak的原因。
 
 # 引用
+
 《Objective-C高级编程》
