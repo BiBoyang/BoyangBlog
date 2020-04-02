@@ -1,24 +1,21 @@
 # @property属性相关（二）：weak
 ## weak的实现
-我们这里直接查看[	objc4-723.tar.gz](https://opensource.apple.com/tarballs/objc4/)源码。
-节省点话说，可以分为以下三步：
-1、初始化时：runtime会调用**objc_initWeak**函数，初始化一个新的weak指针指向对象的地址。
+我们这里直接查看[objc4-723.tar.gz](https://opensource.apple.com/tarballs/objc4/)源码。
+流程可以简单地分为以下三步：
 
-2、添加引用时：**objc_initWeak**函数会调用 **objc_storeWeak()** 函数， **objc_storeWeak()** 的作用是更新指针指向，创建对应的弱引用表。
-
-3、释放时，调用**clearDeallocating**函数。**clearDeallocating**函数首先根据对象地址获取所有weak指针地址的数组，然后遍历这个数组把其中的数据设为nil，最后把这个entry从weak表中删除，最后清理对象的记录。
-
+1. 初始化时：runtime会调用**objc_initWeak**函数，初始化一个新的weak指针指向对象的地址。
+2. 添加引用时：**objc_initWeak**函数会调用 **objc_storeWeak()** 函数， **objc_storeWeak()** 的作用是更新指针指向，创建对应的弱引用表。
+3. 释放时，调用**clearDeallocating**函数。**clearDeallocating**函数首先根据对象地址获取所有weak指针地址的数组，然后遍历这个数组把其中的数据设为nil，最后把这个entry从weak表中删除，最后清理对象的记录。
 
 ## 实现过程
 当有一个weak的属性时。编译器会自动创建一下方法
-
-```
+```C++
 objc_initWeak(&obj1,obj);//初始化
 objc_destroyWeak(&obj1);//释放
 ```
 在**NSObject.mm**文件中，找到方法的实现
 
-```
+```C++
 id objc_initWeak(id *location, id newObj)
 {
     // 查看对象实例是否有效
@@ -41,14 +38,15 @@ id objc_initWeak(id *location, id newObj)
 **注：这里的实现代码是最新版的，但是即使是倒数第二版和这里稍有不同，不过并不影响读取，新版做了性能的优化。**
 
 这里方法比较简单明了，但是我们要知道这里有一个潜在的前提条件：
-> location要是一个没有被注册为__weak对象的有效指针。如果newObj是空指针或它指向的对象已经释放，则location也就是weak的指针将初始化为0（nil）。 否则，将object注册为指向location的__weak对象。 
+> * location是一个没有被注册为__weak对象的有效指针。如果newObj是空指针或它指向的对象已经释放，则location也就是weak的指针将初始化为0（nil）。 否则，将object注册为指向location的__weak对象。 
+
 这里是表层的判断，我们继续往下看相关实现
 
-```
+```C++
 // 更新weak变量.
-// 当设置HaveOld是true，即DoHaveOld，表示这个weak变量已经有值，需要被清理，这个值也有能是nil
-// 当设置HaveNew是true， 即DoHaveNew，表示有一个新值被赋值给weak变量，这个值也有能是nil
-//当设置参数CrashIfDeallocating是true，即DoCrashIfDeallocating，如果newObj已经被释放或者newObj是一个不支持弱引用的类，则暂停进程
+// 当设置HaveOld是true，即DoHaveOld，表示这个weak变量已经有值，需要被清理，这个值也有可能是nil
+// 当设置HaveNew是true， 即DoHaveNew，表示有一个新值被赋值给weak变量，这个值也有可能是nil
+// 当设置参数CrashIfDeallocating是true，即DoCrashIfDeallocating，如果newObj已经被释放或者newObj是一个不支持弱引用的类，则暂停进程
 // deallocating或newObj的类不支持弱引用
 // 当设置参数CrashIfDeallocating是false，即DontCrashIfDeallocating，则存储nil
 
@@ -169,16 +167,15 @@ storeWeak(id *location, objc_object *newObj)
     return (id)newObj;
 }
 ```
-这个函数的作用是在添加引用的时候，添加新的指针和创建对应的弱引用表。
-> -1- 这里有关initialize方法的问题.
-在使用 **+initialized**方法的时候，因为这个方法是在alloc之前调用的。不这么做，可能会出现+initialize 中调用了 storeWeak 方法，而在 storeWeak 方法中 weak_register_no_lock 方法中用到对象的 isa 还没有初始化完成的情况。
+storeWeak函数的作用是在添加引用的时候，添加新的指针和创建对应的弱引用表。
+* -1- 这里有关initialize方法的问题.
+    在使用 **+initialized**方法的时候，因为这个方法是在alloc之前调用的。不这么做，可能会出现**+initialize**中调用了**storeWeak**方法，而在**storeWeak**方法中**weak_register_no_lock**方法中用到对象的 isa 还没有初始化完成的情况。
 
+## 这里有几个关键方法，需要说明一下。
 
-
-这里有几个关键方法，需要说明一下。
 #### SideTable
 这个是一个结构体。
-```
+```C++
 enum HaveOld { DontHaveOld = false, DoHaveOld = true };
 enum HaveNew { DontHaveNew = false, DoHaveNew = true };
 
@@ -210,8 +207,9 @@ struct SideTable {
     static void unlockTwo(SideTable *lock1, SideTable *lock2);
 };
 ```
-这里面第一个是为了防止竞争选择的自旋锁，第二个是协助对象的 isa 指针的 extra_rc 共同引用计数的变量，第三个就是我们要了解的关键，一个weak引用的hash表。
-```
+这里面**slock**是为了防止竞争选择的自旋锁，第二个**refcnts**是协助对象的 isa 指针的extra_rc引用计数的变量，第三个**weak_table**就是我们要了解的关键，一个weak引用的哈希表。
+
+```C++
 struct weak_table_t {
     // 保存了所有指向指定对象的 weak 指针
     weak_entry_t *weak_entries;
@@ -223,11 +221,11 @@ struct weak_table_t {
     uintptr_t max_hash_displacement;
 };
 ```
-这里的最大偏移量，是因为苹果创建的hash表使用的是开放寻址法中的线性探测法，元素默认会有偏移，用max_hash_displacement来记录写入元素时候所经过的最大偏移量和读取元素的时候所经历的最大偏移量,当读取的hash_displacement大于写入时候的max_hash_displacement的时候就会抛出错误.
+这里的最大偏移量**max_hash_displacement**，是因为苹果创建的hash表使用的是开放寻址法中的线性探测法，元素默认会有偏移，用**max_hash_displacement**来记录写入元素时候所经过的最大偏移量和读取元素的时候所经历的最大偏移量,当读取的**hash_displacement**大于写入时候的**max_hash_displacement**的时候就会抛出错误.
 
 
-我们继续往下看
-```
+我们继续往下看。
+```C++
 /**
  * The internal structure stored in the weak references table.
  //存储在弱引用表中的内部结构
@@ -287,14 +285,19 @@ struct weak_entry_t {
     }
 };
 ```
+
 <!-- 弱表是由单个自旋锁控制的哈希表。一个被分配的内存块，大多数是一个对象，但是在GC之下，任何这样的分配，可以是它的地址存储一个弱引用存储单元中，通过使用编译器生成的写屏障或手工编码的寄存器弱原语的使用。-->
- 与注册相关联是一个回调块，应对这种情况：其中一个被分配的内存块被回收。该表在分配内存的地址上被哈希。当弱引用标记内存改变它的引用，我们可以查看之前的引用。
- 因此，在哈希表中，由弱引用项索引的是当前存储该地址的所有位置的列表。
- 对于ARC，我们还跟踪是否存在一个任意被解除分配的对象，在调用dealloc之前将其简单地放置在表中，以及在内存回收之前释放objc_clear_deallocating。
+
+与注册相关联是一个回调块，应对这种情况：其中一个被分配的内存块被回收。该表在分配内存的地址上被哈希。当弱引用标记内存改变它的引用，我们可以查看之前的引用。
+
+因此，在哈希表中，由弱引用项索引的是当前存储该地址的所有位置的列表。
+
+对于ARC，我们还跟踪是否存在一个任意被解除分配的对象，在调用dealloc之前将其简单地放置在表中，以及在内存回收之前释放**objc_clear_deallocating**。
  
- 我们在上边的代码中可以发现有两个 **weak_referrer_t**，第一个应该是我们正常情况下的weak表，第二个我有点没看明白，但是根据上下文，猜测可能是一个补充，在当前弱引用对象少于2个的时候，不在采用hash了，直接用数组去实现的。
- 这里确实有点难懂。
- 里面还有些细节比如bad_weak_table神马的，有时间继续往下研究。要好好补一补数据结构的知识了。
+我们在上边的代码中可以发现有两个 **weak_referrer_t**，第一个应该是我们正常情况下的weak表，第二个我有点没看明白，但是根据上下文，猜测可能是一个补充，在当前弱引用对象少于2个的时候，不在采用hash了，直接用数组去实现的。
+
+这里确实有点难懂，上面的内容也是我的猜测。
+里面还有些细节比如bad_weak_table神马的，有时间继续往下研究。要好好补一补数据结构的知识了。
  这里直接那冬瓜的图片来总结SideTable。
  ![](http://7xwh85.com1.z0.glb.clouddn.com/sidetable.png)
  里面还有旧对象解除注册操作 weak_unregister_no_lock和新对象添加注册操作 weak_register_no_lock。
