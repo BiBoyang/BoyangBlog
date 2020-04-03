@@ -114,7 +114,7 @@ block();
 ```
 当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
 
-![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
+![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
 我们可以发现，当把block置为nil的时候，第四行的函数指针，被置为NULL，注意，这里是NULL而不是nil。
 
 我们给一个对象发送nil消息是没有问题的，但是给如果是NULL就会发生崩溃。
