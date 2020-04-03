@@ -372,7 +372,7 @@ __Block_byref_i_0 *__forwarding;
 block通过指针的持续传递，将使用的自动变量值保存到了block的结构体实例中。在block体内修改 **__block0**变量，通过一系列指针指向关系，最终指向了__Block_byref_age_0结构体内与局部变量同名同类型的那个成员，并成功修改变量值。
 
 在栈中， **__forwarding**指向了自己本身，但是如果复制到了堆上，**__forwarding**就指向复制到堆上的block，而堆上的block中的 **__forwarding**这时候指向了自己。
-![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_6.png)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/block_6.jpg?raw=true)
 
 #### 2.对象的变量
 
