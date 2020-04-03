@@ -235,7 +235,7 @@ nullable表示对象可以是NULL或nil，而nonnull表示对象不应该为空�
 
 
 # 参考资料
-<!-[iOS @property探究(二): 深入理解](https://www.jianshu.com/p/44d12884e24e)->
+
 [Runtime源码 —— property和ivar](https://www.jianshu.com/p/89ac27684693)
 [iOS中Weak的底层实现](https://www.jianshu.com/p/fa7210773e8f)
 [atomic性能真的很差，并发queue+barrier性能真的很好吗？](https://www.jianshu.com/p/15df680d510e)
