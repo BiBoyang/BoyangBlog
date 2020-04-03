@@ -5,19 +5,20 @@
 [Objective-C Automatic Reference Counting (ARC)](http://clang.llvm.org/docs/AutomaticReferenceCounting.html)
 
 # 怎么泄漏的
-我们知道，在ARC中，除了全局block，block都是在栈上进行创建的。使用的时候，会自动将它复制到堆中。中间会经历objc_retainBlock->_Block_copy->_Block_copy_internal方法链。换过来说，我们使用的每个拦截了自动变量的block，都会经历这写方法（注意这一点很重要）。
+我们知道，在ARC中，除了全局block，block都是在栈上进行创建的。使用的时候，会自动将它复制到堆中。中间会经历`objc_retainBlock` -> `_Block_copy` -> `_Block_copy_internal`方法链。换过来说，我们使用的每个拦截了自动变量的block，都会经历这写方法（注意这一点很重要）。
+
 通过之前的研究，了解到在 **__main_block_impl_0**中会保存着引用到的变量。在转换过的block代码中，block会强行持有拦截的外部对象，不管有没有改变过，都是会造成强引用。
 
 # __string和__weak
 ## __strong
 __strong实际上是一个默认的方法。
-```
+```C++
 {
     id __strong obj = [[NSObject alloc] init];
 }
 ```
 代码会被转换成这个样子
-```
+```C++
 id __attribute__((objc_ownership(strong))) obj = 
 ((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), 
 sel_registerName("alloc")), 
@@ -36,24 +37,25 @@ objc_release(obj);
 > 这里我们要使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m**方法去转换为C++代码，原因是因为，__weak其实只在ARC的状态下才能使用，之前使用 **clang -rewrite-objc main.m**是直接将代码转换为C++，并不有限制。
 
 声明一个__weak对象
-```
+```C++
 {
     id __weak obj = strongObj;
 }
 ```
 转换之后
-```
+```C++
 id __attribute__((objc_ownership(none))) obj1 = strongObj;
 ```
 相应的会调用
-```
+```C++
 id obj ;
 objc_initWeak(&obj,strongObj);
 objc_destoryWeak(&obj);
 ```
 从名字上可以看出来，一个是创建一个是销毁。
+
 这里LLVM文档和objc_723文档有些许不同。我这里采用最新的objc_723代码，比之前的有优化：
-```
+```C++
 id objc_initWeak(id *location, id newObj)
 {
     // 查看对象实例是否有效
@@ -80,7 +82,8 @@ void objc_destroyWeak(id *location)
 }
 ```
 这两个方法，最后都指向了 **storeWeak**方法，这是一个很长的方法:
-```
+
+```C++
 // Update a weak variable.
 // If HaveOld is true, the variable has an existing value 
 //   that needs to be cleaned up. This value might be nil.
@@ -220,20 +223,24 @@ static id storeWeak(id *location, objc_object *newObj)
     return (id)newObj;
 }
 ```
-这里不比再重复一遍weak表实现。
-简单点说，由于weak表也是用Hash table实现的，所以objc_storeWeak函数就把第一个入参的变量地址注册到weak表中，然后根据第二个入参来决定是否移除。如果第二个参数为0，那么就把__weak变量从weak表中删除记录，并从引用计数表中删除对应的键值记录。
-所以如果__weak引用的原对象如果被释放了，那么对应的__weak对象就会被指为nil。原来就是通过objc_storeWeak函数这些函数来实现的。
+这里不再重复一遍weak的实现。
+
+简单点说，由于weak也是用哈希表实现的，所以`objc_storeWeak`函数就把第一个入参的变量地址注册到weak表中，然后根据第二个入参来决定是否移除。如果第二个参数为0，那么就把**__weak**变量从`weak`表中删除记录，并从引用计数表中删除对应的键值记录。
+
+所以如果**__weak**引用的原对象如果被释放了，那么对应的**__weak**对象就会被指为nil。原来就是通过`objc_storeWeak`函数这些函数来实现的。
 
 ## weakSelf和strongSelf
 
-```
+```C++
 __weak __typeof(self)weakSelf = self;
 __strong __typeof(weakSelf)strongSelf = weakSelf;      
 ```
 weakSelf是为了让block不去持有self，避免了循环引用，如果在Block内需要访问使用self的方法、变量，建议使用weakSelf。
+
 但是，这里会出现一个问题。使用weakSelf修饰的 **self.**变量，是有可能在执行的过程中就被释放的。
+
 以下代码为例
-```
+```C++
 - (void)blockRetainCycle_1 {
     __weak __typeof(self)weakSelf = self;
     self.block = ^{
@@ -284,3 +291,11 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
 而在ARC下要使用什么关键字呢？
 strong和copy都是可以的。
 之前我们知道，在ARC中，block会自动从栈被复制到堆中，这个copy是自动了，即使使用strong还是依然会有copy操作。
+
+# 总结
+
+* 如果block内部使用到了某个变量，而且这个变量是局部变量，那么block会捕获这个变量并存储到block底层的结构体中。
+* 如果捕获的这个变量是用__weak修饰的，那么block内部就是用弱指针指向这个变量(也就是block不持有这个对象)，否则block内部就是用强指针指向这个对象(也就是block持有这个对象)。
+* self在某种意义上也是一个局部变量。
+* 如果self并不持有这个block，block内部怎么引用self都不会造成循环引用。
+
