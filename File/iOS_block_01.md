@@ -105,7 +105,7 @@ __main_block_impl_0{
 ```
 这么一来，我们可以将block理解为，一个OC对象、一个函数。
 
-#### 崩溃地址
+## 崩溃
 
 如果我们把block设置为nil，然后去调用，会发生什么？
 ```C++
@@ -113,18 +113,18 @@ void (^block)(void) = nil;
 block();
 ```
 当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
-我们这时候进行对比：
-![正常的block](https://ws3.sinaimg.cn/large/006tNbRwly1fx73mopihgj31260dc0wr.jpg)
-![置为nil的block](https://ws4.sinaimg.cn/large/006tNbRwly1fx73n3yf70j313u0b0dje.jpg)
+
+![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
 我们可以发现，当把block置为nil的时候，第四行的函数指针，被置为NULL，注意，这里是NULL而不是nil。
+
 我们给一个对象发送nil消息是没有问题的，但是给如果是NULL就会发生崩溃。
 
-> nil：指向oc中对象的空指针
-Nil：指向oc中类的空指针
-NULL：指向其他类型的空指针，如一个c类型的内存指针
-NSNull：在集合对象中，表示空值的对象
-若obj为nil:[obj message]将返回NO,而不是NSException
-若obj为NSNull:[obj message]将抛出异常NSException
+* nil：指向oc中对象的空指针
+* Nil：指向oc中类的空指针
+* NULL：指向其他类型的空指针，如一个c类型的内存指针
+* NSNull：在集合对象中，表示空值的对象
+* 若obj为nil:[obj message]将返回NO,而不是NSException
+* 若obj为NSNull:[obj message]将抛出异常NSException
 
 它直接访问到了函数指针，因为前三位分别是void、int、int，大小分别是8、4、4，加一块就为16，所以在十六位中，就表示出0x10地址的崩溃。
 如果是在32位的系统中，void的大小是4，崩溃的地址应该就是0x0c。

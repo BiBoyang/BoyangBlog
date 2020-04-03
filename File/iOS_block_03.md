@@ -26,14 +26,15 @@ sel_registerName("init"));
 //代码实际上只有一行，为了方便观看打了换行
 ```
 抽离出来，实际上主要是这三个方法
-```
+```C++
 id obj = objc_msgSend(NSObject, @selector(alloc));
 objc_msgSend(obj,selector(init));
 objc_release(obj);
 ```
 也就是说，ARC下的对象，正常情况下都是__strong修饰的。
 
-##__weak
+## __weak
+
 > 这里我们要使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m**方法去转换为C++代码，原因是因为，__weak其实只在ARC的状态下才能使用，之前使用 **clang -rewrite-objc main.m**是直接将代码转换为C++，并不有限制。
 
 声明一个__weak对象
@@ -263,6 +264,7 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
 但是，这里依然存在一个微小的问题：
 我们知道使用weakSelf的时候是无法保证在作用域中一直持有的。虽然使用了strongSelf，但是还是会存在微小的概率，让weakSelf在strongSelf创建之前被释放。如果是单纯的给self对象发送信息的话，这么其实问题不大，*OC的消息转发机制保证了我们即使给nil的对象发送消息也不会出现问题*。
 但是如果我们有其他的操作，比如说将self对象添加进数组中，如上面代码所示，这里就会发生crash了。
+
 那么我们要需要进一步的保护
 ```
 - (void)blockRetainCycle_3 {
