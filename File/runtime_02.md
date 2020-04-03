@@ -89,7 +89,7 @@ typedef struct {
 ```
 然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到T表示类型，C表示copy，N表示nonatomic，V表示实例变量----这个实际上就是方法签名。
 
-这里多出来一个**.cxx_destruct**，可以查看sunnyxx的[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)来理解。
+这里多出来一个 **.cxx_destruct** ，可以查看sunnyxx的[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)来理解。
 这个方法简单来讲作用如下：
 * 1.只有在ARC下这个方法才会出现（试验代码的情况下）
 * 2.只有当前类拥有实例变量时（不论是不是用property）这个方法才会出现，且父类的实例变量不会导致子类拥有这个方法
@@ -237,7 +237,6 @@ nullable表示对象可以是NULL或nil，而nonnull表示对象不应该为空�
 # 参考资料
 <!-[iOS @property探究(二): 深入理解](https://www.jianshu.com/p/44d12884e24e)->
 [Runtime源码 —— property和ivar](https://www.jianshu.com/p/89ac27684693)
-
 [iOS中Weak的底层实现](https://www.jianshu.com/p/fa7210773e8f)
 [atomic性能真的很差，并发queue+barrier性能真的很好吗？](https://www.jianshu.com/p/15df680d510e)
 
@@ -250,3 +249,4 @@ nullable表示对象可以是NULL或nil，而nonnull表示对象不应该为空�
 [weak 弱引用的实现方式](https://www.desgard.com/weak/)
 
 [从经典问题来看 Copy 方法](https://www.desgard.com/copy/)
+->
