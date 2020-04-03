@@ -301,3 +301,5 @@ strong和copy都是可以的。
 * self在某种意义上也是一个局部变量。
 * 如果self并不持有这个block，block内部怎么引用self都不会造成循环引用。
 
+
+下一篇文章[block(四)：修改block的实现](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_block_04.md)

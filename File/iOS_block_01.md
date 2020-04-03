@@ -136,16 +136,18 @@ block();
 > * __NSMallocBlock
 
 ```C++
-    void (^block)(void) = ^{
-        NSLog(@"biboyang");
+void (^block)(void) = ^{
+    NSLog(@"biboyang");
+};
+block();
+```
+或
+```C++
+static int age = 10;
+    void(^block)(void) = ^{
+        NSLog(@"Hello, World! %d",age);
     };
-    block();
-    或
-    static int age = 10;
-        void(^block)(void) = ^{
-            NSLog(@"Hello, World! %d",age);
-        };
-    block();
+block();
 ```
 像是这种，没有对外捕获变量的，就是GlobaBlock。
 
@@ -156,6 +158,7 @@ block();
     };
     block2();
 ```
+
 这种block，在MRC中，即是StackBlock。在ARC中，因为编译器做了优化，自动进行了copy，这种就是MallocBlock了。
 
 之所以做这种优化的原因很好理解：
@@ -180,6 +183,7 @@ ARC也是如此做的。它会自动将栈上的block复制到堆上，所以，
 > 4. 调用系统API入参中含有usingBlcok的Cocoa方法或者GCD的相关API
 
 ARC环境下，一旦Block赋值就会触发copy，__block就会copy到堆上，Block也是__NSMallocBlock。ARC环境下也是存在__NSStackBlock的时候，这种情况下，__block就在栈上。
+
 
 ## 如何截获变量
 这里直接拿冰霜的[文章](https://www.jianshu.com/p/ee9756f3d5f6)来用
@@ -281,7 +285,8 @@ int main(int argc, const char * argv[]) {
 
 
 ## 修改自动变量
-截获变量有两种方法__block和指针法（不过__block法归根结底，其实也是操作指针）。
+
+截获变量并修改有两种方法 **__block** 和 **指针法**（不过__block法归根结底，其实也是操作指针）。
 这里描述一下指针法：
 ```C++
     NSMutableString * str = [[NSMutableString alloc]initWithString:@"Hello,"];
@@ -459,6 +464,8 @@ int main(int argc, const char * argv[]) {
 之前一直没有想到过一个问题：
 
 我们知道不应该在block中使用实例变量，是因为会发生循环引用；那为什么会发生循环引用呢？
+一般我们会理解为，一个_age的实例变量，实际上是self->_age。那么如果往下深究下去呢？
+
 受[谈谈ivar的直接访问](http://satanwoo.github.io/2018/02/04/iOS-iVar/)的启发，我也开始探索一下这里的原因。
 
 写如下的代码：
@@ -628,9 +635,10 @@ struct __MyObject__inits_block_impl_0 {
 我们如果了解过property的话，也会知道实例变量是在编译期就确定地址了。内部实现的全局变量就代表了地址的offset。
 
 
+下一篇文章[block(二)：block的copy](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_block_02.md)
 
-## 简单结论
-我们可以把block看做一个对象，一个带参的函数，带有自动变量值的匿名函数。
+
+## 引用
 
 
 [Blocks Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html#//apple_ref/doc/uid/TP40007502-CH1-SW1)     

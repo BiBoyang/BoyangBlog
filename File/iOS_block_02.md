@@ -161,3 +161,5 @@ void _Block_release(void *arg) {
 }
 
 ```
+
+下一篇文章[block(三)：内存泄漏](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_block_03.md)
