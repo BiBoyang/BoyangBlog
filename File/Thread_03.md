@@ -21,95 +21,95 @@
 
 #### 线程安全的类和函数
 以下类和函数通常被认为是线程安全的。您可以从多个线程使用同一实例，而无需先获取锁。
-> NSArray
-NSAssertionHandler
-NSAttributedString
-NSBundle
-NSCalendar
-NSCalendarDate
-NSCharacterSet
-NSConditionLock
-NSConnection
-NSData
-NSDate
-NSDateFormatter
-NSDecimal 功能
-NSDecimalNumber
-NSDecimalNumberHandler
-NSDeserializer
-NSDictionary
-NSDistantObject
-NSDistributedLock
-NSDistributedNotificationCenter
-NSException
-NSFileManager
-NSFormatter
-NSHost
-NSJSONSerialization
-NSLock
-NSLog/NSLogv
-NSMethodSignature
-NSNotification
-NSNotificationCenter
-NSNumber
-NSNumberFormatter
-NSObject
-NSOrderedSet
-NSPortCoder
-NSPortMessage
-NSPortNameServer
-NSProgress
-NSProtocolChecker
-NSProxy
-NSRecursiveLock
-NSSet
-NSString
-NSThread
-NSTimer
-NSTimeZone
-NSUserDefaults
-NSValue
-NSXMLParser
-ARC/MRC
-内存函数
+* NSArray
+* NSAssertionHandler
+* NSAttributedString
+* NSBundle
+* NSCalendar
+* NSCalendarDate
+* NSCharacterSet
+* NSConditionLock
+* NSConnection
+* NSData
+* NSDate
+* NSDateFormatter
+* NSDecimal 功能
+* NSDecimalNumber
+* NSDecimalNumberHandler
+* NSDeserializer
+* NSDictionary
+* NSDistantObject
+* NSDistributedLock
+* NSDistributedNotificationCenter
+* NSException
+* NSFileManager
+* NSFormatter
+* NSHost
+* NSJSONSerialization
+* NSLock
+* NSLog/NSLogv
+* NSMethodSignature
+* NSNotification
+* NSNotificationCenter
+* NSNumber
+* NSNumberFormatter
+* NSObject
+* NSOrderedSet
+* NSPortCoder
+* NSPortMessage
+* NSPortNameServer
+* NSProgress
+* NSProtocolChecker
+* NSProxy
+* NSRecursiveLock
+* NSSet
+* NSString
+* NSThread
+* NSTimer
+* NSTimeZone
+* NSUserDefaults
+* NSValue
+* NSXMLParser
+* ARC/MRC
+* 内存函数
 
 #### 线程不安全类
 以下类和函数通常不是线程安全的。在大多数情况下，您可以从任何线程使用这些类，只要一次仅从一个线程使用它们即可。检查类文档以获取更多详细信息。
-> NSArchiver
-NSAutoreleasePool
-NSCoder
-NSCountedSet
-NSEnumerator
-NSFileHandle
-NSHashTable 功能
-NSInvocation
-NSMapTable 功能
-NSMutableArray
-NSMutableAttributedString
-NSMutableCharacterSet
-NSMutableData
-NSMutableDictionary
-NSMutableOrderedSet
-NSMutableSet
-NSMutableString
-NSNotificationQueue
-NSPipe
-NSPort
-NSProcessInfo
-NSRunLoop
-NSScanner
-NSSerializer
-NSTask
-NSUnarchiver
-NSUndoManager
-用户名和主目录功能
+* NSArchiver
+* NSAutoreleasePool
+* NSCoder
+* NSCountedSet
+* NSEnumerator
+* NSFileHandle
+* NSHashTable 功能
+* NSInvocation
+* NSMapTable 功能
+* NSMutableArray
+* NSMutableAttributedString
+* NSMutableCharacterSet
+* NSMutableData
+* NSMutableDictionary
+* NSMutableOrderedSet
+* NSMutableSet
+* NSMutableString
+* NSNotificationQueue
+* NSPipe
+* NSPort
+* NSProcessInfo
+* NSRunLoop
+* NSScanner
+* NSSerializer
+* NSTask
+* NSUnarchiver
+* NSUndoManager
+* 用户名和主目录功能
 
 请注意，尽管NSArchiver，NSCoder和NSEnumerator对象本身都是线程安全的，但在此处列出它们是因为在使用它们时更改由它们包装的数据对象并不安全。例如，对于归档器，更改要归档的对象图是不安全的。对于枚举，任何线程更改枚举集合都是不安全的。
 
 #### 仅主线程类
 只能在应用程序的主线程中使用以下类。
 
-> NSAppleScript
+* NSAppleScript
 
 #### 可变与不可变
 不变的对象通常是线程安全的；创建它们之后，就可以安全地在线程之间传递这些对象。当然，当使用不可变对象时，您仍然需要记住正确使用引用计数。如果不当释放了一个未保留的对象，则稍后可能会导致异常。
@@ -123,15 +123,15 @@ NSUndoManager
 
 下表列出了Foundation框架中明确可重入的部分。所有其他类别可能会也可能不会重入，或者将来可能会重入。尚未对折返进行完整的分析，此列表可能并不详尽。
 
-> 分布式对象
-NSConditionLock
-NSDistributedLock
-NSLock
-NSLog/NSLogv
-NSNotificationCenter
-NSRecursiveLock
-NSRunLoop
-NSUserDefaults
+* 分布式对象
+* NSConditionLock
+* NSDistributedLock
+* NSLock
+* NSLog/NSLogv
+* NSNotificationCenter
+* NSRecursiveLock
+* NSRunLoop
+* NSUserDefaults
 
 #### 类初始化
 
@@ -140,9 +140,11 @@ Objective-C运行时系统在类收到任何其他消息之前发送一个`initi
 由于OS X版本10.1.x和更早版本中的错误，一个线程可以在另一个线程完成执行该类的initialize方法之前将消息发送给该类。然后，线程可以访问尚未完全初始化的值，这可能会使应用程序崩溃。如果遇到此问题，则需要引入锁以防止在初始化值之前访问值，或者强制类在成为多线程之前对其进行初始化。
 
 #### 自动释放池
+
 每个线程维护自己的NSAutoreleasePool对象栈。Cocoa希望在当前线程的栈上始终有一个自动释放池。如果池不可用，则不会释放对象，并且泄漏内存。一个NSAutoreleasePool对象是基于应用程序主线程，自动创建和摧毁，但辅助线程（和函数应用）必须在使用前，创建自己的。如果您的线程是长寿的，并可能生成许多自动释放的对象，您应该定期销毁并创建自动释放池（就像ApplicationKit在主线程上一样）；否则，自动释放的对象会堆积，并且您的内存占用也会增加。如果分离的线程不使用Cocoa，则无需创建自动释放池。
 
 #### RunLoop
+
 每个线程只有一个RunLoop。但是，每个运行循环以及每个线程都有自己的一组输入模式，这些输入模式确定运行RunLoop时监听哪些输入源。一个RunLoop中定义的输入模式不会影响另一个RunLoop中定义的输入模式，即使它们的名称相同。
 
 如果您的应用程序基于ApplicationKit，则主线程的RunLoop将自动运行，但是辅助线程（和仅限于基础应用程序）必须自己运行RunLoop。如果分离的线程未进入RunLoop，则该线程将在分离的方法完成执行后立即退出。
@@ -156,10 +158,10 @@ Objective-C运行时系统在类收到任何其他消息之前发送一个`initi
 
 以下类和函数通常不是线程安全的。在大多数情况下，您可以从任何线程使用这些类，只要一次仅从一个线程使用它们即可。检查类文档以获取更多详细信息。
 
-NSGraphicsContext。
-NSImage
-NSResponder
-NSWindow及其所有子类。
+* NSGraphicsContext。
+* NSImage
+* NSResponder
+* NSWindow及其所有子类。
 
 #### 仅主线程类
 只能在应用程序的主线程中使用以下类。
@@ -189,6 +191,7 @@ NSView通常不是线程安全的。NSView仅应从应用程序的主线程创�
 视图系统的图形状态（gstates）是每个线程的。使用图形状态曾经是在单线程应用程序上获得更好绘图性能的一种方式，但是现在不再如此。错误使用图形状态实际上会导致绘制代码的效率低于在主线程中绘制的效率。
 
 ##### NSGraphicsContext限制
+
 该NSGraphicsContext班表示基础图形系统提供的绘图上下文。每个NSGraphicsContext实例都拥有自己独立的图形状态：坐标系，剪辑，当前字体等。在每个NSWindow实例的主线程上自动创建该类的实例。如果您从辅助线程进行任何绘图，NSGraphicsContext则会专门为该线程创建一个新的实例。
 
 如果从辅助线程进行任何绘图，则必须手动刷新绘图调用。Cocoa不会自动使用从辅助线程绘制的内容来更新视图，因此您需要在完成绘制时调用flushGraphics方法NSGraphicsContext。如果您的应用程序仅从主线程绘制内容，则无需刷新绘制调用。
