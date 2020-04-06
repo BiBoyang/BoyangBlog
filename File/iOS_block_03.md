@@ -4,14 +4,18 @@
 > 在不特殊说明是MRC的情况下，默认是ARC。
 [Objective-C Automatic Reference Counting (ARC)](http://clang.llvm.org/docs/AutomaticReferenceCounting.html)
 
-# 怎么泄漏的
+
 我们知道，在ARC中，除了全局block，block都是在栈上进行创建的。使用的时候，会自动将它复制到堆中。中间会经历`objc_retainBlock` -> `_Block_copy` -> `_Block_copy_internal`方法链。换过来说，我们使用的每个拦截了自动变量的block，都会经历这写方法（注意这一点很重要）。
 
 通过之前的研究，了解到在 **__main_block_impl_0**中会保存着引用到的变量。在转换过的block代码中，block会强行持有拦截的外部对象，不管有没有改变过，都是会造成强引用。
 
-# __string和__weak
+为了做好准备，我们先看一下**__strong**和**__weak**的实现过程。
+
+# __strong和__weak
+
 ## __strong
 __strong实际上是一个默认的方法。
+
 ```C++
 {
     id __strong obj = [[NSObject alloc] init];
@@ -57,12 +61,10 @@ objc_destoryWeak(&obj);
 
 这里LLVM文档和objc_723文档有些许不同。我这里采用最新的objc_723代码，比之前的有优化：
 ```C++
-id objc_initWeak(id *location, id newObj)
-{
+id objc_initWeak(id *location, id newObj) {
     // 查看对象实例是否有效
     // 无效对象直接导致指针释放
-    if (!newObj)
-    {
+    if (!newObj) {
         *location = nil;
         return nil;
     }
@@ -105,13 +107,10 @@ enum CrashIfDeallocating {
 };
 template <HaveOld haveOld, HaveNew haveNew,
           CrashIfDeallocating crashIfDeallocating>
-static id storeWeak(id *location, objc_object *newObj)
-{
+static id storeWeak(id *location, objc_object *newObj) {
     assert(haveOld  ||  haveNew);
-    
     // 初始化当前正在 +initialize 的类对象为nil
     if (!haveNew) assert(newObj == nil);
-
     Class previouslyInitializedClass = nil;
     id oldObj;
     
@@ -125,16 +124,12 @@ static id storeWeak(id *location, objc_object *newObj)
  retry:
     
     // 如果weak ptr之前弱引用过一个obj，则将这个obj所对应的SideTable取出，赋值给oldTable
-    if (haveOld)
-    {
+    if (haveOld) {
         oldObj = *location;
         oldTable = &SideTables()[oldObj];
-    }
-    else
-    {
+    } else {
         oldTable = nil;
     }
-    
     
     if (haveNew) {
         newTable = &SideTables()[newObj];
@@ -154,7 +149,7 @@ static id storeWeak(id *location, objc_object *newObj)
     // and the +initialize machinery by ensuring that no 
     // weakly-referenced object has an un-+initialized isa.
     //通过确保没有弱引用的对象具有未初始化的 isa，防止弱引用机制和 +initialize 机制之间的死锁。
-    //在使用 **+initialized**方法的时候，因为这个方法是在alloc之前调用的。不这么做，可能会出现+initialize 中调用了 storeWeak 方法，而在 storeWeak 方法中 weak_register_no_lock 方法中用到对象的 isa 还没有初始化完成的情况。
+    //在使用 +initialized 方法的时候，因为这个方法是在alloc之前调用的。不这么做，可能会出现+initialize 中调用了 storeWeak 方法，而在 storeWeak 方法中 weak_register_no_lock 方法中用到对象的 isa 还没有初始化完成的情况。
 
     if (haveNew  &&  newObj) {
         // 获得新对象的 isa 指针
@@ -178,7 +173,6 @@ static id storeWeak(id *location, objc_object *newObj)
             // (也就是说newObj的 +initialize 正在调用 storeWeak 方法)
             // 通过设置previousInitializedClass以在重试时识别它。
             
-
             previouslyInitializedClass = cls;
 
             goto retry;
@@ -224,11 +218,11 @@ static id storeWeak(id *location, objc_object *newObj)
     return (id)newObj;
 }
 ```
-这里不再重复一遍weak的实现。
+这里不再重复一遍weak的实现，有兴趣的可以去[@property的研究（二）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/runtime_03.md)查看。
 
 简单点说，由于weak也是用哈希表实现的，所以`objc_storeWeak`函数就把第一个入参的变量地址注册到weak表中，然后根据第二个入参来决定是否移除。如果第二个参数为0，那么就把**__weak**变量从`weak`表中删除记录，并从引用计数表中删除对应的键值记录。
 
-所以如果**__weak**引用的原对象如果被释放了，那么对应的**__weak**对象就会被指为nil。原来就是通过`objc_storeWeak`函数这些函数来实现的。
+所以如果**__weak**引用的原对象如果被释放了，那么对应的**__weak**对象就会被指为nil。这部分就是通过`objc_storeWeak`函数这些函数来实现的。
 
 ## weakSelf和strongSelf
 
@@ -251,7 +245,7 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
 ```
 我们如果直接使用这个函数，是有可能在打印之前，weakSelf就被释放了，打印出来就是会出问题。
 为了解决这个问题，我们就要用到strongSelf。
-```
+```C++
 - (void)blockRetainCycle_2 {
     __weak __typeof(self)weakSelf = self;
     self.block = ^{
@@ -261,12 +255,14 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
 }
 ```
 在这里，我们使用了strongSelf，它可以保证在strongSelf下面，直到出了作用域之前，都是存在这个strongSelf的。
-但是，这里依然存在一个微小的问题：
+
+但是，这里依然存在一个微小的问题：       
 我们知道使用weakSelf的时候是无法保证在作用域中一直持有的。虽然使用了strongSelf，但是还是会存在微小的概率，让weakSelf在strongSelf创建之前被释放。如果是单纯的给self对象发送信息的话，这么其实问题不大，*OC的消息转发机制保证了我们即使给nil的对象发送消息也不会出现问题*。
+
 但是如果我们有其他的操作，比如说将self对象添加进数组中，如上面代码所示，这里就会发生crash了。
 
 那么我们要需要进一步的保护
-```
+```C++
 - (void)blockRetainCycle_3 {
     __weak __typeof(self)weakSelf = self;
     self.block = ^{
@@ -278,26 +274,32 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
 }
 ```
 
-#### __weak和__block的区别
-我们使用__block其实也是可能达到防止block循环引用的。
-我们可以通过在block内部把__block修饰的对象置为nil来变相地实现内存释放。
-从内存上来讲，__block会持有该对象，即使超出了该对象的作用域，该对象还是会存在的，知道block对象从堆上销毁；而__weak是把该对象赋值给weak对象，如果对象被销毁，weak对象将变成nil。
-另外，__block对象可以让block修改局部变量。
+##  block中__weak和__block的区别
+
+我们使用`__block`其实也是可能达到防止block循环引用的。
+
+我们可以通过在block内部把`__block`修饰的对象置为nil来变相地实现内存释放。
+
+从内存上来讲，`__block`会持有该对象，即使超出了该对象的作用域，该对象还是会存在的，直到block对象从堆上销毁；而`__weak`是把该对象赋值给weak对象，如果对象被销毁，weak对象将变成nil。
+
+另外，`__block`对象可以让block修改局部变量,`__weak`则不可以。
 
 
 
-#### 关键字
+# 关键字
 我们通过之前的文章知道，在ARC当中，一般的block会从栈被copy到堆中。
+
 但是如果使用weak呢？（assign就不讨论了）
+
 系统会告知我们 **Assigning block literal to a weak property; object will be released after assignment**。
-而在ARC下要使用什么关键字呢？
-strong和copy都是可以的。
-之前我们知道，在ARC中，block会自动从栈被复制到堆中，这个copy是自动了，即使使用strong还是依然会有copy操作。
+
+而在ARC下要使用什么关键字呢？**strong和copy都是可以的**。
+通过之前的文章可以知道，在ARC中，block会自动从栈被复制到堆中，这个copy是系统自动进行了，即使使用strong还是依然会有copy操作。所以说，如果为了严谨些，使用copy是可以的，但是使用strong也无伤大雅。
 
 # 总结
 
 * 如果block内部使用到了某个变量，而且这个变量是局部变量，那么block会捕获这个变量并存储到block底层的结构体中。
-* 如果捕获的这个变量是用__weak修饰的，那么block内部就是用弱指针指向这个变量(也就是block不持有这个对象)，否则block内部就是用强指针指向这个对象(也就是block持有这个对象)。
+* 如果捕获的这个变量是用__weak修饰的，那么block内部就是用弱指针指向这个变量(也就是block不持有这个对象)，反之使用__strong，那么block内部就是用强指针指向这个对象(也就是block持有这个对象)。
 * self在某种意义上也是一个局部变量。
 * 如果self并不持有这个block，block内部怎么引用self都不会造成循环引用。
 

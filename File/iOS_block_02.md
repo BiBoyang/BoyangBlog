@@ -46,8 +46,7 @@ static void *_Block_copy_internal(const void *arg, const int flags) {
         // latches on high
         latching_incr_int(&aBlock->flags);
         return aBlock;
-    }
-    else if (aBlock->flags & BLOCK_IS_GC) {
+    } else if (aBlock->flags & BLOCK_IS_GC) {
         // GC refcounting is expensive so do most refcounting here.
         if (wantsOne && ((latching_incr_int(&aBlock->flags) & BLOCK_REFCOUNT_MASK) == 1)) {
             // Tell collector to hang on this - it will bump the GC refcount version
@@ -85,8 +84,7 @@ static void *_Block_copy_internal(const void *arg, const int flags) {
             (*aBlock->descriptor->copy)(result, aBlock); // do fixup
         }
         return result;
-    }
-    else {
+    } else {
         // Under GC want allocation with refcount 1 so we ask for "true" if wantsOne
         // This allows the copy helper routines to make non-refcounted block copies under GC
         unsigned long int flags = aBlock->flags;
