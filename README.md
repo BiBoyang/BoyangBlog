@@ -53,11 +53,15 @@
 
 ## 🍎Python
 
-## 杂谈
+## 🍎杂谈
 [2019年终总结](https://github.com/BiBoyang/BoyangBlog/blob/master/File/005.md)
 
 ## 🍎转载
 [Mac OS X 背后的故事](https://github.com/BiBoyang/BoyangBlog/blob/master/File/006.md)
+
+## 🍎教程
+[shell教程](https://www.runoob.com/linux/linux-shell.html)
+
 
 ## ♥️ 联系方式
 
