@@ -1,7 +1,7 @@
 
 ![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
 
-## 简单概述
+# 简单概述
 
 > block是C语言的扩充功能，我们可以认为它是 **带有自动变量的匿名函数**。
 
@@ -14,10 +14,31 @@ block是一个匿名的inline代码集合：
 > * 可以用相同的词法范围内定义的其它block共享进行修改的可能性
 > * 在词法范围（堆栈框架）被破坏后，可以继续共享和修改词法范围（堆栈框架）中定义的状态
 
+## block怎么写
+最简单。
+```C++
+    int (^DefaultBlock1)(int) = ^int (int a) {
+        return a + 1;
+    };
+    DefaultBlock1(1);
+    
+```
+升级版。
+```C++
+// 利用 typedef 声明block
+typedef return_type (^BlockTypeName)(var_type);
+
+// 作属性
+@property (nonatomic, copy ,nullable) BlockTypeName blockName;
+
+// 作方法参数
+- (void)requestForSomething:(Model)model handle:(BlockTypeName)handle;
+```
 
 
 
-## block的实现
+
+# block的实现
 
 在LLVM的文件中，我找到了一份文档，[Block_private.h](https://llvm.org/svn/llvm-project/compiler-rt/tags/Apple/Libcompiler_rt-16/BlocksRuntime/Block_private.h)，这里可以查看到block的实现情况
 
@@ -30,7 +51,6 @@ struct Block_layout {
     struct Block_descriptor *descriptor;
     /* Imported variables. */
 };
-
 struct Block_descriptor {
     unsigned long int reserved;
     unsigned long int size;
@@ -105,31 +125,7 @@ __main_block_impl_0{
 ```
 这么一来，我们可以将block理解为，一个OC对象、一个函数。
 
-## 崩溃
-
-如果我们把block设置为nil，然后去调用，会发生什么？
-```C++
-void (^block)(void) = nil;
-block();
-```
-当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
-
-![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
-我们可以发现，当把block置为nil的时候，第四行的函数指针，被置为NULL，注意，这里是NULL而不是nil。
-
-我们给一个对象发送nil消息是没有问题的，但是给如果是NULL就会发生崩溃。
-
-* nil：指向oc中对象的空指针
-* Nil：指向oc中类的空指针
-* NULL：指向其他类型的空指针，如一个c类型的内存指针
-* NSNull：在集合对象中，表示空值的对象
-* 若obj为nil:[obj message]将返回NO,而不是NSException
-* 若obj为NSNull:[obj message]将抛出异常NSException
-
-它直接访问到了函数指针，因为前三位分别是void、int、int，大小分别是8、4、4，加一块就为16，所以在十六位中，就表示出0x10地址的崩溃。
-如果是在32位的系统中，void的大小是4，崩溃的地址应该就是0x0c。
-
-## block的类型
+# block的类型
 我们可以知道，我们常见的block是有三种：
 > * __NSGlobalBlock
 > * __NSStackBlock
@@ -185,7 +181,7 @@ ARC也是如此做的。它会自动将栈上的block复制到堆上，所以，
 ARC环境下，一旦Block赋值就会触发copy，__block就会copy到堆上，Block也是__NSMallocBlock。ARC环境下也是存在__NSStackBlock的时候，这种情况下，__block就在栈上。
 
 
-## 如何截获变量
+# 如何截获变量
 这里直接拿冰霜的[文章](https://www.jianshu.com/p/ee9756f3d5f6)来用
 ```C++
 #import <Foundation/Foundation.h>
@@ -284,7 +280,7 @@ int main(int argc, const char * argv[]) {
 这么来就清晰了很多，自动变量是以值传递方式传递到Block的构造函数里面去的。Block只捕获Block中会用到的变量。由于只捕获了自动变量的值，并非内存地址，所以Block内部不能改变自动变量的值。
 
 
-## 修改自动变量
+# 修改自动变量
 
 截获变量并修改有两种方法 **__block** 和 **指针法**（不过__block法归根结底，其实也是操作指针）。
 这里描述一下指针法：
@@ -308,7 +304,7 @@ int main(int argc, const char * argv[]) {
 
 
 这里写一个__block的捕获代码，使用刚才的方法再来一次：
-#### 1.普通非对象的变量
+## 1.普通非对象的变量
 ```C++
 struct __Block_byref_i_0 {
   void *__isa;
@@ -374,7 +370,7 @@ block通过指针的持续传递，将使用的自动变量值保存到了block�
 在栈中， **__forwarding**指向了自己本身，但是如果复制到了堆上，**__forwarding**就指向复制到堆上的block，而堆上的block中的 **__forwarding**这时候指向了自己。
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/block_6.jpg?raw=true)
 
-#### 2.对象的变量
+## 2.对象的变量
 
 ```C++
 //以下代码是在ARC下执行的
@@ -460,7 +456,7 @@ int main(int argc, const char * argv[]) {
 
 在ARC中，对于声明为__block的外部对象，在block内部会进行retain，以至于在block环境内能安全的引用外部对象。
 
-## 实例变量的问题
+## 3. 实例变量
 之前一直没有想到过一个问题：
 
 我们知道不应该在block中使用实例变量，是因为会发生循环引用；那为什么会发生循环引用呢？
@@ -633,6 +629,30 @@ struct __MyObject__inits_block_impl_0 {
 在这个方法里，我们可以发现，在block当中，其实也引用到MyObject，是一个强引用的self！而block的构造函数中也多次引用了self。
 
 我们如果了解过property的话，也会知道实例变量是在编译期就确定地址了。内部实现的全局变量就代表了地址的offset。
+
+# 来看一道问题
+
+如果我们把block设置为nil，然后去调用，会发生什么？
+```C++
+void (^block)(void) = nil;
+block();
+```
+当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
+
+![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
+我们可以发现，当把block置为nil的时候，第四行的函数指针，被置为NULL，注意，这里是NULL而不是nil。
+
+我们给一个对象发送nil消息是没有问题的，但是给如果是NULL就会发生崩溃。
+
+* nil：指向oc中对象的空指针
+* Nil：指向oc中类的空指针
+* NULL：指向其他类型的空指针，如一个c类型的内存指针
+* NSNull：在集合对象中，表示空值的对象
+* 若obj为nil:[obj message]将返回NO,而不是NSException
+* 若obj为NSNull:[obj message]将抛出异常NSException
+
+它直接访问到了函数指针，因为前三位分别是void、int、int，大小分别是8、4、4，加一块就为16，所以在十六位中，就表示出0x10地址的崩溃。
+如果是在32位的系统中，void的大小是4，崩溃的地址应该就是0x0c。
 
 
 下一篇文章[block(二)：block的copy](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_block_02.md)
