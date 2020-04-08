@@ -1,5 +1,9 @@
 
 ![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
+> 原作于：2018-01-02
+> GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
+
+
 
 # 简单概述
 
@@ -172,13 +176,13 @@ ARC也是如此做的。它会自动将栈上的block复制到堆上，所以，
 | __NSGlobalBlock | 程序的数据区域 | 无用 |
 | __NSMallocBlock | 堆 | 引用计数增加 |
 
-> 系统默认调用copy方法把Block赋复制的四种情况
+> 系统默认调用copy方法把Block复制的四种情况
 > 1. 手动调用copy
 > 2. Block是函数的返回值
 > 3. Block被强引用，Block被赋值给__strong或者id类型
 > 4. 调用系统API入参中含有usingBlcok的Cocoa方法或者GCD的相关API
 
-ARC环境下，一旦Block赋值就会触发copy，__block就会copy到堆上，Block也是__NSMallocBlock。ARC环境下也是存在__NSStackBlock的时候，这种情况下，__block就在栈上。
+ARC环境下，一旦Block赋值就会触发copy，block就会copy到堆上，Block也是__NSMallocBlock。ARC环境下也是存在__NSStackBlock的时候，这种情况下，__block就在栈上。
 
 
 # 如何截获变量

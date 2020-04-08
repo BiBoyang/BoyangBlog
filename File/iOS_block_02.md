@@ -1,8 +1,7 @@
-![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_2.png)
+
 
 
 在block(一)中了解了block的内存布局
-![](https://ws1.sinaimg.cn/large/006tNbRwly1fx7bi2qw23j30dw0dwaaf.jpg)
 
 现在来看一下block的copy和release过程。
 

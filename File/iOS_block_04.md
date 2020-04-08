@@ -1,5 +1,8 @@
 
-![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_4.png)
+
+> 原作于：2018-10-08
+> GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
+
 
 这里将通过几道面试题来扩展知识。
 这几道题有几个取自[sunnyxx](http://blog.sunnyxx.com/)。
