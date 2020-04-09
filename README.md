@@ -35,7 +35,7 @@
 ## 📘内存管理🚧
 |Name|Article_Link|Info|
 |---|---|---|
-|Memory|[内存笔记(一)](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)||
+|Memory|[内存笔记(一)](https://github.com/BiBoyang/BoyangBlog/blob/master/File/memory_01.md)||
 |Memory Usage Performance Guidelines|||
 
 ##  📒读书笔记
