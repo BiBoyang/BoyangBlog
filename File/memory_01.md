@@ -247,23 +247,23 @@ UIKit中有几种接受低内存警告的方法：
 
 # 如何注意内存优化
 
-0. 多用懒加载     
-1. weak替代 unsafe_unretain ，以及注意assign；       
-2. 安全的使用weak；        
-3. autoreleasepool多用；        
-4. 对UI、动画机制深入了解，尤其是动画以及Cell复用机制；     
-5. imageName：        
-5. performSelect谨慎使用；        
-6. 倒计时使用注意，设计一定要严谨；      
-7. 多使用Cache而非dictionary；     
-8. 监测性能组件使用mmap存放读取数据；       
-9. NSDateFormate注意；      
-10. 谨慎小心的使用指针，小心野指针；     
-11. WKWebView 是跨进程通信的，不会占用我们的 APP 使用的物理内存量，**但是依然要小心谨慎的测量**；     
-12. 在保证安全的前提下，选用一些更小的数据结构；       
-13. 特别大的贴图要谨慎使用；     
-14. 谨慎小心的使用指针；       
-15. 注意 NSDateFormatter的使用。       
+1. 多用懒加载     
+2. weak替代 unsafe_unretain ，以及注意assign；       
+3. 安全的使用weak；        
+4. 可以尝试多用autoreleasepool（但是不要滥用，这个不是毫无代价的）；        
+5. 对UI、动画机制深入了解，尤其是动画以及Cell复用机制；     
+6. imageName：        
+7. performSelect谨慎使用；        
+8. 倒计时使用注意，设计一定要严谨；      
+9. 多使用Cache而非dictionary；     
+10. 监测性能组件使用mmap存放读取数据；       
+11. NSDateFormate注意；      
+12. 谨慎小心的使用指针，小心野指针；     
+13. WKWebView 是跨进程通信的，不会占用我们的 APP 使用的物理内存量，**但是依然要小心谨慎的测量**；     
+14. 在保证安全的前提下，选用一些更小的数据结构；       
+15. 特别大的贴图要谨慎使用；     
+16. 谨慎小心的使用指针；       
+17. 注意 NSDateFormatter的使用。       
 
 # 后续记录计划
 SLC/MLC/TLC对比，为什么选用TLC      
