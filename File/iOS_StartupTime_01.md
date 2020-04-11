@@ -93,13 +93,10 @@ double launchTime = (CFAbsoluteTimeGetCurrent() - StartTime);
 
 ### 网络耗时
 一般到达主页ViewController的时候，我们就会马上发起请求。请求的流程一般如下：
-
-* 1. DNS解析。请求DNS服务器，获取域名对应的IP地址。
-* 2. TCP三次握手+SSL/TLS检查
-* 3. 发送数据，接收数据。
+1. DNS解析。请求DNS服务器，获取域名对应的IP地址。
+2. TCP三次握手+SSL/TLS检查
+3. 发送数据，接收数据。
             
-
-
 ### CPU
 
 事实上，在首页中的操作，大多数都是非常耗费CPU资源的操作。CPU的任务一旦过多，很容易造成发热降频，影响了计算力。比如说网络请求中的建立连接和加密解密，下载，图片解码，首页创建过多线程，这些都是消耗CPU资源的大户。
@@ -120,14 +117,21 @@ double launchTime = (CFAbsoluteTimeGetCurrent() - StartTime);
 
 
 # 视频资料
-* 经典WWDC视频
-            [WWDC2016:Optimizing App Startup Time](https://developer.apple.com/videos/play/wwdc2016/406)
-            [WWDC2016:Optimizing I/O for Performance and Battery Life](https://developer.apple.com/videos/play/wwdc2016/719/)
-            [WWDC2017:App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
-* 图片的加载我们虽然一般不会直接参与，但是了解还是很有必要的。
-            [Core Image: Performance, Prototyping, and Python](https://developer.apple.com/videos/play/wwdc2018/719/)
-* Facebook的二进制优化，开拓思路
-            [通过优化二进制布局提升iOS启动性能](https://www.bilibili.com/video/BV1NJ411w7hv) 
+经典WWDC视频：
+
+[WWDC2016:Optimizing App Startup Time](https://developer.apple.com/videos/play/wwdc2016/406)
+
+[WWDC2016:Optimizing I/O for Performance and Battery Life](https://developer.apple.com/videos/play/wwdc2016/719/)
+
+[WWDC2017:App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
+
+图片的加载我们虽然一般不会直接参与，但是了解还是很有必要的。
+
+[Core Image: Performance, Prototyping, and Python](https://developer.apple.com/videos/play/wwdc2018/719/)
+
+Facebook的二进制优化，开拓思路（我在b站上传了一份）
+
+[通过优化二进制布局提升iOS启动性能](https://www.bilibili.com/video/BV1NJ411w7hv) 
 
 
 
