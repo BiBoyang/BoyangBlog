@@ -28,10 +28,10 @@ DNS，全名**Domain Name System**，翻译过来就是域名系统，是一个�
 4. [RFC1035 : DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION](https://tools.ietf.org/html/rfc1035)
     1. 修改和完善了之前的设计方案，添加了TCP作为UDP的补充。
     2. UDP承载的消息限制为512字节，再长的话，会被截断并且TC位设置为标头。
-    3. UDP在区域传送不接受UDP协议，需要找个办法稳定传输。
+    3. UDP在区域传送不被接受，需要找个办法重新传输。
 
 5. [RFC1123:Requirements for Internet Hosts -- Application and Support](https://tools.ietf.org/html/rfc1123)
-    1. 未来的DNS记录类型可能会超过512字节，所以我们需要TCP。
+    1. 未来的DNS记录类型可能会超过512字节，有可能会被阶段，我们需要TCP！
 
 6. [RFC6891 : Extension Mechanisms for DNS (EDNS(0))](https://tools.ietf.org/html/rfc6891)
     1. EDNS 为 DNS 提供了扩展功能，让 DNS 通过 UDP 协议携带最多 4096 字节的数据；
@@ -86,14 +86,18 @@ DNS，全名**Domain Name System**，翻译过来就是域名系统，是一个�
 
 ## DNS服务器其实不止用到UDP
 去年我看了大左的一篇文章[为什么 DNS 使用 UDP 协议](https://draveness.me/whys-the-design-dns-udp-tcp/)，初看标题给我两个感觉：
-1. 我靠，DNS服务器使用UDP不是很正常，直接原因不就是因为UDP不用保持连接么？
+1. 我靠，DNS服务器会使用UDP不是很正常的事吗？直接原因不就是因为UDP不用保持连接么？
 2. 我去，DNS服务器可不止用到UDP啊，30年前就有TCP了；现在（2019年）[有的DNS服务](https://arstechnica.com/information-technology/2019/11/microsoft-announces-plans-to-support-encrypted-dns-requests-eventually/)连HTTPS都要用上了，灯塔也会范这个错误？
 
 当然，随着我看了完了文章，才知道这个不过是一个标题党罢了。
 
-在上面的文档小节中，我们了解了 TCP、TLS、HTTPS 不断加入 DNS 的过程。作为不断成长的方案，最开始的DNS也存在很多的问题，需要不断地去修正。
+在上面的文档小节中，我们了解了 TCP、TLS、HTTPS 不断加入 DNS 的过程。作为不断成长的方案，最开始的DNS也存在很多的问题，需要不断地去修正。在最开始DNS服务器互相传递消息的时候，因为UDP的不稳定，我们需要TCP来当做备胎。
 
-在最开始设计的DNS方案中，每次DNS的记录是有着512字节限制，但是随着需求的增多，数据包越来越大
+在最开始设计的DNS方案中，每次DNS的记录是有着512字节限制，但是随着需求（IPv6、安全）的增多，数据包越来越大，让DNS不得不去寻找东西去弥补。
+
+最开始，人们制定了一个EDNS，是DNS的扩展，可以让UDP传输最多4096字节的数据。但是用过了一阵子之后，大家发现这个东西压根就不可靠，很不稳定。没办法，这个时候，大家就发现，TCP能解决这个问题，于是TCP就被”扶正“了，不再是”备胎“。
+
+我们
 
 
 
