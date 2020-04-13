@@ -63,7 +63,7 @@ DNS，全名**Domain Name System**，翻译过来就是域名系统，是一个�
 
 ## 解析流程
 借用之前看过的一张图来表示一下请求流程（这是迭代查询的过程，递归过于简单易懂）
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_02.jpg?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/Network_02.jpg?raw=true)
 
 1. 客户端会发出一个 DNS 请求，问`www.163.com`的 IP 是啥啊，并发给本地域名服务器 (本地DNS)；
 2. 本地 DNS 收到来自客户端的请求。现在本机的缓存上查找。如果能找到，它直接就返回 IP 地址。如果没有，本地 DNS 会往上询问；
@@ -105,7 +105,7 @@ DNS，全名**Domain Name System**，翻译过来就是域名系统，是一个�
 而随着人们对于隐私安全的重视 TLS 和 HTTPS 也陆续的加入 DNS 协议中。
 
 我画了张图，记录了我认为比较重要的文件。
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_03.jpg?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_03.png?raw=true)
 
 ### UDP对比TCP
 这里就不多介绍这两位了，大家自然明白。我拿大左的文章来做个讲解。
@@ -163,11 +163,9 @@ TCP 作为可靠的传输协议，通过序列号、重传等机制能够保证�
 * 当 DNS 数据包大小为 2300 字节时，TCP 协议的额外开销为 ~10.3%；
 * 当 DNS 数据包大小为 4800 字节时，TCP 协议的额外开销为 ~5.0%；
 
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_0.jpg?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_04.png?raw=true)
 
 所以，我们在 DNS 中存储较多的内容时，TCP 三次握手以及协议头带来的额外开销就不是关键因素了，不过我们 TCP 三次握手带来的三次网络传输耗时还是没有办法避免的，这也是我们在目前的场景下不得不接受的问题。
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_04.jpg?raw=true)
-
 
 
 # DNS的缺点
