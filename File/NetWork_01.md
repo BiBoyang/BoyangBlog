@@ -21,6 +21,7 @@
 乔布斯在被苹果赶走没多久后成立了一家电脑公司--NeXT计算机公司。NeXT在1988年推出了第一个工作站计算机产品NeXT Computer，大出风头（但是却没卖出去多少台，实在是太贵了）。但是它的面向对象操作系统--NeXTSTEP缺留下了深远的影响，iOS开发中NS开头的API就是源于此。
 
 没过多久，在欧洲核子研究中心工作的一个名叫Emilio Pagiola忽悠来经费，买了当时研究所的第一台NeXT计算机。这可是个时髦的玩意啊，那里的科学家纷纷前来把玩。在围观的程序员里，有个叫做 Tim Berners-Lee 的科学家，他不仅把玩了计算机，还开始研究起了当时还算时髦的 Objective-C，并打算解决文本传输的问题。
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_06.jpg?raw=true)
 
 而在1990年，Tim Berners-Lee 成功的搭建了实际上第一个 HTTP 服务器和浏览器，然后给他起了一个伟大的名字-- **World Wide Web**。
 
@@ -51,7 +52,7 @@ HTTP/1 并不存储任何关于客户端的状态信息。假如某个特定的�
 所以说，我们一般采用持续连接的方式来解决这个问题。在 TCP 连接上之后，会经过一段超时时间（可配置的超时间隔）之后，HTTP 服务器再将它关闭。
 
 # 3. HTTP 报文结构
-![]()
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_07.png?raw=true)
 报文结构如图所示。
 
 从客户端发往服务器的是**请求报文（request message）**，从服务器发往客户端的是**响应报文（response message）**。
@@ -78,7 +79,7 @@ HTTP 报文包含三个部分：
 |Via |显示了报文经过的中间节点（代理、网关）|
 |Warning| 错误通知|
 
-# 4。 HTTP 状态码
+# 4. HTTP 状态码
 服务器返回的  **响应报文**  中第一行为状态行，包含了状态码以及原因短语，用来告知客户端请求的结果。
 
 | 状态码 | 类别 | 原因短语 |
@@ -89,19 +90,129 @@ HTTP 报文包含三个部分：
 | 4XX | Client Error（客户端错误状态码） | 服务器无法处理请求 |
 | 5XX | Server Error（服务器错误状态码） | 服务器处理请求出错 |
 
-而伴随每个状态码，HTTP还会发送一条解释性的原因短语。
+而伴随每个状态码，HTTP还会发送一条解释性的原因短语。整个的状态码如下图所示。
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_08.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_09.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_10.png?raw=true)
+
+你还可以点开[这个网站](https://http.cat/)，来看用猫比喻状态码。
+放个例子![](https://http.cat/200)
+
+# 5. HTTP 方法
+简单的说，HTTP 中的方法就是告知服务器，客户端的意图是什么。
+
+这里简述几个我认为有意义的方法。
+
+### GET
+最常用的方法，常用于请求服务器发送某个资源。
+### POST
+向服务器输入数据。
+### PUT
+与GET读取数据相反，PUT方法会向服务器写入文档。
+### DELETE
+请求服务器删除URL所指定的资源。
+### HEAD
+与GET类似，但服务器在响应中只返回头部。
+### TRACE
+客户端发起一个请求的时候，这个请求可能要穿过防火墙、代理、网关或其他一些应用程序。每个中间节点都可能会修改原始的HTTP请求。TRACE方法允许客户端在最终请求发送给服务器的时候，看看它变成了什么样子。
+
+## 幂等性&安全性
+在HTTP/1.1规范中幂等性的定义是：
+
+> Methods can also have the property of "idempotence" in that (aside from error or expiration issues) the side-effects of N > 0 identical requests is the same as for a single request.
+
+从定义上看，HTTP 方法的幂等性是指一次和多次请求某一个资源应该具有同样的副作用。
+
+安全性指的是**不会改变服务器状态，也就是说它只是可读的。**
+
+| HTTP 方法 | 幂等性 | 安全性 |
+| :---: | :---: | :---: |
+|OPTIONS|	yes	|yes|
+|GET	|yes	|yes|
+|HEAD	|yes	|yes|
+|PUT	|yes	|no|
+|DELETE	|yes	|no|
+|POST	|no	|no|
+|PATCH	|no	|no|
+
+POST 和 PATCH 这两个不是幂等性的。
+两次相同的 POST 请求会在服务器端创建两份资源，它们具有不同的URI。
+对同一 URI 进行多次 PUT 的副作用和一次 PUT 是相同的。
+
+## GET 和 POST 的区别
+严格的来讲， GET 和 POST 在安全性上没有区别，如果说 POST 会把请求藏起来就是提高了安全性，那也有点太天真了———— HTTP 本身就是一个明文协议！
+
+更进一步的说，POST 和 GET 其实没有本质区别，只是在使用上人为的划分了区别。
+
+GET的语义是请求获取指定的资源————去”读取“一个资源。GET方法是安全、幂等、可缓存的,GET方法的报文主体没有任何语义；短时间反复读取一个资源不会造成副作用（幂等的）。
+
+POST的语义是根据请求负荷（报文主体）对指定的资源做出处理，具体的处理方式视资源类型而不同。POST不安全，不幂等，（大部分实现）不可缓存。
 
 
 
 
 
 
+
+# 6. HTTP缓存
+在有很多客户端访问一个服务器页面的时候，服务器会多次传输同一份文档，每次传送给一个客户端。一些相同的字节会在网络中一遍一遍的传输，这些冗余的数据会很快好近昂贵的网络带宽，降低传输速度，加重服务器的负载。
+
+服务器可以将某份多次传送的数据放到缓存中，然后由服务器去做一个缓存**再验证**。一个 HTTP GET 报文的基本缓存处理过程包括7个步骤：
+1. 接收————缓存从网络中读取抵达的请求报文；
+2. 解析————缓存对报文进行解析，提取 URL 和各种首部；
+3. 查询————缓存查看是否有本地副本可用，如果没有，就获取一份副本，并保存在本地；
+4. 新鲜度检测————缓存查看已缓存的副本是否足够新鲜，如果不是，就问服务器是否有任何更新；
+5. 创建响应————缓存会用新的首部和已缓存的主题来构建一条响应报文；
+6. 发送————缓存通过网络将响应发回客户端；
+7. 日志————缓存可选地创建一个日志文件条目来描述这个事物。
+
+缓存的更多细节，包括缓存的首部字段，可以查看[HTTP缓存控制小结](https://imweb.io/topic/5795dcb6fb312541492eda8c)。
+
+# 7. cookie
+cookie 是 HTTP/1.1 提出的，用于识别用户，实现持久化会话。可以笼统的分为两种：**会话cookie**和**持久cookie**。
+会话 cookie 是一种临时 cookie ，用户推出浏览器的时候，会话 cookie 就被删除了。而持久 cookie 会被存储起来，甚至电脑重启还存在。
+
+会话 cookie 和持久 cookie 唯一的区别就是它们的过期时间。
+
+### cookie如果工作的
+当用户初次访问服务器的时候，服务器实际上对用户一无所知。不过服务器可以给客户打上一个独特的 cookie （Set-Cookie）。理论上 cookie 能包含任意信息，不过它们一般只包含一个服务器为了进行跟踪而产生的独特的识别码，它可能不止是一串数字，可能会包含一些信息：
+```C++
+Cookie: name="Bill";phone="6666666"
+```
+
+### 和Session的关系
+session 从字面上讲，就是会话。而实际上 session 是一个抽象的概念，我们可以通过 cookie 来实现 session（也有别的方法）。
+
+session 是存在服务端的，保存更多的用户数据。session 的运行依赖于 session id ，而一般情况下，我们会把 session id 存储在 cookie 中，也可以放到 URL 中。
+
+某种意义上讲， session 指的是服务器上用来存储的特定客户的更多的数据。
+
+
+
+# 8. HTTP/1.1和HTTP/1 多出来了什么
+1. HTTP/1.1 默认是持久连接
+2. HTTP/1.1 支持管线化处理
+3. HTTP/1.1 支持虚拟主机
+4. HTTP/1.1 新增状态码 100
+5. HTTP/1.1 支持分块传输编码
+6. HTTP/1.1 新增缓存处理指令 max-age
+
+# 总结
+HTTP是目前最成功的互联网协议之一，HTTP/1 实际上是一个残缺的，不完整的协议，之后推出的 HTTP/1.1 进行了补全，使 HTTP/1.1 成为最经典，用的最多的 HTTP 协议。
+
+它是基于 TCP 协议的一个报文协议，其报文头是不定长且任意扩展的，这也使得这个协议充满了生命力。
+
+而且 HTTP 涉及到的东西非常多，有一句很经典的话：**”没有人能完整描述HTTP协议“**。
 
 
 
 
 # 引用
 [HTTP 基础概述](https://github.com/halfrost/Halfrost-Field/blob/master/contents/Protocol/HTTP.md)
+    
+[HTTP Cats](https://http.cat/)           
+
+[HTTP缓存控制小结](https://imweb.io/topic/5795dcb6fb312541492eda8c)
 
 《图解 HTTP》
 
