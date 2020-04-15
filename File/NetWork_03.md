@@ -12,7 +12,8 @@ TCP 负责在不可靠的传输信道上提供可靠的抽象，向应用层隐�
 
 # TCP 三次握手
 所有的 TCP 连接一开始都要经过三次握手，如下图所示。客户端在于服务器在交换应用数据之前，必须就起始分组序列号，以及其他一些连接相关的细节达成一致。处于安全考虑，序列号由两端随机生成。
-![]()
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_16.png?raw=true)
+
 
 
 # TCP拥塞控制

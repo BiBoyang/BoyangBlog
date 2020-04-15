@@ -23,7 +23,7 @@
 # 3. HTTP/2 简介
 
 在2012年，W3C向社会征求 HTTP/2 的建议，然后决定将 SPDY 当做制定标准的基础。目标上， HTTP/2 致力于突破上一代协议众所周知的性能限制，对 HTTP/1.x 进行扩展，而非替代，核心概念不会改变。下图展示了 HTTP/1 和 HTTP/2 的区别。
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_15.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_15.gif?raw=true)
 
 它做了很多改变，下面细讲。
 不过在讲之前，要先解释 HTTP/2 中的几个概念：
