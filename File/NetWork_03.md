@@ -76,14 +76,15 @@ TCP 负责在不可靠的传输信道上提供可靠的抽象，向应用层隐�
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_19.png?raw=true)
 
 1. 第一次握手(SYN=1， seq=x)：    
-        客户端发送一个 TCP 的 SYN 标志位置1的包，指明客户端打算连接的服务器的端口，以及初始序号 X，保存在包头的序列号(Sequence Number)字段里。序列号的实现目前会随着时间的变化而变化，所以每次建立连接时的序列号都不同
+        客户端发送一个 TCP 的 SYN 标志位置1的包，指明客户端打算连接的服务器的端口，以及初始序号 X，保存在包头的序列号(Sequence Number)字段里。序列号的实现目前会随着时间的变化而变化，所以每次建立连接时的序列号都不同。    
         发送完毕后，客户端进入 SYN_SEND 状态。
 
 1. 第二次握手(SYN=1， ACK=1， seq=y， ACKnum=x+1)：    
-        服务器发回确认包(ACK)应答。即 SYN 标志位和 ACK 标志位均为1。服务器端选择自己 ISN（init SEQ num） 序列号，放到 Seq 域里，同时将确认序号(Acknowledgement Number)设置为客户的 ISN 加1，即X+1。 发送完毕后，服务器端进入 SYN_RCVD 状态。
+        服务器发回确认包(ACK)应答。即 SYN 标志位和 ACK 标志位均为1。服务器端选择自己 ISN（init SEQ num） 序列号，放到 Seq 域里，同时将确认序号(Acknowledgement Number)设置为客户的 ISN 加1，即X+1。     
+        发送完毕后，服务器端进入 SYN_RCVD 状态。
 
 3. 第三次握手(ACK=1，ACKnum=y+1)：    
-        客户端再次发送确认包(ACK)，SYN 标志位为0，ACK 标志位为1，并且把服务器发来 ACK 的序号字段+1，放在确定字段中发送给对方，并且在数据段放写ISN的+1
+        客户端再次发送确认包(ACK)，SYN 标志位为0，ACK 标志位为1，并且把服务器发来 ACK 的序号字段+1，放在确定字段中发送给对方，并且在数据段放写ISN的+1。    
         发送完毕后，客户端进入 ESTABLISHED 状态，当服务器端接收到这个包时，也进入 ESTABLISHED 状态，TCP 握手结束。
 
 三次握手完成之后，客户端与服务器之间就可以通信了。客户端在发送 ACK 分组之后立即发送数据，而服务器必须等到受到 ACK 分组之后才能发送数据。这个启动通信的过程适用于所有 TCP 连接，因此对所有使用 TCP 的应用具有非常大的性能影响。
