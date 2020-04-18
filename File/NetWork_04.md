@@ -72,10 +72,17 @@ IP 面相无连接的。即在发送数据之前，不需要建立与目标地�
 IPv4地址是由 32（4 x 8） 位正整数来表示。而随着地址需求的不断增加，不够用了！然后催生了 IPv6。IPv6 是原有地址长度的 4 倍，即 128（8 x 16）位。
 
 IPv4 的首部格式如图所示。
-
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_23.png?raw=true)
 IPv6 的首部格式如图所示
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_24.png?raw=true)
+
+这里不再赘述各部分代表什么，有兴趣的可以翻阅《图解 TCP/IP 》。
+
 
 
 
 # 资料
 [RFC768](https://tools.ietf.org/html/rfc768)
+
+《图解 TCP/IP 》
+
