@@ -280,7 +280,47 @@ static void blockCleanUp(__strong void(^*block)(void)){
 
 不写第一行的话，如果没有拦截外部变量的话还是没问题的，但是一旦拦截到了外部变量，就会无法确定偏移位置而崩溃。
 
-# Question3 HookBlock
+# Question6 看下列代码结果
+```C++
+#import <UIKit/UIKit.h>
+#import "AppDelegate.h"
+
+typedef void (^ByBlock)(void);
+@interface TestObj : NSObject
+@property (nonatomic, copy) ByBlock block;
+@end
+@implementation TestObj
+- (void)testMethod {
+    if (self.block) {
+        self.block();
+    }
+    NSLog(@"%@", self);
+}
+@end
+
+int main(int argc, char * argv[]) {
+    NSString * appDelegateClassName;
+    @autoreleasepool {
+        // Setup code that might create autoreleased objects goes here.
+        __block TestObj *testObj = [TestObj new];
+        testObj.block = ^{
+            testObj = nil;
+            
+        };
+        [testObj testMethod];
+        
+        appDelegateClassName = NSStringFromClass([AppDelegate class]);
+    }
+    return UIApplicationMain(argc, argv, nil, appDelegateClassName);
+}
+
+```
+答：
+会发生崩溃。野指针会出现问题
+
+
+
+# Question7 HookBlock
 ![](https://wx3.sinaimg.cn/mw690/51530583ly1fsatleo2zmj213u10caiu.jpg)
 我才疏学浅，只对第一第二个有实现，第三个问题有思路但是确实没写出来（😌）。
 
