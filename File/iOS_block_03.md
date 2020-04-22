@@ -6,19 +6,20 @@
 
 
 > 在不特殊说明是MRC的情况下，默认是ARC。
+
 [Objective-C Automatic Reference Counting (ARC)](http://clang.llvm.org/docs/AutomaticReferenceCounting.html)
 
 
-我们知道，在ARC中，除了全局block，block都是在栈上进行创建的。使用的时候，会自动将它复制到堆中。中间会经历`objc_retainBlock` -> `_Block_copy` -> `_Block_copy_internal`方法链。换过来说，我们使用的每个拦截了自动变量的block，都会经历这写方法（注意这一点很重要）。
+我们知道，在 ARC 中，除了全局 block ，block 都是在栈上进行创建的。使用的时候，会自动将它复制到堆中（全局 block 没有 _Block_copy）。中间会经历 `objc_retainBlock` -> `_Block_copy` -> `_Block_copy_internal` 方法链。换过来说，我们使用的每个拦截了自动变量的 block ，都会经历这写方法（注意这一点很重要）。
 
-通过之前的研究，了解到在 **__main_block_impl_0**中会保存着引用到的变量。在转换过的block代码中，block会强行持有拦截的外部对象，不管有没有改变过，都是会造成强引用。
+通过之前的研究，了解到在 **__main_block_impl_0** 中会保存着引用到的变量。在转换过的 block 代码中，block 会强行持有拦截的外部对象，不管有没有改变过，都是会造成强引用。
 
-为了做好准备，我们先看一下**__strong**和**__weak**的实现过程。
+为了做好准备，我们先看一下 **__strong** 和 **__weak** 的实现过程。
 
 # __strong和__weak
 
 ## __strong
-__strong实际上是一个默认的方法。
+__strong 实际上是一个默认的方法。
 
 ```C++
 {
@@ -26,6 +27,7 @@ __strong实际上是一个默认的方法。
 }
 ```
 代码会被转换成这个样子
+
 ```C++
 id __attribute__((objc_ownership(strong))) obj = 
 ((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), 
@@ -33,29 +35,34 @@ sel_registerName("alloc")),
 sel_registerName("init"));
 //代码实际上只有一行，为了方便观看打了换行
 ```
+
 抽离出来，实际上主要是这三个方法
+
 ```C++
 id obj = objc_msgSend(NSObject, @selector(alloc));
 objc_msgSend(obj,selector(init));
 objc_release(obj);
 ```
-也就是说，ARC下的对象，正常情况下都是__strong修饰的。
 
 ## __weak
 
-> 这里我们要使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m**方法去转换为C++代码，原因是因为，__weak其实只在ARC的状态下才能使用，之前使用 **clang -rewrite-objc main.m**是直接将代码转换为C++，并不有限制。
+> 这里我们要使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m** 方法去转换为 C++ 代码，原因是因为，__weak 其实只在 ARC 的状态下才能使用，之前使用 **clang -rewrite-objc main.m** 是直接将代码转换为 C++，并不有限制。
 
-声明一个__weak对象
+声明一个__weak 对象
 ```C++
 {
     id __weak obj = strongObj;
 }
-```
+``` 
+
 转换之后
+
 ```C++
 id __attribute__((objc_ownership(none))) obj1 = strongObj;
 ```
+
 相应的会调用
+
 ```C++
 id obj ;
 objc_initWeak(&obj,strongObj);
@@ -63,7 +70,7 @@ objc_destoryWeak(&obj);
 ```
 从名字上可以看出来，一个是创建一个是销毁。
 
-这里LLVM文档和objc_723文档有些许不同。我这里采用最新的objc_723代码，比之前的有优化：
+这里 LLVM 文档和 objc_723 文档有些许不同。我这里采用最新的 objc_723 代码，比之前的有优化：
 ```C++
 id objc_initWeak(id *location, id newObj) {
     // 查看对象实例是否有效
@@ -88,7 +95,7 @@ void objc_destroyWeak(id *location)
         (location, nil);
 }
 ```
-这两个方法，最后都指向了 **storeWeak**方法，这是一个很长的方法:
+这两个方法，最后都指向了 **storeWeak** 方法，这是一个很长的方法:
 
 ```C++
 // Update a weak variable.
@@ -222,11 +229,11 @@ static id storeWeak(id *location, objc_object *newObj) {
     return (id)newObj;
 }
 ```
-这里不再重复一遍weak的实现，有兴趣的可以去[@property的研究（二）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/runtime_03.md)查看。
+这里不再重复一遍 weak 的实现，有兴趣的可以去[@property的研究（二）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/runtime_03.md)查看。
 
-简单点说，由于weak也是用哈希表实现的，所以`objc_storeWeak`函数就把第一个入参的变量地址注册到weak表中，然后根据第二个入参来决定是否移除。如果第二个参数为0，那么就把**__weak**变量从`weak`表中删除记录，并从引用计数表中删除对应的键值记录。
+简单点说，由于 weak 也是用哈希表实现的，所以 `objc_storeWeak` 函数就把第一个入参的变量地址注册到 weak 表中，然后根据第二个入参来决定是否移除。如果第二个参数为 0，那么就把 **__weak** 变量从 weak 表中删除记录，并从引用计数表中删除对应的键值记录。
 
-所以如果**__weak**引用的原对象如果被释放了，那么对应的**__weak**对象就会被指为nil。这部分就是通过`objc_storeWeak`函数这些函数来实现的。
+所以如果 **__weak** 引用的原对象如果被释放了，那么对应的 **__weak** 对象就会被置为 nil。这部分就是通过 `objc_storeWeak` 函数里的这些函数来实现的。
 
 ## weakSelf和strongSelf
 
@@ -234,11 +241,13 @@ static id storeWeak(id *location, objc_object *newObj) {
 __weak __typeof(self)weakSelf = self;
 __strong __typeof(weakSelf)strongSelf = weakSelf;      
 ```
-weakSelf是为了让block不去持有self，避免了循环引用，如果在Block内需要访问使用self的方法、变量，建议使用weakSelf。
 
-但是，这里会出现一个问题。使用weakSelf修饰的 **self.**变量，是有可能在执行的过程中就被释放的。
+weakSelf 是为了让 block 不去持有 self，避免了循环引用，如果在 block 内需要访问使用 self 的方法、变量，建议使用 weakSelf。
+
+但是，这里会出现一个问题。使用 weakSelf 修饰的 **self.** 变量，是有可能在执行的过程中就被释放的。
 
 以下代码为例
+
 ```C++
 - (void)blockRetainCycle_1 {
     __weak __typeof(self)weakSelf = self;
@@ -247,8 +256,9 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
     };
 }
 ```
-我们如果直接使用这个函数，是有可能在打印之前，weakSelf就被释放了，打印出来就是会出问题。
-为了解决这个问题，我们就要用到strongSelf。
+
+我们如果直接使用这个函数，是有可能在打印之前，weakSelf 就被释放了，打印出来就是会出问题。为了解决这个问题，我们就要用到 strongSelf。
+
 ```C++
 - (void)blockRetainCycle_2 {
     __weak __typeof(self)weakSelf = self;
@@ -258,14 +268,15 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
     };
 }
 ```
-在这里，我们使用了strongSelf，它可以保证在strongSelf下面，直到出了作用域之前，都是存在这个strongSelf的。
+在这里，我们使用了 strongSelf ，它可以保证在 strongSelf 下面，直到出了作用域之前，应该是存在这个 strongSelf 的。
 
 但是，这里依然存在一个微小的问题：       
-我们知道使用weakSelf的时候是无法保证在作用域中一直持有的。虽然使用了strongSelf，但是还是会存在微小的概率，让weakSelf在strongSelf创建之前被释放。如果是单纯的给self对象发送信息的话，这么其实问题不大，*OC的消息转发机制保证了我们即使给nil的对象发送消息也不会出现问题*。
+* 我们知道使用 weakSelf 的时候是无法保证在作用域中一直持有的。虽然使用了 strongSelf ，但是还是会存在微小的概率，让 weakSelf 在 strongSelf 创建之前被释放。如果是单纯的给 self 对象发送信息的话，这么其实问题不大，*OC的消息转发机制保证了我们即使给nil的对象发送消息也不会出现问题*。
 
-但是如果我们有其他的操作，比如说将self对象添加进数组中，如上面代码所示，这里就会发生crash了。
+但是如果我们有其他的操作，比如说将 self 对象添加进数组中，如上面代码所示，这里就会发生 crash 了。
 
 那么我们要需要进一步的保护
+
 ```C++
 - (void)blockRetainCycle_3 {
     __weak __typeof(self)weakSelf = self;
@@ -278,34 +289,32 @@ weakSelf是为了让block不去持有self，避免了循环引用，如果在Blo
 }
 ```
 
-##  block中__weak和__block的区别
+##  block 中 __weak 和 __block 的区别
 
-我们使用`__block`其实也是可能达到防止block循环引用的。
+我们使用 `__block` 其实也是可以达到防止 block 循环引用的————通过在 block 内部把 `__block` 修饰的对象置为 nil 来变相地实现内存释放。
 
-我们可以通过在block内部把`__block`修饰的对象置为nil来变相地实现内存释放。
+从内存上来讲，`__block` 会持有该对象，即使超出了该对象的作用域，该对象还是会存在的，直到 block 对象从堆上销毁；而 `__weak` 是把该对象赋值给 weak 对象，如果对象被销毁，weak 对象将变成 nil 。
 
-从内存上来讲，`__block`会持有该对象，即使超出了该对象的作用域，该对象还是会存在的，直到block对象从堆上销毁；而`__weak`是把该对象赋值给weak对象，如果对象被销毁，weak对象将变成nil。
-
-另外，`__block`对象可以让block修改局部变量,`__weak`则不可以。
+另外，`__block` 对象可以让 block 修改局部变量, `__weak` 则不可以。
 
 
 
 # 关键字
-我们通过之前的文章知道，在ARC当中，一般的block会从栈被copy到堆中。
+我们通过之前的文章知道，在 ARC 当中，一般的 block 会从栈被 copy 到堆中。
 
-但是如果使用weak呢？（assign就不讨论了）
+但是如果使用 weak 呢？
 
 系统会告知我们 **Assigning block literal to a weak property; object will be released after assignment**。
 
-而在ARC下要使用什么关键字呢？**strong和copy都是可以的**。
-通过之前的文章可以知道，在ARC中，block会自动从栈被复制到堆中，这个copy是系统自动进行了，即使使用strong还是依然会有copy操作。所以说，如果为了严谨些，使用copy是可以的，但是使用strong也无伤大雅。
+而在 ARC 下要使用什么关键字呢？**strong 和 copy 都是可以的**。
+通过之前的文章可以知道，在 ARC 中，block 会自动从栈被复制到堆中，这个 copy 是系统自动进行了，即使使用 strong 还是依然会有 copy 操作。所以说，如果为了严谨些，使用copy 是可以的，但是使用 strong 也无伤大雅。
 
 # 总结
 
-* 如果block内部使用到了某个变量，而且这个变量是局部变量，那么block会捕获这个变量并存储到block底层的结构体中。
-* 如果捕获的这个变量是用__weak修饰的，那么block内部就是用弱指针指向这个变量(也就是block不持有这个对象)，反之使用__strong，那么block内部就是用强指针指向这个对象(也就是block持有这个对象)。
-* self在某种意义上也是一个局部变量。
-* 如果self并不持有这个block，block内部怎么引用self都不会造成循环引用。
+* 如果 block 内部使用到了某个变量，而且这个变量是局部变量，那么 block 会捕获这个变量并存储到 block 底层的结构体中。
+* 如果捕获的这个变量是用 __weak 修饰的，那么 block 内部就是用弱指针指向这个变量(也就是 block 不持有这个对象)，反之使用 __strong ，那么 block 内部就是用强指针指向这个对象(也就是 block 持有这个对象)。
+* self 在某种意义上也是一个局部变量。
+* 如果 self 并不持有这个 block，block 内部怎么引用 self 都不会造成循环引用。
 
 
 下一篇文章[block(四)：修改block的实现](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_block_04.md)

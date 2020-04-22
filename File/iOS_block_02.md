@@ -8,26 +8,30 @@
 本文大部分内容来自[A look inside blocks: Episode 3 (Block_copy)](http://www.galloway.me.uk/2013/05/a-look-inside-blocks-episode-3-block-copy/)
 
 ## Block_copy()
+
 这部分代码在[Block.h](https://opensource.apple.com/source/clang/clang-800.0.42.1/src/projects/compiler-rt/lib/BlocksRuntime/Block.h.auto.html)中。
 
-我们知道，在block创建的时候，一般来说，都是在栈上的。
+我们知道，在 block 创建的时候，一般来说，都是在栈上的。
 
-但是我们知道，栈是有系统自动管理的，其所属的变量作用域结束，block就会被废弃。那该如何解决这个问题呢？
+但是我们知道，栈是有系统自动管理的，其所属的变量作用域结束，block 就会被废弃。那该如何解决这个问题呢？
 
-答案就是讲block从栈上复制到堆上。下面的代码就是关键代码的主要过程。
+答案就是将 block 从栈上复制到堆上。下面的代码就是关键代码的主要过程。
 
 ```C++
 #define Block_copy(...) ((__typeof(__VA_ARGS__))_Block_copy((const void *)(__VA_ARGS__)))
 #define Block_release(...) _Block_release((const void *)(__VA_ARGS__))
 ```
 
-所以Block_copy是一个宏，它将传入的参数转换为一个const void *然后传递给_Block_copy()方法。_Block_copy()的实现在[runtime.c](https://opensource.apple.com/source/clang/clang-800.0.42.1/src/projects/compiler-rt/lib/BlocksRuntime/runtime.c.auto.html)：
+Block_copy 是一个宏，它将传入的参数转换为一个 const void * 然后传递给 _Block_copy() 方法。 _Block_copy() 的实现在[runtime.c](https://opensource.apple.com/source/clang/clang-800.0.42.1/src/projects/compiler-rt/lib/BlocksRuntime/runtime.c.auto.html)：
+
 ```C++
 void *_Block_copy(const void *arg) {
     return _Block_copy_internal(arg, WANTS_ONE);
 }
 ```
+
 继续往下：
+
 ```C++
 /* Copy, or bump refcount, of a block.  If really copying, call the copy helper if present. */
 static void *_Block_copy_internal(const void *arg, const int flags) {
@@ -116,7 +120,7 @@ static void *_Block_copy_internal(const void *arg, const int flags) {
 
 ## Block_release()
 
-我们直接来看 **_Block_release()** 的代码。
+我们接着来看 **_Block_release()** 的代码。
 
 ```C++
 // API entry point to release a copied Block
