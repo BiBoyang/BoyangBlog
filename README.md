@@ -35,7 +35,7 @@
 ## Network
 |Name|Article_Link|Info|
 |---|---|---|
-|伯阳的网络笔记|[DNS 是如何工作的](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Network_00.md)<br>[HTTP 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_01.md)<br>[HTTP/2 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_02.md)<br>[TCP 基础概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_03.md)<br>[UDP & IP 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_04.md)<br>[TLS 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_05.md)<br>[HTTPS 概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_06.md)||
+|伯阳的网络笔记|[DNS 是如何工作的](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Network_08.md)<br>[HTTP 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_01.md)<br>[HTTP/2 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_02.md)<br>[TCP 基础概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_03.md)<br>[UDP & IP 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_04.md)<br>[TLS 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_05.md)<br>[HTTPS 概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_06.md)||
 
 
 ## 📘内存管理🚧
