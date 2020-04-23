@@ -1,53 +1,239 @@
 
-![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
+
 > * 原作于：2018-01-02        
 > * GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
 
+这里将通过几道面试题来扩展知识。
+这几道题有几个取自[sunnyxx](http://blog.sunnyxx.com/)。
 
-
-# 简单概述
-
-> block是C语言的扩充功能，我们可以认为它是 **带有自动变量的匿名函数**。
-
-block是一个匿名的inline代码集合：
-> * 参数列表，就像一个函数。
-> * 是一个对象！
-> * 有声明的返回类型
-> * 可获得义词法范围的状态，。
-> * 可选择性修改词法范围的状态。
-> * 可以用相同的词法范围内定义的其它block共享进行修改的可能性
-> * 在词法范围（堆栈框架）被破坏后，可以继续共享和修改词法范围（堆栈框架）中定义的状态
-
-## block怎么写
-最简单。
+# Question1 下面代码运行结果是什么？?
 ```C++
-    int (^DefaultBlock1)(int) = ^int (int a) {
-        return a + 1;
+#import <UIKit/UIKit.h>
+#import "AppDelegate.h"
+
+int d = 1000; // 全局变量
+static int e = 10000; // 静态全局变量
+
+int main(int argc, char * argv[]) {
+    NSString * appDelegateClassName;
+    @autoreleasepool {
+        // Setup code that might create autoreleased objects goes here.
+        appDelegateClassName = NSStringFromClass([AppDelegate class]);
+        
+        int a = 10; // 局部变量
+        static int b = 100; // 静态局部变量
+        __block int c = 1000;
+        void (^block)(void) = ^{
+            NSLog(@"Block中--\n a = %d \n b = %d\n c = %d \n d = %d \n e = %d",a,b,c,d,e);
+         };
+         a = 20;
+         b = 200;
+         c = 2000;
+         d = 20000;
+         e = 200000;
+         NSLog(@"Block上--\n a = %d \n b = %d\n c = %d \n d = %d \n e = %d",a,b,c,d,e);
+         block();
+         NSLog(@"Block下--\n a = %d \n b = %d\n c = %d \n d = %d \n e = %d",a,b,c,d,e);
+    }
+    return UIApplicationMain(argc, argv, nil, appDelegateClassName);
+}
+```
+答案是
+```C++
+2019-04-04 04:50:58.508341+0800 Block_Test[19213:1138920] Block上--
+ a = 20 
+ b = 200
+ c = 2000 
+ d = 20000 
+ e = 200000
+2019-04-04 04:50:58.509229+0800 Block_Test[19213:1138920] Block中--
+ a = 10 
+ b = 200
+ c = 2000 
+ d = 20000 
+ e = 200000
+2019-04-04 04:50:58.509395+0800 Block_Test[19213:1138920] Block下--
+ a = 20 
+ b = 200
+ c = 2000 
+ d = 20000 
+ e = 200000
+```
+解答：
+* block在捕获普通的局部变量时是捕获的a的值，后面无论怎么修改a的值都不会影响block之前捕获到的值，所以a的值不变。
+* block在捕获静态局部变量时是捕获的b的地址，block里面是通过地址找到b并获取它的值。所以b的值发生了改变。
+* __block是将外部变量包装成了一个对象并将c存在这个对象中，实际上block外面的c的地址也是指向这个对象中存储的c的，而block底层是有一个指针指向这个对象的，所以当外部更改c时，block里面通过指针找到这个对象进而找到c，然后获取到c的值，所以c发生了变化。
+* 全局变量在哪里都可以访问，block并不会捕获全局变量，所以无论哪里更改d和e，block里面获取到的都是最新的值。
+
+# Question2 下面代码的运行结果是什么？
+```C++
+- (void)test{
+  
+    __block Foo *foo = [[Foo alloc] init];
+    foo.fooNum = 20;
+    __weak Foo *weakFoo = foo;
+    self.block = ^{
+        NSLog(@"block中-上 fooNum = %d",weakFoo.fooNum);
+        [NSThread sleepForTimeInterval:1.0f];
+        NSLog(@"block中-下 fooNum = %d",weakFoo.fooNum);
     };
-    DefaultBlock1(1);
     
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        self.block();
+    });
+    
+    [NSThread sleepForTimeInterval:0.2f];
+    NSLog(@"end");
+}
 ```
-升级版。
+结果是
 ```C++
-// 利用 typedef 声明block
-typedef return_type (^BlockTypeName)(var_type);
-
-// 作属性
-@property (nonatomic, copy ,nullable) BlockTypeName blockName;
-
-// 作方法参数
-- (void)requestForSomething:(Model)model handle:(BlockTypeName)handle;
+block中-上 fooNum = 20
+end
+block中-下 fooNum = 0
 ```
+weakFoo是一个弱指针，所以self.block对person是弱引用。
+然后在并发队列中通过异步函数添加一个任务来执行self.block();，所以是开启了一个子线程来执行这个任务，此时打印fooNum值是20，然后子线程开始睡眠1秒钟；与此同时主线程也睡眠0.2秒。
+而由于foo是一个局部变量，而且self.block对它也是弱引用，所以在test函数执行完后foo对象就被释放了。再过0.8秒钟，子线程结束睡眠，此时weakFoo所指向的对象已经变成了nil，所以打印的fooNum是0。
+
+* 接着问：如果下面的`[NSThread sleepForTimeInterval:0.2f];`改为`[NSThread sleepForTimeInterval:2.0f];`呢？
+ 
+ 结果是
+```C++
+block中-上 fooNum = 20
+end
+block中-下 fooNum = 20
+```
+因为子线程睡眠结束时主线程还在睡眠睡眠，也就是test方法还没执行完，那person对象就还存在，所以子线程睡眠前后打印的fooNum都是20。
+
+* 换个方式问：如果在block内部加上`__strong Foo *strongFoo = weakFoo;`,并改为打印strong.fooNum呢？
+
+结果还是：
+```C++
+block中-上 fooNum = 20
+end
+block中-下 fooNum = 20
+```
+__strong的作用就是保证在block中的代码块在执行的过程中，它所修饰的对象不会被释放，即便block外面已经没有任何强指针指向这个对象了，这个对象也不会立马释放，而是等到block执行结束后再释放。所以在实际开发过程中__weak和__strong最好是一起使用，避免出现block运行过程中其弱引用的对象被释放。
+
+# Questime3 下面的代码会发生什么？
+```C++
+- (void)test{
+    self.age = 20;
+    self.block = ^{
+      NSLog(@"%d",self.age);
+    };
+    
+    self.block();
+}
+```
+答：会发生循环引用。
+因为self通过一个强指针指向了block，而block内部又捕获了self而且用强指针指向self，所以self和block互相强引用对方而造成循环引用。
+如果要解决的话很简单，加一个`__weak typeof(self) weakSelf = self;`就好。
+
+* 那如果去掉`self.block();`呢？
+    
+答： 一样会引用，一样会发生循环引用。
+
+* 那如果把`NSLog(@"%d",self.age);`改为`NSLog(@"%d",_age);`呢？
+ 
+ 答：还是会发生循环引用。因为_age，实际上就是self->age。
+
+# Question4 下面会发生循环引用吗？
+```C++
+[UIView animateWithDuration:1.0f animations:^{
+       NSLog(@"%d",self.age);
+}];
+dispatch_sync(dispatch_get_global_queue(0, 0), ^{
+       NSLog(@"%d",self.age);
+});
+```
+答：不会。这里的block实际上是这个函数的一部分，是参数。虽然block强引用了self，但是self并没有强引用block，所以没事。
 
 
+# Question5 如何在禁止直接调用block的情况下继续使用block?
+```C++
+- (void)blockProblem {
+    __block int a = 0;
+    void (^block)(void) = ^{
+        self.string = @"retain";
+        NSLog(@"biboyang");
+        NSLog(@"biboyang%d",a);
+    };
+//    block();//禁止
+}
+```
+我们可以通过以下几种方式来实现
+## 1.别的方法直接调用
+```C++
+- (void)blockProblemAnswer0:(void(^)(void))block {
+    //动画方法 
+    [UIView animateWithDuration:0 animations:block];   
+    //主线程
+    dispatch_async(dispatch_get_main_queue(), block);
+}
+```
+这里两个都是直接调用了原装block的方法。
 
 
-# block的实现
+## 2.NSOperation
+```C++
+- (void)blockProblemAnswer1:(void(^)(void))block {
+    [[NSBlockOperation blockOperationWithBlock:block]start];
+}
+```
+直接使用NSOperation的方法去调用。注意，这个方法是在主线程上执行的。
 
-在LLVM的文件中，我找到了一份文档，[Block_private.h](https://llvm.org/svn/llvm-project/compiler-rt/tags/Apple/Libcompiler_rt-16/BlocksRuntime/Block_private.h)，这里可以查看到block的实现情况
+## 3.NSInvocation
+```C++
+- (void)blockProblemAnswer2:(void(^)(void))block {
+    NSMethodSignature *signature = [NSMethodSignature signatureWithObjCTypes:"v@?"];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation invokeWithTarget:block];
+}
+```
+NSMethodSignature是方法签名，封装了一个方法的返回类型和参数类型，只有返回类型和参数类型。
 
-* 注：实际上真实的代码结构和使用 clang 指令转换过来的代码，是有可能不一样的。
+> * **@?** 代表了这个是一个block。
 
+NSInvocation对象包含Objective-C消息的所有元素：目标、选择器、参数和返回值。这些元素都可以直接设置，当NSncOcObjt对象被调度时，返回值自动设置。
+
+NSInvocation对象可以重复地分配到不同的目标；它的参数可以在分派之间进行修改，以获得不同的结果；甚至它的选择器也可以改变为具有相同方法签名（参数和返回类型）的另一个。这种灵活性使得NSInvocation对于使用许多参数和变体重复消息非常有用；您不必为每个消息重新键入稍微不同的表达式，而是每次在将NSInvocation对象分派到新目标之前根据需要修改NSInvocation对象。
+
+## 4.invoke方法
+```C++
+- (void)blockProblemAnswer3:(void(^)(void))block {
+    [block invoke];
+}
+```
+我们通过打印，可以获取到block的继承线。
+
+```C++
+ -> __NSMallocBlock__ -> __NSMallocBlock -> NSBlock -> NSObject
+```
+然后我们查找 **NSBlock**的方法
+```C++
+(lldb) po [NSBlock instanceMethods]
+<__NSArrayI 0x600003265b00>(
+- (id)copy,
+- (id)copyWithZone:({_NSZone=} *)arg0 ,
+- (void)invoke,
+- (void)performAfterDelay:(double)arg0 
+)
+```
+我们发现了一个invoke方法，这个方法实际上也是来自 **NSInvocation**。该方法是将接收方的消息（带参数）发送到目标并设置返回值。
+
+注意：**这个方法是NSInvocation的方法，不是Block结构体中的invoke方法。**
+
+## 5.block的struct方法
+```C++
+    void *pBlock = (__bridge void*)block;
+    void (*invoke)(void *,...) = *((void **)pBlock + 2);
+    invoke(pBlock);
+```
+开始 `(__bridge void*)block`将block转成指向block结构体第一位的指针。然后去计算偏移量。
+
+然后观察block的内存布局
 ```C++
 struct Block_layout {
     void *isa;
@@ -57,637 +243,220 @@ struct Block_layout {
     struct Block_descriptor *descriptor;
     /* Imported variables. */
 };
-struct Block_descriptor {
-    unsigned long int reserved;
-    unsigned long int size;
-    void (*copy)(void *dst, void *src);
-    void (*dispose)(void *);
-};
-
 ```
-里面的invoke就是指向具体实现的函数指针，当block被调用的时候，程序最终会跳转到这个函数指针指向的代码区。
+在64位下，一个void指针占了8byte。而int占据4位，则flag和reserved一共占据了8位，加一块是16位。
 
-而 **Block_descriptor** 里面最重要的就是 **copy** 函数和 **dispose** 函数，从命名上可以推断出，copy 函数是用来**捕获变量并持有引用**，而 dispose 函数是用来**释放捕获的变量**。函数捕获的变量会存储在结构体 **Block_layout** 的后面，在 invoke 函数执行前全部读出。
+我们知道，一个 `void*`占据了8位， ``(void **)pBlock``代表了本身的8位地址长度。+2表示添加了两倍的8位长度，也就是16位。到达了 `void (*invoke)`方法。
 
-不过光看文档并不直观。我们使用 **clang -rewrite-objc** 将一份 block 代码进行编译转换，将得到一份C++代码。刨除其他无用的代码：
+然后我们再调用 `void (*invoke)(void *,...)`,这里是block的函数指针，直接去调用就好。
+
+## 6.__attribute__((cleanup))方法
 ```C++
-struct __block_impl {
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int flags=0) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
+static void blockCleanUp(__strong void(^*block)(void)){
+    (*block)();
 }
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0)};
-int main(int argc, const char * argv[]) {
-    /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool;
-        (void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA);
-    }
-    return 0;
+- (void)blockProblemAnswer5:(void(^)(void))block {
+    __strong void(^cleaner)(void) __attribute ((cleanup(blockCleanUp),unused)) = block;
 }
 ```
-先看最直接的 **__block_impl** 代码，
+这里可以查看[黑魔法__attribute__((cleanup))](http://blog.sunnyxx.com/2014/09/15/objc-attribute-cleanup/)
 
+## 7.汇编方法
 ```C++
-struct __block_impl {
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-};
-```
-这是一个结构体，里面的元素分别是
-
-> * isa：    
-        指向所属类的指针，也就是 block 的类型
-> * flags    
-        标志变量，在实现 block 的内部操作时会用到
-> * Reserved    
-        保留变量
-> * FuncPtr    
-        block 执行时调用的函数指针
-
-
-接着, **__main_block_impl_0** 因为包含了 __block_impl ，我们可以将它打开,直接看成
-```C++
-__main_block_impl_0{
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-    struct __main_block_desc_0 *Desc;
+- (void)blockProblemAnswer6:(void(^)(void))block {
+    asm("movq -0x18(%rbp), %rdi");
+    asm("callq *0x10(%rax)");
 }
 ```
-通过观察它，我们可以将 block 理解为，一个对象，内部包含一个函数。
-
-# block的类型
-
-我们常见的block是有三种：
-
-> * __NSGlobalBlock
-> * __NSStackBlock
-> * __NSMallocBlock
-
-比如说
+我们给一个block打断点，并在lldb中输入dis查看汇编代码。
 ```C++
-void (^block)(void) = ^{
-    NSLog(@"biboyang");
-};
-block();
+->  0x1088c8d1e <+62>:  movq   -0x18(%rbp), %rax
+    0x1088c8d22 <+66>:  movq   %rax, %rsi
+    0x1088c8d25 <+69>:  movq   %rsi, %rdi
+    0x1088c8d28 <+72>:  callq  *0x10(%rax)
 ```
-或者
+注意，一定要写第一行。
+
+不写第一行的话，如果没有拦截外部变量的话还是没问题的，但是一旦拦截到了外部变量，就会无法确定偏移位置而崩溃。
+
+# Question6 看下列代码结果
 ```C++
-static int age = 10;
-    void(^block)(void) = ^{
-        NSLog(@"Hello, World! %d",age);
-    };
-block();
-```
-
-像是这种，没有对外捕获变量的，就是 GlobaBlock 。
-
-而我们在写一个捕获变量的。
-```C++
-    int b = 10;
-    void(^block2)(void) = ^{
-        NSLog(@"Hello, World! %d",b);
-    };
-    block2();
-```
-
-这种 block，在 MRC 中，是 StackBlock 。在 ARC 中，因为编译器做了优化，自动进行了 copy ，这种就是 MallocBlock 了。
-
-做这种优化的原因很好理解：
-
-如果 StackBlock 访问了一个自动变量，因为自己是存在栈上的，所以变量也就会被保存在栈上。但是因为栈上的数据是由系统自动进行管理的，随时都有可能被回收，非常容易造成野指针的问题。
-
-那该如何解决呢？复制到堆上就好了！
-
-ARC 机制也确实这么做的。它会自动将栈上的 block 复制到堆上，所以，ARC 下的 block 的属性关键词其实使用 strong 和 copy 都不会有问题，不过为了习惯，还是使用 copy 为好。
-
-
-| Blcok 的类 | 副本源的配置存储域 | 复制效果 |
-| --- | --- | --- |
-| __NSStackBlock | 栈 | 堆 |
-| __NSGlobalBlock | 程序的数据区域 | 无用 |
-| __NSMallocBlock | 堆 | 引用计数增加 |
-
-系统默认调用 copy 方法把 block 复制的四种情况
-
-1. 手动调用 copy
-2. block 是函数的返回值
-3. block 被强引用，block 被赋值给 __strong 或者 id 类型
-4. 调用系统 API 入参中含有 usingBlcok 的 Cocoa 方法或者 GCD 的相关 API
-
-ARC 环境下，一旦 block 赋值就会触发 copy，block 就会 copy 到堆上，block也就会变成 __NSMallocBlock 。当然，如果刻意的去写（没有实际用处），ARC 环境下也是存在 __NSStackBlock 的，这种情况下，block 就在栈上。
-
-
-# 如何截获变量
-
-这里直接拿冰霜的[文章](https://www.jianshu.com/p/ee9756f3d5f6)来用
-
-```C++
-#import <Foundation/Foundation.h>
-
-int global_i = 1;
-
-static int static_global_j = 2;
-
-int main(int argc, const char * argv[]) {
-   
-    static int static_k = 3;
-    int val = 4;
-    
-    void (^myBlock)(void) = ^{
-        global_i ++;
-        static_global_j ++;
-        static_k ++;
-        NSLog(@"Block中 global_i = %d,static_global_j = %d,static_k = %d,val = %d",global_i,static_global_j,static_k,val);
-    };
-    
-    global_i ++;
-    static_global_j ++;
-    static_k ++;
-    val ++;
-    NSLog(@"Block外 global_i = %d,static_global_j = %d,static_k = %d,val = %d",global_i,static_global_j,static_k,val);
-    
-    myBlock();
-    
-    return 0;
-}
-
-```
-运行结果
-```C++
-Block 外  global_i = 2,static_global_j = 3,static_k = 4,val = 5
-Block 中  global_i = 3,static_global_j = 4,static_k = 5,val = 4
-```
-转换的结果为
-```C++
-int global_i = 1;
-
-static int static_global_j = 2;
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  int *static_k;
-  int val;
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int *_static_k, int _val, int flags=0) : static_k(_static_k), val(_val) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-  int *static_k = __cself->static_k; // bound by copy
-  int val = __cself->val; // bound by copy
-
-        global_i ++;
-        static_global_j ++;
-        (*static_k) ++;
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_6fe658_mi_0,global_i,static_global_j,(*static_k),val);
-    }
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0)};
-
-
-int main(int argc, const char * argv[]) {
-
-    static int static_k = 3;
-    int val = 4;
-
-    void (*myBlock)(void) = ((void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, &static_k, val));
-
-    global_i ++;
-    static_global_j ++;
-    static_k ++;
-    val ++;
-    NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_6fe658_mi_1,global_i,static_global_j,static_k,val);
-
-    ((void (*)(__block_impl *))((__block_impl *)myBlock)->FuncPtr)((__block_impl *)myBlock);
-
-    return 0;
-}
-
-```
-
-首先全局变量 global_i 和静态全局变量 static_global_j 的值增加，以及它们会被 block 捕获进去，这一点很好理解，因为是全局的，作用域很广，所以 block 捕获了它们进去之后，在 block 内部进行 ++，block 结束之后，它们的值依旧可以得以保存下来。
-
-在 __main_block_impl_0 中，可以看到静态变量 static_k 和自动变量 val ，被 block 从外面捕获进来，成为 __main_block_impl_0 这个结构体的成员变量了。
-
-在执行 block 语法的时候，block 语法表达式所使用的自动变量的值是被保存进了 block 的结构体实例中，也就是 block 自身中。
-
-这么看就清晰了很多，自动变量是以值传递方式传递到 block 的构造函数里面去的。 block 只捕获 block 中会用到的变量。由于只捕获了自动变量的值，并非内存地址，所以 block 内部不能改变自动变量的值。
-
-
-# 修改自动变量
-
-截获变量并修改有两种方法 **__block** 和 **指针法**（不过 __block 法归根结底，其实也是操作指针）。这里描述一下指针法：
-
-```C++
-NSMutableString * str = [[NSMutableString alloc]initWithString:@"Hello,"];
-    
-void (^myBlock)(void) = ^{
-    [str appendString:@"World!"];
-    NSLog(@"Block中 str = %@",str);
-    };
-NSLog(@"Block外 str = %@",str);
-myBlock();
-    
-const char *text = "hello";
-void(^block)(void) = ^{
-    printf("%caaaaaaaaaaa\n",text[2]);
-};
-block();
-```
-
-直接操作指针去进行截获，不过一般来讲，这种方法多用于 C 语言数组的时候。使用 OC 的时候多数是使用 __block 。
-
-
-这里写一个 __block 的捕获代码，使用刚才的方法再来一次：
-
-## 1.普通非对象的变量
-```C++
-struct __Block_byref_i_0 {
-  void *__isa;
-__Block_byref_i_0 *__forwarding;//指向真正的block
- int __flags;
- int __size;
- int i;//对象
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  __Block_byref_i_0 *i; // by ref
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, __Block_byref_i_0 *_i, int flags=0) : i(_i->__forwarding) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-  __Block_byref_i_0 *i = __cself->i; // bound by ref
-
-        (i->__forwarding->i) ++;
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_3b0837_mi_0,(i->__forwarding->i));
-    }
-static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) {_Block_object_assign((void*)&dst->i, (void*)src->i, 8/*BLOCK_FIELD_IS_BYREF*/);}
-
-static void __main_block_dispose_0(struct __main_block_impl_0*src) {_Block_object_dispose((void*)src->i, 8/*BLOCK_FIELD_IS_BYREF*/);}
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-  void (*copy)(struct __main_block_impl_0*, struct __main_block_impl_0*);
-  void (*dispose)(struct __main_block_impl_0*);
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0), __main_block_copy_0, __main_block_dispose_0};
-int main(int argc, const char * argv[]) {
-    __attribute__((__blocks__(byref))) __Block_byref_i_0 i = {(void*)0,(__Block_byref_i_0 *)&i, 0, sizeof(__Block_byref_i_0), 0};
-
-    void (*myBlock)(void) = ((void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, (__Block_byref_i_0 *)&i, 570425344));
-
-    ((void (*)(__block_impl *))((__block_impl *)myBlock)->FuncPtr)((__block_impl *)myBlock);
-
-    return 0;
-}
-
-```
-
-我们可以发现这里多了两个结构体
-
-```C++
-struct __Block_byref_i_0 {
-  void *__isa;
-__Block_byref_i_0 *__forwarding;
- int __flags;
- int __size;
- int i;
-};
-```
-
-在这个实例内，包含了 **__isa** 指针、一个标志位 **__flags** 、一个记录大小的 **__size** 。最最最重要的，多了一个 **__forwarding** 指针和 val 变量.
-这里长话短说，出来了一个新的 **__forwarding**指针,指向了**结构体实例本身在内存的地址**。
-
-block 通过指针的持续传递，将使用的**自动变量值**保存到了 block 的结构体实例中。在 block 内部内修改 **__block0** 变量，通过一系列指针指向关系，最终指向了 __Block_byref_age_0 结构体内与局部变量同名同类型的那个成员，并成功修改变量值。
-
-在栈中， **__forwarding** 指向了自己本身，但是如果复制到了堆上，**__forwarding** 就指向复制到堆上的 block，而堆上的 block 中的 **__forwarding** 这时候指向了自己。
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/block_6.jpg?raw=true)
-
-## 2.对象的变量
-
-```C++
-//以下代码是在ARC下执行的
-#import <Foundation/Foundation.h>
-
-int main(int argc, const char * argv[]) {
-     
-    __block id block_obj = [[NSObject alloc]init];
-    id obj = [[NSObject alloc]init];
-
-    NSLog(@"block_obj = [%@ , %p] , obj = [%@ , %p]",block_obj , &block_obj , obj , &obj);
-    
-    void (^myBlock)(void) = ^{
-        NSLog(@"***Block中****block_obj = [%@ , %p] , obj = [%@ , %p]",block_obj , &block_obj , obj , &obj);
-    };
-    
-    myBlock();
-   
-    return 0;
-}
-```
-
-转换之后
-
-```C++
-struct __Block_byref_block_obj_0 {
-  void *__isa;
-__Block_byref_block_obj_0 *__forwarding;//指向真正的block
- int __flags;
- int __size;
- void (*__Block_byref_id_object_copy)(void*, void*);
- void (*__Block_byref_id_object_dispose)(void*);
- id block_obj;
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  id obj;
-  __Block_byref_block_obj_0 *block_obj; // by ref
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, id _obj, __Block_byref_block_obj_0 *_block_obj, int flags=0) : obj(_obj), block_obj(_block_obj->__forwarding) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-  __Block_byref_block_obj_0 *block_obj = __cself->block_obj; // bound by ref
-  id obj = __cself->obj; // bound by copy
-
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_e64910_mi_1,(block_obj->__forwarding->block_obj) , &(block_obj->__forwarding->block_obj) , obj , &obj);
-    }
-static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) {_Block_object_assign((void*)&dst->block_obj, (void*)src->block_obj, 8/*BLOCK_FIELD_IS_BYREF*/);_Block_object_assign((void*)&dst->obj, (void*)src->obj, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static void __main_block_dispose_0(struct __main_block_impl_0*src) {_Block_object_dispose((void*)src->block_obj, 8/*BLOCK_FIELD_IS_BYREF*/);_Block_object_dispose((void*)src->obj, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-  void (*copy)(struct __main_block_impl_0*, struct __main_block_impl_0*);
-  void (*dispose)(struct __main_block_impl_0*);
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0), __main_block_copy_0, __main_block_dispose_0};
-
-
-int main(int argc, const char * argv[]) {
-
-    __attribute__((__blocks__(byref))) __Block_byref_block_obj_0 block_obj = {(void*)0,(__Block_byref_block_obj_0 *)&block_obj, 33554432, sizeof(__Block_byref_block_obj_0), __Block_byref_id_object_copy_131, __Block_byref_id_object_dispose_131, ((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), sel_registerName("alloc")), sel_registerName("init"))};
-
-    id obj = ((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), sel_registerName("alloc")), sel_registerName("init"));
-    NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_e64910_mi_0,(block_obj.__forwarding->block_obj) , &(block_obj.__forwarding->block_obj) , obj , &obj);
-
-    void (*myBlock)(void) = ((void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, obj, (__Block_byref_block_obj_0 *)&block_obj, 570425344));
-
-    ((void (*)(__block_impl *))((__block_impl *)myBlock)->FuncPtr)((__block_impl *)myBlock);
-
-    return 0;
-}
-
-```
-在转换出来的源码中，我们也可以看到，block 捕获了 __block ，并且强引用了它，因为在 __Block_byref_block_obj_0 结构体中，有一个变量是 id block_obj ，这个默认也是带 __strong 所有权修饰符的。
-
-根据打印出来的结果来看，ARC 环境下，block 捕获外部对象变量，是都会 copy 一份的，地址都不同。只不过带有 __block 修饰符的对象会被捕获到 block 内部持有。对于声明为__block 的外部对象，在block 内部会**进行持有**，以至于在 block 环境内能安全的引用外部对象。
-
-## 3. 实例变量
-
-之前一直没有想到过一个问题：
-
-我们知道不应该在 block 中使用实例变量，是因为会发生循环引用；那为什么会发生循环引用呢？
-
-一般我们会理解为，一个 _age 的实例变量，实际上是 self->_age 。那么如果往下深究下去呢？
-
-受[谈谈ivar的直接访问](http://satanwoo.github.io/2018/02/04/iOS-iVar/)的启发，我也开始探索一下这里的原因。
-
-写如下的代码：
-```C++
-
-#import <Foundation/Foundation.h>
-#import "objc/runtime.h"
-
-typedef void(^MyBlock)(void);
-
-@interface MyObject : NSObject
-@property (nonatomic) NSUInteger BRInteger;
-@property (nonatomic, copy) NSString *BRString;
-@property (nonatomic, copy) MyBlock BRBlock;
-
-- (void)inits;
-
+#import <UIKit/UIKit.h>
+#import "AppDelegate.h"
+
+typedef void (^ByBlock)(void);
+@interface TestObj : NSObject
+@property (nonatomic, copy) ByBlock block;
 @end
-
-@implementation MyObject
-- (void)inits
-{
-    self.BRBlock = ^{
-        _BRInteger = 5;
-        _BRString = @"Balaeniceps_rex";
-    };
+@implementation TestObj
+- (void)testMethod {
+    if (self.block) {
+        self.block();
+    }
+    NSLog(@"%@", self);
 }
 @end
 
-int main(int argc, const char * argv[]) {
+int main(int argc, char * argv[]) {
+    NSString * appDelegateClassName;
     @autoreleasepool {
+        // Setup code that might create autoreleased objects goes here.
+        __block TestObj *testObj = [TestObj new];
+        testObj.block = ^{
+            testObj = nil;
+            
+        };
+        [testObj testMethod];
         
-        MyObject *object = [MyObject new];
-        [object inits];
+        appDelegateClassName = NSStringFromClass([AppDelegate class]);
     }
-    return 0;
-}
-```
-使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m**命令进行转换。得到以下的代码（为了简便，将代码做了省略）：
-
-```C++
-typedef void(*MyBlock)(void);
-
-
-#ifndef _REWRITER_typedef_MyObject
-#define _REWRITER_typedef_MyObject
-typedef struct objc_object MyObject;
-typedef struct {} _objc_exc_MyObject;
-#endif
-
-//对于每个ivar，都有对应的全局变量
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRInteger;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRString;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRBlock;
-//内部的结构
-struct MyObject_IMPL {
-    struct NSObject_IMPL NSObject_IVARS;
-    NSUInteger _BRInteger;
-    NSString *__strong _BRString;
-    __strong MyBlock _BRBlock;
-};
-
-// @property (nonatomic) NSUInteger BRInteger;
-// @property (nonatomic, copy) NSString *BRString;
-// @property (nonatomic, copy) MyBlock BRBlock;
-
-// - (void)inits;
-
-/* @end */
-
-
-// @implementation MyObject
-
-struct __MyObject__inits_block_impl_0 {
-    struct __block_impl impl;
-    struct __MyObject__inits_block_desc_0* Desc;
-    MyObject *const __strong self;
-    
-    //注意这里捕捉了self
-    __MyObject__inits_block_impl_0(void *fp, struct __MyObject__inits_block_desc_0 *desc, MyObject *const __strong _self, int flags=0) : self(_self) {
-        impl.isa = &_NSConcreteStackBlock;
-        impl.Flags = flags;
-        impl.FuncPtr = fp;
-        Desc = desc;
-    }
-};
-
-//block的函数方法（也就是方法layout中第四行的那个）
-static void __MyObject__inits_block_func_0(struct __MyObject__inits_block_impl_0 *__cself) {
-    MyObject *const __strong self = __cself->self; // bound by copy
-    //这里是通过self的地址，那倒全局变量的偏移去获取实例变量的地址
-    (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)) = 5;
-    (*(NSString *__strong *)((char *)self + OBJC_IVAR_$_MyObject$_BRString)) = (NSString *)&__NSConstantStringImpl__var_folders_m1_05zb_zbd1g1f8k27nc6yn_th0000gn_T_main_e9db32_mi_0;
-}
-static void __MyObject__inits_block_copy_0(struct __MyObject__inits_block_impl_0*dst, struct __MyObject__inits_block_impl_0*src) {_Block_object_assign((void*)&dst->self, (void*)src->self, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static void __MyObject__inits_block_dispose_0(struct __MyObject__inits_block_impl_0*src) {_Block_object_dispose((void*)src->self, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static struct __MyObject__inits_block_desc_0 {
-    size_t reserved;
-    size_t Block_size;
-    void (*copy)(struct __MyObject__inits_block_impl_0*, struct __MyObject__inits_block_impl_0*);
-    void (*dispose)(struct __MyObject__inits_block_impl_0*);
-} __MyObject__inits_block_desc_0_DATA = { 0, sizeof(struct __MyObject__inits_block_impl_0), __MyObject__inits_block_copy_0, __MyObject__inits_block_dispose_0};
-
-static void _I_MyObject_inits(MyObject * self, SEL _cmd) {
-    ((void (*)(id, SEL, MyBlock))(void *)objc_msgSend)((id)self, sel_registerName("setBRBlock:"), ((void (*)())&__MyObject__inits_block_impl_0((void *)__MyObject__inits_block_func_0, &__MyObject__inits_block_desc_0_DATA, self, 570425344)));
+    return UIApplicationMain(argc, argv, nil, appDelegateClassName);
 }
 
-static NSUInteger _I_MyObject_BRInteger(MyObject * self, SEL _cmd) { return (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)); }
-static void _I_MyObject_setBRInteger_(MyObject * self, SEL _cmd, NSUInteger BRInteger) { (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)) = BRInteger; }
+```
+答：
+会发生崩溃。野指针会出现问题
 
-static NSString * _I_MyObject_BRString(MyObject * self, SEL _cmd) { return (*(NSString *__strong *)((char *)self + OBJC_IVAR_$_MyObject$_BRString)); }
-extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
 
-static void _I_MyObject_setBRString_(MyObject * self, SEL _cmd, NSString *BRString) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct MyObject, _BRString), (id)BRString, 0, 1); }
 
-static void(* _I_MyObject_BRBlock(MyObject * self, SEL _cmd) )(){ return (*(__strong MyBlock *)((char *)self + OBJC_IVAR_$_MyObject$_BRBlock)); }
-static void _I_MyObject_setBRBlock_(MyObject * self, SEL _cmd, MyBlock BRBlock) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct MyObject, _BRBlock), (id)BRBlock, 0, 1); }
-// @end
+# Question7 HookBlock
+![](https://wx3.sinaimg.cn/mw690/51530583ly1fsatleo2zmj213u10caiu.jpg)
+我才疏学浅，只对第一第二个有实现，第三个问题有思路但是确实没写出来（😌）。
 
-int main(int argc, const char * argv[]) {
-    /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool;
-        
-        MyObject *object = ((MyObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("MyObject"), sel_registerName("new"));
-        ((void (*)(id, SEL))(void *)objc_msgSend)((id)object, sel_registerName("inits"));
-    }
-    return 0;
+## 第一题
+我最开始的思路是这样的，将block的结构替换实现出来，作为中间体用来暂存方法指针。然后同样实现替换block的结构体，用来装载。
+```C++
+//中间体
+typedef struct __block_impl {
+    void *isa;
+    int Flags;
+    int Reserved;
+    void *FuncPtr;
+}__block_impl;
+
+//接受体
+typedef struct __block_impl_replace {
+    void *isa_replace;
+    int Flags_replace;
+    int Reserved_replace;
+    void *FuncPtr_replace;
+}__block_impl_replace;
+
+
+//替换方法
+void hookBlockMethod() {
+    NSLog(@"黄河入海流");
+}
+
+void HookBlockToPrintHelloWorld(id block) {
+    __block_impl_replace *ptr = (__bridge __block_impl *)block;
+    ptr->FuncPtr_replace = &hookBlockMethod;
 }
 ```
-我们可以发现，每个实例变量都是被创建了对应的全局变量：
+注意，结构体里的方法名不比和系统block中的方法名相同，这里这么写只不过是为了标明。
+这里事实上是会触发一个警告 ``Incompatible pointer types initializing '__block_impl_replace *' (aka 'struct __block_impl_replace *') with an expression of type '__block_impl *' (aka 'struct __block_impl *')``
+警告我们这两个方法并不兼容。实际上，这两个结构体里的方法名并不相同，甚至个数不同都可以，但是一定要保证前四个成员的类型是对应了;前四个成员是存储block内部数据的关键。
+在四个成员下边接着又其他成员也是无所谓的。
 ```C++
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRInteger;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRString;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRBlock;
+typedef struct __block_impl_replace {
+    void *isa_replace;
+    int Flags_replace;
+    int Reserved_replace;
+    void *FuncPtr_replace;
+    void *aaa;
+    void *bbb;
+    void *ccc;
+}__block_impl_replace;
 ```
-下面是block的layout中的第四排的函数调用方法。
+比如这种方式，实际上方法依然成立。
+
+当然，这种方式也是可以优化的。比如说我们就可以吧中间结构体和替换block结合。
+
+比如下面的这个就是优化之后的结果。
 ```C++
-//block的函数方法（也就是方法layout中第四行的那个）
-static void __MyObject__inits_block_func_0(struct __MyObject__inits_block_impl_0 *__cself) {
-    MyObject *const __strong self = __cself->self; // bound by copy
-    //这里是通过self的地址，那倒全局变量的偏移去获取实例变量的地址
-    (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)) = 5;
-    (*(NSString *__strong *)((char *)self + OBJC_IVAR_$_MyObject$_BRString)) = (NSString *)&__NSConstantStringImpl__var_folders_m1_05zb_zbd1g1f8k27nc6yn_th0000gn_T_main_e9db32_mi_0;
+typedef struct __block_impl {
+    void *isa;
+    int Flags;
+    int Reserved;
+    void *FuncPtr;
+}__block_impl;
+
+void OriginalBlock (id Or_Block) {
+    void(^block)(void) = Or_Block;
+    block();
+}
+
+void HookBlockToPrintHelloWorld(id block) {
+    __block_impl *ptr = (__bridge __block_impl *)block;
+    ptr->FuncPtr = &hookBlockMethod;
+}
+------------------
+------------------
+    void (^block)(void) = ^void() {
+        NSLog(@"白日依山尽 ");
+    };
+    HookBlockToPrintHelloWorld(block);
+    block();
+```
+  
+这里我们就可以打印出来 ``黄河入海流``了。
+
+但是，我们如果想要原本的方法也也打印出来该怎么处理呢？
+
+方法很简单
+```C++
+void OriginalBlock (id Or_Block) {
+    void(^block)(void) = Or_Block;
+    block();
+}
+void HookBlockToPrintHelloWorld(id block) {
+    __block_impl *ptr = (__bridge __block_impl *)block;
+    OriginalBlock(block);
+    ptr->FuncPtr = &hookBlockMethod;
 }
 ```
-通过这里，我们其实也能发现，这里是通过 self 的偏移去获取实例变量的地址，也是和 self 息息相关的。
+保留原有block，并在该方法中执行原有的block方法。
 
-如果这个还不会证明实例变量中的self的作用的话，我们接着往下看；
+我们就可以实现如下了
 ```C++
-struct __MyObject__inits_block_impl_0 {
-    struct __block_impl impl;
-    struct __MyObject__inits_block_desc_0* Desc;
-    MyObject *const __strong self;
-    
-    //注意这里捕捉了self
-    __MyObject__inits_block_impl_0(void *fp, struct __MyObject__inits_block_desc_0 *desc, MyObject *const __strong _self, int flags=0) : self(_self) {
-        impl.isa = &_NSConcreteStackBlock;
-        impl.Flags = flags;
-        impl.FuncPtr = fp;
-        Desc = desc;
-    }
-};
+2018-11-19 17:12:16.599362+0800 BlockBlogTest[64408:32771276] 白日依山尽 
+2018-11-19 17:12:16.599603+0800 BlockBlogTest[64408:32771276] 黄河入海流
 ```
-在这个方法里，我们可以发现，在 block 当中，其实也引用到 MyObject ，是一个强引用的 self ！而 block 的构造函数中也多次引用了 self 。
-
-我们如果了解过 property 的话，也会知道实例变量是在编译期就确定地址了。内部实现的全局变量就代表了地址的 offset 。
-
-# 从报错看内存
-
-如果我们把 block 设置为 nil ，然后去调用，会发生什么？
+## 第二题
+这里我参考了网上的一些讨论，并结合原有的思路，回答如下
 ```C++
-void (^block)(void) = nil;
-block();
+static void (*orig_func)(void *v ,int i, NSString *str);
+
+void hookFunc_2(void *v ,int i, NSString *str) {
+    NSLog(@"%d,%@", i, str);
+    orig_func(v,i,str);
+}
+
+void HookBlockToPrintArguments(id block) {
+    __block_impl *ptr = (__bridge __block_impl *)block;
+    orig_func = ptr->FuncPtr;
+    ptr->FuncPtr = &hookFunc_2;
+}
+----------------
+----------------
+    void (^hookBlock)(int i,NSString *str) = ^void(int i,NSString *str){
+        NSLog(@"bby");
+    };
+    HookBlockToPrintArguments(hookBlock);
+    hookBlock(1,@"biboyang");
+
 ```
-当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
+这样就可以打印出来
 
-![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
+```C++
+2018-11-19 17:12:16.599730+0800 BlockBlogTest[64408:32771276] 1,biboyang
+2018-11-19 17:12:16.599841+0800 BlockBlogTest[64408:32771276] bby
+```
 
-我们可以发现，当把 block 置为 nil 的时候，第四行的函数指针，被置为 NULL ，注意，这里是 NULL 而不是 nil 。
-
-我们给一个对象发送 nil 消息是没有问题的，但是给如果是 NULL 就会发生崩溃。
-
-* nil：指向oc中对象的空指针
-* Nil：指向oc中类的空指针
-* NULL：指向其他类型的空指针，如一个c类型的内存指针
-* NSNull：在集合对象中，表示空值的对象
-* 若obj为 nil:[obj message] 将返回NO,而不是NSException
-* 若obj为 NSNull:[obj message] 将抛出异常NSException
-
-它直接访问到了函数指针，因为前三位分别是 void、int、int，大小分别是 8、4、4，加一块就为 16 ，所以在 64 位中，就表示出 0x10 地址的崩溃。
-如果是在 32 位的系统中，void 的大小是 4，崩溃的地址应该就是 0x0c。
+## 第三题
+第三题说实话我还没有实现出来，但是在北京参加swift大会的时候，和冬瓜讨论过这个问题。
+我当时的思路是在把block提出一个父类，然后在去统一修改。但是后来冬瓜介绍了fishhook框架，我的思路就变了。
+在ARC中我们使用的都是堆block，但是创建的时候是栈block，它会经过一个copy的过程，将栈block转换成堆block，中间会有**objc_retainBlock->_Block_copy->_Block_copy_internal**方法链。我们可以hook这几个方法，去修改。
 
 
-
-
-## 引用
-
-
-[Blocks Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html#//apple_ref/doc/uid/TP40007502-CH1-SW1)     
-[Working with Blocks](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/WorkingwithBlocks/WorkingwithBlocks.html)        
-[fuckingblocksyntax.com](http://fuckingblocksyntax.com/)
+[demo地址](https://github.com/BiBoyang/BBY_TESTDEMO/blob/master/BlockBlogTest.zip)

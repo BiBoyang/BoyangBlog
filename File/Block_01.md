@@ -62,7 +62,7 @@ struct Block_descriptor {
 };
 ```
 结构如图所示：
-![]()
+![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
 
 里面的 invoke 就是指向具体实现的函数指针，当 block 被调用的时候，程序最终会跳转到这个函数指针指向的代码区。
 

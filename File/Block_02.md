@@ -1,206 +1,17 @@
 
-![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
+
 > * 原作于：2018-01-02        
 > * GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
 
 
 
-# 简单概述
-
-> block是C语言的扩充功能，我们可以认为它是 **带有自动变量的匿名函数**。
-
-block是一个匿名的inline代码集合：
-> * 参数列表，就像一个函数。
-> * 是一个对象！
-> * 有声明的返回类型
-> * 可获得义词法范围的状态，。
-> * 可选择性修改词法范围的状态。
-> * 可以用相同的词法范围内定义的其它block共享进行修改的可能性
-> * 在词法范围（堆栈框架）被破坏后，可以继续共享和修改词法范围（堆栈框架）中定义的状态
-
-## block怎么写
-最简单。
-```C++
-    int (^DefaultBlock1)(int) = ^int (int a) {
-        return a + 1;
-    };
-    DefaultBlock1(1);
-    
-```
-升级版。
-```C++
-// 利用 typedef 声明block
-typedef return_type (^BlockTypeName)(var_type);
-
-// 作属性
-@property (nonatomic, copy ,nullable) BlockTypeName blockName;
-
-// 作方法参数
-- (void)requestForSomething:(Model)model handle:(BlockTypeName)handle;
-```
+# 0. 截获自动变量值
+block 中，block 表达式截获所使用的自动变量的值，是保存该自动变量的瞬间值。在执行完 block 之后，即使改写 block 中使用的自动变量的值，也不会影响 block 执行时自动变量的值————这就是“截获”的意思；。
 
 
+# 1. 如何截获变量
 
-
-# block的实现
-
-在LLVM的文件中，我找到了一份文档，[Block_private.h](https://llvm.org/svn/llvm-project/compiler-rt/tags/Apple/Libcompiler_rt-16/BlocksRuntime/Block_private.h)，这里可以查看到block的实现情况
-
-* 注：实际上真实的代码结构和使用 clang 指令转换过来的代码，是有可能不一样的。
-
-```C++
-struct Block_layout {
-    void *isa;
-    int flags;
-    int reserved;
-    void (*invoke)(void *, ...);
-    struct Block_descriptor *descriptor;
-    /* Imported variables. */
-};
-struct Block_descriptor {
-    unsigned long int reserved;
-    unsigned long int size;
-    void (*copy)(void *dst, void *src);
-    void (*dispose)(void *);
-};
-
-```
-里面的invoke就是指向具体实现的函数指针，当block被调用的时候，程序最终会跳转到这个函数指针指向的代码区。
-
-而 **Block_descriptor** 里面最重要的就是 **copy** 函数和 **dispose** 函数，从命名上可以推断出，copy 函数是用来**捕获变量并持有引用**，而 dispose 函数是用来**释放捕获的变量**。函数捕获的变量会存储在结构体 **Block_layout** 的后面，在 invoke 函数执行前全部读出。
-
-不过光看文档并不直观。我们使用 **clang -rewrite-objc** 将一份 block 代码进行编译转换，将得到一份C++代码。刨除其他无用的代码：
-```C++
-struct __block_impl {
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int flags=0) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-}
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0)};
-int main(int argc, const char * argv[]) {
-    /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool;
-        (void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA);
-    }
-    return 0;
-}
-```
-先看最直接的 **__block_impl** 代码，
-
-```C++
-struct __block_impl {
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-};
-```
-这是一个结构体，里面的元素分别是
-
-> * isa：    
-        指向所属类的指针，也就是 block 的类型
-> * flags    
-        标志变量，在实现 block 的内部操作时会用到
-> * Reserved    
-        保留变量
-> * FuncPtr    
-        block 执行时调用的函数指针
-
-
-接着, **__main_block_impl_0** 因为包含了 __block_impl ，我们可以将它打开,直接看成
-```C++
-__main_block_impl_0{
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-    struct __main_block_desc_0 *Desc;
-}
-```
-通过观察它，我们可以将 block 理解为，一个对象，内部包含一个函数。
-
-# block的类型
-
-我们常见的block是有三种：
-
-> * __NSGlobalBlock
-> * __NSStackBlock
-> * __NSMallocBlock
-
-比如说
-```C++
-void (^block)(void) = ^{
-    NSLog(@"biboyang");
-};
-block();
-```
-或者
-```C++
-static int age = 10;
-    void(^block)(void) = ^{
-        NSLog(@"Hello, World! %d",age);
-    };
-block();
-```
-
-像是这种，没有对外捕获变量的，就是 GlobaBlock 。
-
-而我们在写一个捕获变量的。
-```C++
-    int b = 10;
-    void(^block2)(void) = ^{
-        NSLog(@"Hello, World! %d",b);
-    };
-    block2();
-```
-
-这种 block，在 MRC 中，是 StackBlock 。在 ARC 中，因为编译器做了优化，自动进行了 copy ，这种就是 MallocBlock 了。
-
-做这种优化的原因很好理解：
-
-如果 StackBlock 访问了一个自动变量，因为自己是存在栈上的，所以变量也就会被保存在栈上。但是因为栈上的数据是由系统自动进行管理的，随时都有可能被回收，非常容易造成野指针的问题。
-
-那该如何解决呢？复制到堆上就好了！
-
-ARC 机制也确实这么做的。它会自动将栈上的 block 复制到堆上，所以，ARC 下的 block 的属性关键词其实使用 strong 和 copy 都不会有问题，不过为了习惯，还是使用 copy 为好。
-
-
-| Blcok 的类 | 副本源的配置存储域 | 复制效果 |
-| --- | --- | --- |
-| __NSStackBlock | 栈 | 堆 |
-| __NSGlobalBlock | 程序的数据区域 | 无用 |
-| __NSMallocBlock | 堆 | 引用计数增加 |
-
-系统默认调用 copy 方法把 block 复制的四种情况
-
-1. 手动调用 copy
-2. block 是函数的返回值
-3. block 被强引用，block 被赋值给 __strong 或者 id 类型
-4. 调用系统 API 入参中含有 usingBlcok 的 Cocoa 方法或者 GCD 的相关 API
-
-ARC 环境下，一旦 block 赋值就会触发 copy，block 就会 copy 到堆上，block也就会变成 __NSMallocBlock 。当然，如果刻意的去写（没有实际用处），ARC 环境下也是存在 __NSStackBlock 的，这种情况下，block 就在栈上。
-
-
-# 如何截获变量
-
-这里直接拿冰霜的[文章](https://www.jianshu.com/p/ee9756f3d5f6)来用
+征得同意，这里直接拿冰霜的[文章](https://www.jianshu.com/p/ee9756f3d5f6)来用
 
 ```C++
 #import <Foundation/Foundation.h>
@@ -233,12 +44,13 @@ int main(int argc, const char * argv[]) {
 }
 
 ```
+
 运行结果
 ```C++
 Block 外  global_i = 2,static_global_j = 3,static_k = 4,val = 5
 Block 中  global_i = 3,static_global_j = 4,static_k = 5,val = 4
 ```
-转换的结果为
+我们使用 **clang -rewrite-objc** 将一份 block 代码进行编译转换，将得到一份C++代码。转换的结果为
 ```C++
 int global_i = 1;
 
@@ -298,7 +110,12 @@ int main(int argc, const char * argv[]) {
 
 在执行 block 语法的时候，block 语法表达式所使用的自动变量的值是被保存进了 block 的结构体实例中，也就是 block 自身中。
 
-这么看就清晰了很多，自动变量是以值传递方式传递到 block 的构造函数里面去的。 block 只捕获 block 中会用到的变量。由于只捕获了自动变量的值，并非内存地址，所以 block 内部不能改变自动变量的值。
+这么看就清晰了很多，**自动变量是以值传递方式传递到 block 的构造函数里面去的**。 block 只捕获 block 中会用到的变量。**由于只捕获了自动变量的值，并非内存地址**，所以 block 内部不能改变自动变量的值。
+
+即，block 可以直接改写以下几种变量：
+* 静态变量
+* 静态全局变量
+* 全局变量
 
 
 # 修改自动变量
@@ -324,10 +141,10 @@ block();
 
 直接操作指针去进行截获，不过一般来讲，这种方法多用于 C 语言数组的时候。使用 OC 的时候多数是使用 __block 。
 
-
 这里写一个 __block 的捕获代码，使用刚才的方法再来一次：
 
 ## 1.普通非对象的变量
+
 ```C++
 struct __Block_byref_i_0 {
   void *__isa;
@@ -376,7 +193,7 @@ int main(int argc, const char * argv[]) {
 
 ```
 
-我们可以发现这里多了两个结构体
+我们可以发现这里多了个结构体
 
 ```C++
 struct __Block_byref_i_0 {
@@ -479,7 +296,9 @@ int main(int argc, const char * argv[]) {
 ```
 在转换出来的源码中，我们也可以看到，block 捕获了 __block ，并且强引用了它，因为在 __Block_byref_block_obj_0 结构体中，有一个变量是 id block_obj ，这个默认也是带 __strong 所有权修饰符的。
 
-根据打印出来的结果来看，ARC 环境下，block 捕获外部对象变量，是都会 copy 一份的，地址都不同。只不过带有 __block 修饰符的对象会被捕获到 block 内部持有。对于声明为__block 的外部对象，在block 内部会**进行持有**，以至于在 block 环境内能安全的引用外部对象。
+根据打印出来的结果来看，ARC 环境下，block 捕获外部对象变量，是都会 copy 一份的，地址都不同。只不过带有 __block 修饰符的对象会被捕获到 block 内部持有。
+
+对于声明为__block 的外部对象，在block 内部会**进行持有**，以至于在 block 环境内能安全的引用外部对象。
 
 ## 3. 实例变量
 
@@ -531,7 +350,6 @@ int main(int argc, const char * argv[]) {
 
 ```C++
 typedef void(*MyBlock)(void);
-
 
 #ifndef _REWRITER_typedef_MyObject
 #define _REWRITER_typedef_MyObject
@@ -620,12 +438,14 @@ int main(int argc, const char * argv[]) {
 }
 ```
 我们可以发现，每个实例变量都是被创建了对应的全局变量：
+
 ```C++
 extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRInteger;
 extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRString;
 extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRBlock;
 ```
-下面是block的layout中的第四排的函数调用方法。
+下面是 block 的 layout 中的第四排的函数调用方法。
+
 ```C++
 //block的函数方法（也就是方法layout中第四行的那个）
 static void __MyObject__inits_block_func_0(struct __MyObject__inits_block_impl_0 *__cself) {
@@ -637,7 +457,7 @@ static void __MyObject__inits_block_func_0(struct __MyObject__inits_block_impl_0
 ```
 通过这里，我们其实也能发现，这里是通过 self 的偏移去获取实例变量的地址，也是和 self 息息相关的。
 
-如果这个还不会证明实例变量中的self的作用的话，我们接着往下看；
+如果这个还不会证明实例变量中的 self 的作用的话，我们接着往下看；
 ```C++
 struct __MyObject__inits_block_impl_0 {
     struct __block_impl impl;
@@ -657,37 +477,12 @@ struct __MyObject__inits_block_impl_0 {
 
 我们如果了解过 property 的话，也会知道实例变量是在编译期就确定地址了。内部实现的全局变量就代表了地址的 offset 。
 
-# 从报错看内存
 
-如果我们把 block 设置为 nil ，然后去调用，会发生什么？
-```C++
-void (^block)(void) = nil;
-block();
-```
-当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
+# 引用
+[深入研究Block捕获外部变量和__block实现原理](https://www.jianshu.com/p/ee9756f3d5f6)
 
-![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
+[Block Implementation Specification](http://clang.llvm.org/docs/Block-ABI-Apple.html)
 
-我们可以发现，当把 block 置为 nil 的时候，第四行的函数指针，被置为 NULL ，注意，这里是 NULL 而不是 nil 。
+[谈谈ivar的直接访问](http://satanwoo.github.io/2018/02/04/iOS-iVar/)
 
-我们给一个对象发送 nil 消息是没有问题的，但是给如果是 NULL 就会发生崩溃。
-
-* nil：指向oc中对象的空指针
-* Nil：指向oc中类的空指针
-* NULL：指向其他类型的空指针，如一个c类型的内存指针
-* NSNull：在集合对象中，表示空值的对象
-* 若obj为 nil:[obj message] 将返回NO,而不是NSException
-* 若obj为 NSNull:[obj message] 将抛出异常NSException
-
-它直接访问到了函数指针，因为前三位分别是 void、int、int，大小分别是 8、4、4，加一块就为 16 ，所以在 64 位中，就表示出 0x10 地址的崩溃。
-如果是在 32 位的系统中，void 的大小是 4，崩溃的地址应该就是 0x0c。
-
-
-
-
-## 引用
-
-
-[Blocks Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html#//apple_ref/doc/uid/TP40007502-CH1-SW1)     
-[Working with Blocks](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/WorkingwithBlocks/WorkingwithBlocks.html)        
-[fuckingblocksyntax.com](http://fuckingblocksyntax.com/)
+《Objective-C 高级编程》

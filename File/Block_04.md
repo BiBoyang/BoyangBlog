@@ -1,693 +1,315 @@
-
-![](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_1.png)
 > * 原作于：2018-01-02        
 > * GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
 
+> 在不特殊说明是MRC的情况下，默认是ARC。
+
+[Objective-C Automatic Reference Counting (ARC)](http://clang.llvm.org/docs/AutomaticReferenceCounting.html)
 
 
-# 简单概述
+我们知道，在 ARC 中，除了全局 block ，block 都是在栈上进行创建的。使用的时候，会自动将它复制到堆中（全局 block 没有 _Block_copy）。中间会经历 `objc_retainBlock` -> `_Block_copy` -> `_Block_copy_internal` 方法链。换过来说，我们使用的每个拦截了自动变量的 block ，都会经历这写方法（注意这一点很重要）。
 
-> block是C语言的扩充功能，我们可以认为它是 **带有自动变量的匿名函数**。
+通过之前的研究，了解到在 **__main_block_impl_0** 中会保存着引用到的变量。在转换过的 block 代码中，block 会强行持有拦截的外部对象，不管有没有改变过，都是会造成强引用。
 
-block是一个匿名的inline代码集合：
-> * 参数列表，就像一个函数。
-> * 是一个对象！
-> * 有声明的返回类型
-> * 可获得义词法范围的状态，。
-> * 可选择性修改词法范围的状态。
-> * 可以用相同的词法范围内定义的其它block共享进行修改的可能性
-> * 在词法范围（堆栈框架）被破坏后，可以继续共享和修改词法范围（堆栈框架）中定义的状态
+为了做好准备，我们先看一下 **__strong** 和 **__weak** 的实现过程。
 
-## block怎么写
-最简单。
-```C++
-    int (^DefaultBlock1)(int) = ^int (int a) {
-        return a + 1;
-    };
-    DefaultBlock1(1);
-    
-```
-升级版。
-```C++
-// 利用 typedef 声明block
-typedef return_type (^BlockTypeName)(var_type);
+# __strong和__weak
 
-// 作属性
-@property (nonatomic, copy ,nullable) BlockTypeName blockName;
-
-// 作方法参数
-- (void)requestForSomething:(Model)model handle:(BlockTypeName)handle;
-```
-
-
-
-
-# block的实现
-
-在LLVM的文件中，我找到了一份文档，[Block_private.h](https://llvm.org/svn/llvm-project/compiler-rt/tags/Apple/Libcompiler_rt-16/BlocksRuntime/Block_private.h)，这里可以查看到block的实现情况
-
-* 注：实际上真实的代码结构和使用 clang 指令转换过来的代码，是有可能不一样的。
+## __strong
+__strong 实际上是一个默认的方法。
 
 ```C++
-struct Block_layout {
-    void *isa;
-    int flags;
-    int reserved;
-    void (*invoke)(void *, ...);
-    struct Block_descriptor *descriptor;
-    /* Imported variables. */
-};
-struct Block_descriptor {
-    unsigned long int reserved;
-    unsigned long int size;
-    void (*copy)(void *dst, void *src);
-    void (*dispose)(void *);
-};
-
-```
-里面的invoke就是指向具体实现的函数指针，当block被调用的时候，程序最终会跳转到这个函数指针指向的代码区。
-
-而 **Block_descriptor** 里面最重要的就是 **copy** 函数和 **dispose** 函数，从命名上可以推断出，copy 函数是用来**捕获变量并持有引用**，而 dispose 函数是用来**释放捕获的变量**。函数捕获的变量会存储在结构体 **Block_layout** 的后面，在 invoke 函数执行前全部读出。
-
-不过光看文档并不直观。我们使用 **clang -rewrite-objc** 将一份 block 代码进行编译转换，将得到一份C++代码。刨除其他无用的代码：
-```C++
-struct __block_impl {
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int flags=0) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-}
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0)};
-int main(int argc, const char * argv[]) {
-    /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool;
-        (void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA);
-    }
-    return 0;
+{
+    id __strong obj = [[NSObject alloc] init];
 }
 ```
-先看最直接的 **__block_impl** 代码，
+代码会被转换成这个样子
 
 ```C++
-struct __block_impl {
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-};
+id __attribute__((objc_ownership(strong))) obj = 
+((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), 
+sel_registerName("alloc")), 
+sel_registerName("init"));
+//代码实际上只有一行，为了方便观看打了换行
 ```
-这是一个结构体，里面的元素分别是
 
-> * isa：    
-        指向所属类的指针，也就是 block 的类型
-> * flags    
-        标志变量，在实现 block 的内部操作时会用到
-> * Reserved    
-        保留变量
-> * FuncPtr    
-        block 执行时调用的函数指针
+抽离出来，实际上主要是这三个方法
 
-
-接着, **__main_block_impl_0** 因为包含了 __block_impl ，我们可以将它打开,直接看成
 ```C++
-__main_block_impl_0{
-    void *isa;
-    int Flags;
-    int Reserved;
-    void *FuncPtr;
-    struct __main_block_desc_0 *Desc;
+id obj = objc_msgSend(NSObject, @selector(alloc));
+objc_msgSend(obj,selector(init));
+objc_release(obj);
+```
+
+## __weak
+
+> 这里我们要使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m** 方法去转换为 C++ 代码，原因是因为，__weak 其实只在 ARC 的状态下才能使用，之前使用 **clang -rewrite-objc main.m** 是直接将代码转换为 C++，并不有限制。
+
+声明一个__weak 对象
+```C++
+{
+    id __weak obj = strongObj;
 }
-```
-通过观察它，我们可以将 block 理解为，一个对象，内部包含一个函数。
-
-# block的类型
-
-我们常见的block是有三种：
-
-> * __NSGlobalBlock
-> * __NSStackBlock
-> * __NSMallocBlock
-
-比如说
-```C++
-void (^block)(void) = ^{
-    NSLog(@"biboyang");
-};
-block();
-```
-或者
-```C++
-static int age = 10;
-    void(^block)(void) = ^{
-        NSLog(@"Hello, World! %d",age);
-    };
-block();
-```
-
-像是这种，没有对外捕获变量的，就是 GlobaBlock 。
-
-而我们在写一个捕获变量的。
-```C++
-    int b = 10;
-    void(^block2)(void) = ^{
-        NSLog(@"Hello, World! %d",b);
-    };
-    block2();
-```
-
-这种 block，在 MRC 中，是 StackBlock 。在 ARC 中，因为编译器做了优化，自动进行了 copy ，这种就是 MallocBlock 了。
-
-做这种优化的原因很好理解：
-
-如果 StackBlock 访问了一个自动变量，因为自己是存在栈上的，所以变量也就会被保存在栈上。但是因为栈上的数据是由系统自动进行管理的，随时都有可能被回收，非常容易造成野指针的问题。
-
-那该如何解决呢？复制到堆上就好了！
-
-ARC 机制也确实这么做的。它会自动将栈上的 block 复制到堆上，所以，ARC 下的 block 的属性关键词其实使用 strong 和 copy 都不会有问题，不过为了习惯，还是使用 copy 为好。
-
-
-| Blcok 的类 | 副本源的配置存储域 | 复制效果 |
-| --- | --- | --- |
-| __NSStackBlock | 栈 | 堆 |
-| __NSGlobalBlock | 程序的数据区域 | 无用 |
-| __NSMallocBlock | 堆 | 引用计数增加 |
-
-系统默认调用 copy 方法把 block 复制的四种情况
-
-1. 手动调用 copy
-2. block 是函数的返回值
-3. block 被强引用，block 被赋值给 __strong 或者 id 类型
-4. 调用系统 API 入参中含有 usingBlcok 的 Cocoa 方法或者 GCD 的相关 API
-
-ARC 环境下，一旦 block 赋值就会触发 copy，block 就会 copy 到堆上，block也就会变成 __NSMallocBlock 。当然，如果刻意的去写（没有实际用处），ARC 环境下也是存在 __NSStackBlock 的，这种情况下，block 就在栈上。
-
-
-# 如何截获变量
-
-这里直接拿冰霜的[文章](https://www.jianshu.com/p/ee9756f3d5f6)来用
-
-```C++
-#import <Foundation/Foundation.h>
-
-int global_i = 1;
-
-static int static_global_j = 2;
-
-int main(int argc, const char * argv[]) {
-   
-    static int static_k = 3;
-    int val = 4;
-    
-    void (^myBlock)(void) = ^{
-        global_i ++;
-        static_global_j ++;
-        static_k ++;
-        NSLog(@"Block中 global_i = %d,static_global_j = %d,static_k = %d,val = %d",global_i,static_global_j,static_k,val);
-    };
-    
-    global_i ++;
-    static_global_j ++;
-    static_k ++;
-    val ++;
-    NSLog(@"Block外 global_i = %d,static_global_j = %d,static_k = %d,val = %d",global_i,static_global_j,static_k,val);
-    
-    myBlock();
-    
-    return 0;
-}
-
-```
-运行结果
-```C++
-Block 外  global_i = 2,static_global_j = 3,static_k = 4,val = 5
-Block 中  global_i = 3,static_global_j = 4,static_k = 5,val = 4
-```
-转换的结果为
-```C++
-int global_i = 1;
-
-static int static_global_j = 2;
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  int *static_k;
-  int val;
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int *_static_k, int _val, int flags=0) : static_k(_static_k), val(_val) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-  int *static_k = __cself->static_k; // bound by copy
-  int val = __cself->val; // bound by copy
-
-        global_i ++;
-        static_global_j ++;
-        (*static_k) ++;
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_6fe658_mi_0,global_i,static_global_j,(*static_k),val);
-    }
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0)};
-
-
-int main(int argc, const char * argv[]) {
-
-    static int static_k = 3;
-    int val = 4;
-
-    void (*myBlock)(void) = ((void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, &static_k, val));
-
-    global_i ++;
-    static_global_j ++;
-    static_k ++;
-    val ++;
-    NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_6fe658_mi_1,global_i,static_global_j,static_k,val);
-
-    ((void (*)(__block_impl *))((__block_impl *)myBlock)->FuncPtr)((__block_impl *)myBlock);
-
-    return 0;
-}
-
-```
-
-首先全局变量 global_i 和静态全局变量 static_global_j 的值增加，以及它们会被 block 捕获进去，这一点很好理解，因为是全局的，作用域很广，所以 block 捕获了它们进去之后，在 block 内部进行 ++，block 结束之后，它们的值依旧可以得以保存下来。
-
-在 __main_block_impl_0 中，可以看到静态变量 static_k 和自动变量 val ，被 block 从外面捕获进来，成为 __main_block_impl_0 这个结构体的成员变量了。
-
-在执行 block 语法的时候，block 语法表达式所使用的自动变量的值是被保存进了 block 的结构体实例中，也就是 block 自身中。
-
-这么看就清晰了很多，自动变量是以值传递方式传递到 block 的构造函数里面去的。 block 只捕获 block 中会用到的变量。由于只捕获了自动变量的值，并非内存地址，所以 block 内部不能改变自动变量的值。
-
-
-# 修改自动变量
-
-截获变量并修改有两种方法 **__block** 和 **指针法**（不过 __block 法归根结底，其实也是操作指针）。这里描述一下指针法：
-
-```C++
-NSMutableString * str = [[NSMutableString alloc]initWithString:@"Hello,"];
-    
-void (^myBlock)(void) = ^{
-    [str appendString:@"World!"];
-    NSLog(@"Block中 str = %@",str);
-    };
-NSLog(@"Block外 str = %@",str);
-myBlock();
-    
-const char *text = "hello";
-void(^block)(void) = ^{
-    printf("%caaaaaaaaaaa\n",text[2]);
-};
-block();
-```
-
-直接操作指针去进行截获，不过一般来讲，这种方法多用于 C 语言数组的时候。使用 OC 的时候多数是使用 __block 。
-
-
-这里写一个 __block 的捕获代码，使用刚才的方法再来一次：
-
-## 1.普通非对象的变量
-```C++
-struct __Block_byref_i_0 {
-  void *__isa;
-__Block_byref_i_0 *__forwarding;//指向真正的block
- int __flags;
- int __size;
- int i;//对象
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  __Block_byref_i_0 *i; // by ref
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, __Block_byref_i_0 *_i, int flags=0) : i(_i->__forwarding) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-  __Block_byref_i_0 *i = __cself->i; // bound by ref
-
-        (i->__forwarding->i) ++;
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_3b0837_mi_0,(i->__forwarding->i));
-    }
-static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) {_Block_object_assign((void*)&dst->i, (void*)src->i, 8/*BLOCK_FIELD_IS_BYREF*/);}
-
-static void __main_block_dispose_0(struct __main_block_impl_0*src) {_Block_object_dispose((void*)src->i, 8/*BLOCK_FIELD_IS_BYREF*/);}
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-  void (*copy)(struct __main_block_impl_0*, struct __main_block_impl_0*);
-  void (*dispose)(struct __main_block_impl_0*);
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0), __main_block_copy_0, __main_block_dispose_0};
-int main(int argc, const char * argv[]) {
-    __attribute__((__blocks__(byref))) __Block_byref_i_0 i = {(void*)0,(__Block_byref_i_0 *)&i, 0, sizeof(__Block_byref_i_0), 0};
-
-    void (*myBlock)(void) = ((void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, (__Block_byref_i_0 *)&i, 570425344));
-
-    ((void (*)(__block_impl *))((__block_impl *)myBlock)->FuncPtr)((__block_impl *)myBlock);
-
-    return 0;
-}
-
-```
-
-我们可以发现这里多了两个结构体
-
-```C++
-struct __Block_byref_i_0 {
-  void *__isa;
-__Block_byref_i_0 *__forwarding;
- int __flags;
- int __size;
- int i;
-};
-```
-
-在这个实例内，包含了 **__isa** 指针、一个标志位 **__flags** 、一个记录大小的 **__size** 。最最最重要的，多了一个 **__forwarding** 指针和 val 变量.
-这里长话短说，出来了一个新的 **__forwarding**指针,指向了**结构体实例本身在内存的地址**。
-
-block 通过指针的持续传递，将使用的**自动变量值**保存到了 block 的结构体实例中。在 block 内部内修改 **__block0** 变量，通过一系列指针指向关系，最终指向了 __Block_byref_age_0 结构体内与局部变量同名同类型的那个成员，并成功修改变量值。
-
-在栈中， **__forwarding** 指向了自己本身，但是如果复制到了堆上，**__forwarding** 就指向复制到堆上的 block，而堆上的 block 中的 **__forwarding** 这时候指向了自己。
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/block_6.jpg?raw=true)
-
-## 2.对象的变量
-
-```C++
-//以下代码是在ARC下执行的
-#import <Foundation/Foundation.h>
-
-int main(int argc, const char * argv[]) {
-     
-    __block id block_obj = [[NSObject alloc]init];
-    id obj = [[NSObject alloc]init];
-
-    NSLog(@"block_obj = [%@ , %p] , obj = [%@ , %p]",block_obj , &block_obj , obj , &obj);
-    
-    void (^myBlock)(void) = ^{
-        NSLog(@"***Block中****block_obj = [%@ , %p] , obj = [%@ , %p]",block_obj , &block_obj , obj , &obj);
-    };
-    
-    myBlock();
-   
-    return 0;
-}
-```
+``` 
 
 转换之后
 
 ```C++
-struct __Block_byref_block_obj_0 {
-  void *__isa;
-__Block_byref_block_obj_0 *__forwarding;//指向真正的block
- int __flags;
- int __size;
- void (*__Block_byref_id_object_copy)(void*, void*);
- void (*__Block_byref_id_object_dispose)(void*);
- id block_obj;
-};
-
-struct __main_block_impl_0 {
-  struct __block_impl impl;
-  struct __main_block_desc_0* Desc;
-  id obj;
-  __Block_byref_block_obj_0 *block_obj; // by ref
-  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, id _obj, __Block_byref_block_obj_0 *_block_obj, int flags=0) : obj(_obj), block_obj(_block_obj->__forwarding) {
-    impl.isa = &_NSConcreteStackBlock;
-    impl.Flags = flags;
-    impl.FuncPtr = fp;
-    Desc = desc;
-  }
-};
-static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
-  __Block_byref_block_obj_0 *block_obj = __cself->block_obj; // bound by ref
-  id obj = __cself->obj; // bound by copy
-
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_e64910_mi_1,(block_obj->__forwarding->block_obj) , &(block_obj->__forwarding->block_obj) , obj , &obj);
-    }
-static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) {_Block_object_assign((void*)&dst->block_obj, (void*)src->block_obj, 8/*BLOCK_FIELD_IS_BYREF*/);_Block_object_assign((void*)&dst->obj, (void*)src->obj, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static void __main_block_dispose_0(struct __main_block_impl_0*src) {_Block_object_dispose((void*)src->block_obj, 8/*BLOCK_FIELD_IS_BYREF*/);_Block_object_dispose((void*)src->obj, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static struct __main_block_desc_0 {
-  size_t reserved;
-  size_t Block_size;
-  void (*copy)(struct __main_block_impl_0*, struct __main_block_impl_0*);
-  void (*dispose)(struct __main_block_impl_0*);
-} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_impl_0), __main_block_copy_0, __main_block_dispose_0};
-
-
-int main(int argc, const char * argv[]) {
-
-    __attribute__((__blocks__(byref))) __Block_byref_block_obj_0 block_obj = {(void*)0,(__Block_byref_block_obj_0 *)&block_obj, 33554432, sizeof(__Block_byref_block_obj_0), __Block_byref_id_object_copy_131, __Block_byref_id_object_dispose_131, ((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), sel_registerName("alloc")), sel_registerName("init"))};
-
-    id obj = ((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)((NSObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSObject"), sel_registerName("alloc")), sel_registerName("init"));
-    NSLog((NSString *)&__NSConstantStringImpl__var_folders_45_k1d9q7c52vz50wz1683_hk9r0000gn_T_main_e64910_mi_0,(block_obj.__forwarding->block_obj) , &(block_obj.__forwarding->block_obj) , obj , &obj);
-
-    void (*myBlock)(void) = ((void (*)())&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, obj, (__Block_byref_block_obj_0 *)&block_obj, 570425344));
-
-    ((void (*)(__block_impl *))((__block_impl *)myBlock)->FuncPtr)((__block_impl *)myBlock);
-
-    return 0;
-}
-
+id __attribute__((objc_ownership(none))) obj1 = strongObj;
 ```
-在转换出来的源码中，我们也可以看到，block 捕获了 __block ，并且强引用了它，因为在 __Block_byref_block_obj_0 结构体中，有一个变量是 id block_obj ，这个默认也是带 __strong 所有权修饰符的。
 
-根据打印出来的结果来看，ARC 环境下，block 捕获外部对象变量，是都会 copy 一份的，地址都不同。只不过带有 __block 修饰符的对象会被捕获到 block 内部持有。对于声明为__block 的外部对象，在block 内部会**进行持有**，以至于在 block 环境内能安全的引用外部对象。
+相应的会调用
 
-## 3. 实例变量
-
-之前一直没有想到过一个问题：
-
-我们知道不应该在 block 中使用实例变量，是因为会发生循环引用；那为什么会发生循环引用呢？
-
-一般我们会理解为，一个 _age 的实例变量，实际上是 self->_age 。那么如果往下深究下去呢？
-
-受[谈谈ivar的直接访问](http://satanwoo.github.io/2018/02/04/iOS-iVar/)的启发，我也开始探索一下这里的原因。
-
-写如下的代码：
 ```C++
+id obj ;
+objc_initWeak(&obj,strongObj);
+objc_destoryWeak(&obj);
+```
+从名字上可以看出来，一个是创建一个是销毁。
 
-#import <Foundation/Foundation.h>
-#import "objc/runtime.h"
-
-typedef void(^MyBlock)(void);
-
-@interface MyObject : NSObject
-@property (nonatomic) NSUInteger BRInteger;
-@property (nonatomic, copy) NSString *BRString;
-@property (nonatomic, copy) MyBlock BRBlock;
-
-- (void)inits;
-
-@end
-
-@implementation MyObject
-- (void)inits
+这里 LLVM 文档和 objc_723 文档有些许不同。我这里采用最新的 objc_723 代码，比之前的有优化：
+```C++
+id objc_initWeak(id *location, id newObj) {
+    // 查看对象实例是否有效
+    // 无效对象直接导致指针释放
+    if (!newObj) {
+        *location = nil;
+        return nil;
+    }
+    
+    // 这里传递了三个 bool 数值
+    // 使用 template 进行常量参数传递是为了优化性能
+    // DontHaveOld--没有旧对象，
+    // DoHaveNew--有新对象，
+    // DoCrashIfDeallocating-- 如果newObj已经被释放了就Crash提示
+    return storeWeak<DontHaveOld, DoHaveNew, DoCrashIfDeallocating>
+        (location, (objc_object*)newObj);
+}
+~~~~~~~~~~~~~~~~
+void objc_destroyWeak(id *location)
 {
-    self.BRBlock = ^{
-        _BRInteger = 5;
-        _BRString = @"Balaeniceps_rex";
+    (void)storeWeak<DoHaveOld, DontHaveNew, DontCrashIfDeallocating>
+        (location, nil);
+}
+```
+这两个方法，最后都指向了 **storeWeak** 方法，这是一个很长的方法:
+
+```C++
+// Update a weak variable.
+// If HaveOld is true, the variable has an existing value 
+//   that needs to be cleaned up. This value might be nil.
+// If HaveNew is true, there is a new value that needs to be 
+//   assigned into the variable. This value might be nil.
+// If CrashIfDeallocating is true, the process is halted if newObj is 
+//   deallocating or newObj's class does not support weak references. 
+//   If CrashIfDeallocating is false, nil is stored instead.
+// 更新weak变量.
+// 当设置HaveOld是true，即DoHaveOld，表示这个weak变量已经有值，需要被清理，这个值也有能是nil
+// 当设置HaveNew是true， 即DoHaveNew，表示有一个新值被赋值给weak变量，这个值也有能是nil
+//当设置参数CrashIfDeallocating是true，即DoCrashIfDeallocating，如果newObj已经被释放或者newObj是一个不支持弱引用的类，则暂停进程
+// deallocating或newObj的类不支持弱引用
+// 当设置参数CrashIfDeallocating是false，即DontCrashIfDeallocating，则存储nil
+
+enum CrashIfDeallocating {
+    DontCrashIfDeallocating = false, DoCrashIfDeallocating = true
+};
+template <HaveOld haveOld, HaveNew haveNew,
+          CrashIfDeallocating crashIfDeallocating>
+static id storeWeak(id *location, objc_object *newObj) {
+    assert(haveOld  ||  haveNew);
+    // 初始化当前正在 +initialize 的类对象为nil
+    if (!haveNew) assert(newObj == nil);
+    Class previouslyInitializedClass = nil;
+    id oldObj;
+    
+    // 声明新旧SideTable，
+    SideTable *oldTable;
+    SideTable *newTable;
+
+    // 获得新值和旧值的锁存位置（用地址作为唯一标示）
+    // 通过地址来建立索引标志，防止桶重复
+    // 下面指向的操作会改变旧值
+ retry:
+    
+    // 如果weak ptr之前弱引用过一个obj，则将这个obj所对应的SideTable取出，赋值给oldTable
+    if (haveOld) {
+        oldObj = *location;
+        oldTable = &SideTables()[oldObj];
+    } else {
+        oldTable = nil;
+    }
+    
+    if (haveNew) {
+        newTable = &SideTables()[newObj];
+    } else {
+        newTable = nil;
+    }
+
+    
+    SideTable::lockTwo<haveOld, haveNew>(oldTable, newTable);
+
+    if (haveOld  &&  *location != oldObj) {
+        SideTable::unlockTwo<haveOld, haveNew>(oldTable, newTable);
+        goto retry;
+    }
+
+    // Prevent a deadlock between the weak reference machinery
+    // and the +initialize machinery by ensuring that no 
+    // weakly-referenced object has an un-+initialized isa.
+    //通过确保没有弱引用的对象具有未初始化的 isa，防止弱引用机制和 +initialize 机制之间的死锁。
+    //在使用 +initialized 方法的时候，因为这个方法是在alloc之前调用的。不这么做，可能会出现+initialize 中调用了 storeWeak 方法，而在 storeWeak 方法中 weak_register_no_lock 方法中用到对象的 isa 还没有初始化完成的情况。
+
+    if (haveNew  &&  newObj) {
+        // 获得新对象的 isa 指针
+        Class cls = newObj->getIsa();
+        // 判断 isa 非空且已经初始化
+        if (cls != previouslyInitializedClass  &&  
+            !((objc_class *)cls)->isInitialized()) 
+        {
+            // 解锁新旧SideTable
+            SideTable::unlockTwo<haveOld, haveNew>(oldTable, newTable);
+            _class_initialize(_class_getNonMetaClass(cls, (id)newObj));
+
+            // If this class is finished with +initialize then we're good.
+            // If this class is still running +initialize on this thread 
+            // (i.e. +initialize called storeWeak on an instance of itself)
+            // then we may proceed but it will appear initializing and 
+            // not yet initialized to the check above.
+            // Instead set previouslyInitializedClass to recognize it on retry.
+            // 如果 newObj 已经完成执行完 +initialize 是最理想情况
+            // 如果 newObj的 +initialize 仍然在线程中执行
+            // (也就是说newObj的 +initialize 正在调用 storeWeak 方法)
+            // 通过设置previousInitializedClass以在重试时识别它。
+            
+            previouslyInitializedClass = cls;
+
+            goto retry;
+        }
+    }
+
+    // Clean up old value, if any.
+    // 清除旧值，实际上是清除旧对象weak_table中的location
+
+    if (haveOld) {
+        weak_unregister_no_lock(&oldTable->weak_table, oldObj, location);
+    }
+
+    // Assign new value, if any.
+    // 分配新值，实际上是保存location到新对象的weak_table种
+
+    if (haveNew) {
+        newObj = (objc_object *)
+            weak_register_no_lock(&newTable->weak_table, (id)newObj, location, 
+                                  crashIfDeallocating);
+        // weak_register_no_lock returns nil if weak store should be rejected
+
+        // Set is-weakly-referenced bit in refcount table.
+        // 如果弱引用被释放 weak_register_no_lock 方法返回 nil
+        
+        // 如果新对象存在，并且没有使用TaggedPointer技术，在引用计数表中设置若引用标记位
+        if (newObj  &&  !newObj->isTaggedPointer()) {
+            // 标记新对象有weak引用，isa.weakly_referenced = true;
+            newObj->setWeaklyReferenced_nolock();
+        }
+
+        // Do not set *location anywhere else. That would introduce a race.
+        // 设置location指针指向newObj
+        // 不要在其他地方设置 *location。 那会引起竞争
+        *location = (id)newObj;
+    }
+    else {
+        // No new value. The storage is not changed.
+    }
+    
+    SideTable::unlockTwo<haveOld, haveNew>(oldTable, newTable);
+
+    return (id)newObj;
+}
+```
+这里不再重复一遍 weak 的实现，有兴趣的可以去[@property的研究（二）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/runtime_03.md)查看。
+
+简单点说，由于 weak 也是用哈希表实现的，所以 `objc_storeWeak` 函数就把第一个入参的变量地址注册到 weak 表中，然后根据第二个入参来决定是否移除。如果第二个参数为 0，那么就把 **__weak** 变量从 weak 表中删除记录，并从引用计数表中删除对应的键值记录。
+
+所以如果 **__weak** 引用的原对象如果被释放了，那么对应的 **__weak** 对象就会被置为 nil。这部分就是通过 `objc_storeWeak` 函数里的这些函数来实现的。
+
+## weakSelf 和 strongSelf
+
+```C++
+__weak __typeof(self)weakSelf = self;
+__strong __typeof(weakSelf)strongSelf = weakSelf;      
+```
+
+weakSelf 是为了让 block 不去持有 self，避免了循环引用，如果在 block 内需要访问使用 self 的方法、变量，建议使用 weakSelf。
+
+但是，这里会出现一个问题。使用 weakSelf 修饰的 **self.** 变量，是有可能在执行的过程中就被释放的。
+
+以下代码为例
+
+```C++
+- (void)blockRetainCycle_1 {
+    __weak __typeof(self)weakSelf = self;
+    self.block = ^{
+        NSLog(@"%@",@[weakSelf]);
     };
 }
-@end
-
-int main(int argc, const char * argv[]) {
-    @autoreleasepool {
-        
-        MyObject *object = [MyObject new];
-        [object inits];
-    }
-    return 0;
-}
 ```
-使用 **clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m**命令进行转换。得到以下的代码（为了简便，将代码做了省略）：
+
+我们如果直接使用这个函数，是有可能在打印之前，weakSelf 就被释放了，打印出来就是会出问题。为了解决这个问题，我们就要用到 strongSelf。
 
 ```C++
-typedef void(*MyBlock)(void);
-
-
-#ifndef _REWRITER_typedef_MyObject
-#define _REWRITER_typedef_MyObject
-typedef struct objc_object MyObject;
-typedef struct {} _objc_exc_MyObject;
-#endif
-
-//对于每个ivar，都有对应的全局变量
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRInteger;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRString;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRBlock;
-//内部的结构
-struct MyObject_IMPL {
-    struct NSObject_IMPL NSObject_IVARS;
-    NSUInteger _BRInteger;
-    NSString *__strong _BRString;
-    __strong MyBlock _BRBlock;
-};
-
-// @property (nonatomic) NSUInteger BRInteger;
-// @property (nonatomic, copy) NSString *BRString;
-// @property (nonatomic, copy) MyBlock BRBlock;
-
-// - (void)inits;
-
-/* @end */
-
-
-// @implementation MyObject
-
-struct __MyObject__inits_block_impl_0 {
-    struct __block_impl impl;
-    struct __MyObject__inits_block_desc_0* Desc;
-    MyObject *const __strong self;
-    
-    //注意这里捕捉了self
-    __MyObject__inits_block_impl_0(void *fp, struct __MyObject__inits_block_desc_0 *desc, MyObject *const __strong _self, int flags=0) : self(_self) {
-        impl.isa = &_NSConcreteStackBlock;
-        impl.Flags = flags;
-        impl.FuncPtr = fp;
-        Desc = desc;
-    }
-};
-
-//block的函数方法（也就是方法layout中第四行的那个）
-static void __MyObject__inits_block_func_0(struct __MyObject__inits_block_impl_0 *__cself) {
-    MyObject *const __strong self = __cself->self; // bound by copy
-    //这里是通过self的地址，那倒全局变量的偏移去获取实例变量的地址
-    (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)) = 5;
-    (*(NSString *__strong *)((char *)self + OBJC_IVAR_$_MyObject$_BRString)) = (NSString *)&__NSConstantStringImpl__var_folders_m1_05zb_zbd1g1f8k27nc6yn_th0000gn_T_main_e9db32_mi_0;
-}
-static void __MyObject__inits_block_copy_0(struct __MyObject__inits_block_impl_0*dst, struct __MyObject__inits_block_impl_0*src) {_Block_object_assign((void*)&dst->self, (void*)src->self, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static void __MyObject__inits_block_dispose_0(struct __MyObject__inits_block_impl_0*src) {_Block_object_dispose((void*)src->self, 3/*BLOCK_FIELD_IS_OBJECT*/);}
-
-static struct __MyObject__inits_block_desc_0 {
-    size_t reserved;
-    size_t Block_size;
-    void (*copy)(struct __MyObject__inits_block_impl_0*, struct __MyObject__inits_block_impl_0*);
-    void (*dispose)(struct __MyObject__inits_block_impl_0*);
-} __MyObject__inits_block_desc_0_DATA = { 0, sizeof(struct __MyObject__inits_block_impl_0), __MyObject__inits_block_copy_0, __MyObject__inits_block_dispose_0};
-
-static void _I_MyObject_inits(MyObject * self, SEL _cmd) {
-    ((void (*)(id, SEL, MyBlock))(void *)objc_msgSend)((id)self, sel_registerName("setBRBlock:"), ((void (*)())&__MyObject__inits_block_impl_0((void *)__MyObject__inits_block_func_0, &__MyObject__inits_block_desc_0_DATA, self, 570425344)));
-}
-
-static NSUInteger _I_MyObject_BRInteger(MyObject * self, SEL _cmd) { return (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)); }
-static void _I_MyObject_setBRInteger_(MyObject * self, SEL _cmd, NSUInteger BRInteger) { (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)) = BRInteger; }
-
-static NSString * _I_MyObject_BRString(MyObject * self, SEL _cmd) { return (*(NSString *__strong *)((char *)self + OBJC_IVAR_$_MyObject$_BRString)); }
-extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
-
-static void _I_MyObject_setBRString_(MyObject * self, SEL _cmd, NSString *BRString) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct MyObject, _BRString), (id)BRString, 0, 1); }
-
-static void(* _I_MyObject_BRBlock(MyObject * self, SEL _cmd) )(){ return (*(__strong MyBlock *)((char *)self + OBJC_IVAR_$_MyObject$_BRBlock)); }
-static void _I_MyObject_setBRBlock_(MyObject * self, SEL _cmd, MyBlock BRBlock) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct MyObject, _BRBlock), (id)BRBlock, 0, 1); }
-// @end
-
-int main(int argc, const char * argv[]) {
-    /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool;
-        
-        MyObject *object = ((MyObject *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("MyObject"), sel_registerName("new"));
-        ((void (*)(id, SEL))(void *)objc_msgSend)((id)object, sel_registerName("inits"));
-    }
-    return 0;
+- (void)blockRetainCycle_2 {
+    __weak __typeof(self)weakSelf = self;
+    self.block = ^{
+        __strong typeof (weakSelf)strongSelf = weakSelf;
+        NSLog(@"%@",@[strongSelf]);
+    };
 }
 ```
-我们可以发现，每个实例变量都是被创建了对应的全局变量：
+在这里，我们使用了 strongSelf ，它可以保证在 strongSelf 下面，直到出了作用域之前，应该是存在这个 strongSelf 的。
+
+但是，这里依然存在一个微小的问题：       
+* 我们知道使用 weakSelf 的时候是无法保证在作用域中一直持有的。虽然使用了 strongSelf ，但是还是会存在微小的概率，让 weakSelf 在 strongSelf 创建之前被释放。如果是单纯的给 self 对象发送信息的话，这么其实问题不大，*OC的消息转发机制保证了我们即使给nil的对象发送消息也不会出现问题*。
+
+但是如果我们有其他的操作，比如说将 self 对象添加进数组中，如上面代码所示，这里就会发生 crash 了。
+
+那么我们要需要进一步的保护
+
 ```C++
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRInteger;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRString;
-extern "C" unsigned long OBJC_IVAR_$_MyObject$_BRBlock;
-```
-下面是block的layout中的第四排的函数调用方法。
-```C++
-//block的函数方法（也就是方法layout中第四行的那个）
-static void __MyObject__inits_block_func_0(struct __MyObject__inits_block_impl_0 *__cself) {
-    MyObject *const __strong self = __cself->self; // bound by copy
-    //这里是通过self的地址，那倒全局变量的偏移去获取实例变量的地址
-    (*(NSUInteger *)((char *)self + OBJC_IVAR_$_MyObject$_BRInteger)) = 5;
-    (*(NSString *__strong *)((char *)self + OBJC_IVAR_$_MyObject$_BRString)) = (NSString *)&__NSConstantStringImpl__var_folders_m1_05zb_zbd1g1f8k27nc6yn_th0000gn_T_main_e9db32_mi_0;
+- (void)blockRetainCycle_3 {
+    __weak __typeof(self)weakSelf = self;
+    self.block = ^{
+        __strong typeof (weakSelf)strongSelf = weakSelf;
+        if (strongSelf) {
+            NSLog(@"%@",@[strongSelf]);
+        }
+    };
 }
 ```
-通过这里，我们其实也能发现，这里是通过 self 的偏移去获取实例变量的地址，也是和 self 息息相关的。
 
-如果这个还不会证明实例变量中的self的作用的话，我们接着往下看；
-```C++
-struct __MyObject__inits_block_impl_0 {
-    struct __block_impl impl;
-    struct __MyObject__inits_block_desc_0* Desc;
-    MyObject *const __strong self;
-    
-    //注意这里捕捉了self
-    __MyObject__inits_block_impl_0(void *fp, struct __MyObject__inits_block_desc_0 *desc, MyObject *const __strong _self, int flags=0) : self(_self) {
-        impl.isa = &_NSConcreteStackBlock;
-        impl.Flags = flags;
-        impl.FuncPtr = fp;
-        Desc = desc;
-    }
-};
-```
-在这个方法里，我们可以发现，在 block 当中，其实也引用到 MyObject ，是一个强引用的 self ！而 block 的构造函数中也多次引用了 self 。
+##  block 中 __weak 和 __block 的区别
 
-我们如果了解过 property 的话，也会知道实例变量是在编译期就确定地址了。内部实现的全局变量就代表了地址的 offset 。
+我们使用 `__block` 其实也是可以达到防止 block 循环引用的————通过在 block 内部把 `__block` 修饰的对象置为 nil 来变相地实现内存释放。
 
-# 从报错看内存
+从内存上来讲，`__block` 会持有该对象，即使超出了该对象的作用域，该对象还是会存在的，直到 block 对象从堆上销毁；而 `__weak` 是把该对象赋值给 weak 对象，如果对象被销毁，weak 对象将变成 nil 。
 
-如果我们把 block 设置为 nil ，然后去调用，会发生什么？
-```C++
-void (^block)(void) = nil;
-block();
-```
-当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
-
-![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
-
-我们可以发现，当把 block 置为 nil 的时候，第四行的函数指针，被置为 NULL ，注意，这里是 NULL 而不是 nil 。
-
-我们给一个对象发送 nil 消息是没有问题的，但是给如果是 NULL 就会发生崩溃。
-
-* nil：指向oc中对象的空指针
-* Nil：指向oc中类的空指针
-* NULL：指向其他类型的空指针，如一个c类型的内存指针
-* NSNull：在集合对象中，表示空值的对象
-* 若obj为 nil:[obj message] 将返回NO,而不是NSException
-* 若obj为 NSNull:[obj message] 将抛出异常NSException
-
-它直接访问到了函数指针，因为前三位分别是 void、int、int，大小分别是 8、4、4，加一块就为 16 ，所以在 64 位中，就表示出 0x10 地址的崩溃。
-如果是在 32 位的系统中，void 的大小是 4，崩溃的地址应该就是 0x0c。
+另外，`__block` 对象可以让 block 修改局部变量, `__weak` 则不可以。
 
 
 
+# 关键字
+我们通过之前的文章知道，在 ARC 当中，一般的 block 会从栈被 copy 到堆中。
 
-## 引用
+但是如果使用 weak 呢？
 
+系统会告知我们 **Assigning block literal to a weak property; object will be released after assignment**。
 
-[Blocks Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html#//apple_ref/doc/uid/TP40007502-CH1-SW1)     
-[Working with Blocks](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/WorkingwithBlocks/WorkingwithBlocks.html)        
-[fuckingblocksyntax.com](http://fuckingblocksyntax.com/)
+而在 ARC 下要使用什么关键字呢？**strong 和 copy 都是可以的**。
+
+通过之前的文章可以知道，在 ARC 中，block 会自动从栈被复制到堆中，这个 copy 是系统自动进行了，即使使用 strong 还是依然会有 copy 操作。所以说，如果为了严谨些，使用copy 是可以的，但是使用 strong 也无伤大雅。
+
+# 总结
+
+* 如果 block 内部使用到了某个变量，而且这个变量是局部变量，那么 block 会捕获这个变量并存储到 block 底层的结构体中。
+* 如果捕获的这个变量是用 __weak 修饰的，那么 block 内部就是用弱指针指向这个变量(也就是 block 不持有这个对象)，反之使用 __strong ，那么 block 内部就是用强指针指向这个对象(也就是 block 持有这个对象)。
+* self 在某种意义上也是一个局部变量。
+* 如果 self 并不持有这个 block，block 内部怎么引用 self 都不会造成循环引用。
+
