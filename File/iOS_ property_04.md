@@ -1,0 +1,1 @@
+##### @property 原理（四）：weak
