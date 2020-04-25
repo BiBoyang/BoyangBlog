@@ -114,7 +114,7 @@ typedef struct {
 
 ## .cxx_destruct
 
-这个cxxfei'y
+这个方法实际上接触到的时候很少。
 
 
 
