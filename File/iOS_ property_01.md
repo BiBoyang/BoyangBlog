@@ -114,6 +114,8 @@ typedef struct {
 
 ## .cxx_destruct
 
+这个cxxfei'y
+
 
 
 
@@ -121,6 +123,7 @@ typedef struct {
 
 这里多出来一个 **.cxx_destruct** ，可以查看sunnyxx的[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)来理解。
 这个方法简单来讲作用如下：
+
 * 1.只有在ARC下这个方法才会出现（试验代码的情况下）
 * 2.只有当前类拥有实例变量时（不论是不是用property）这个方法才会出现，且父类的实例变量不会导致子类拥有这个方法
 * 3.出现这个方法和变量是否被赋值，赋值成什么没有关系
