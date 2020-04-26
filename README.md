@@ -57,9 +57,6 @@
 |多线程使用|[iOS多线程使用方法记录](https://github.com/BiBoyang/Study/blob/master/File/Thread_04.md)||
 |杂谈|[为什么必须要在主线程上操作UI](https://github.com/BiBoyang/Study/blob/master/File/Thread_06.md)||
 
-## 🍎Ruby
-
-## 🍎Python
 
 ## 🍎杂谈
 [2019年终总结](https://github.com/BiBoyang/BoyangBlog/blob/master/File/005.md)
