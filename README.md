@@ -32,6 +32,12 @@
 ## 🐯汇编学习🚧
 ||||
 
+## 📘C / C++ 学习
+|Name|Article_Link|Info|
+|---|---|---|
+|C++ 引用笔记|[笔记](https://github.com/BiBoyang/BoyangBlog/blob/master/File/memory_01.md)||
+
+
 ## Network
 |Name|Article_Link|Info|
 |---|---|---|
