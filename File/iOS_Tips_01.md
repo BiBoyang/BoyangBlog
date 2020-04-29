@@ -16,7 +16,7 @@ clang -rewrite-objc 的作用是把 Objective-C 代码转换成 C/C++ 代码，�
 # 报错
 
 有时候，它会报下面的错误
-
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/iOS_Tips_04.png?raw=true)
 
 这时候，有两种解决办法
 
