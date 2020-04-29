@@ -73128,7 +73128,7 @@ typedef struct {} _objc_exc_ViewController;
 extern "C" unsigned long OBJC_IVAR_$_ViewController$_Boyang;
 struct ViewController_IMPL {
 	struct UIViewController_IMPL UIViewController_IVARS;
-	NSString *_Boyang;
+	NSString *_Boyang;// 存储实例变量
 };
 
 
@@ -73156,12 +73156,22 @@ static void _I_ViewController_viewDidLoad(ViewController * self, SEL _cmd) {
 
 
 
-static NSString * _I_ViewController_Boyang(ViewController * self, SEL _cmd) { return (*(NSString **)((char *)self + OBJC_IVAR_$_ViewController$_Boyang)); }
+static NSString * _I_ViewController_Boyang(ViewController * self, SEL _cmd) {
+    return (*(NSString **)((char *)self + OBJC_IVAR_$_ViewController$_Boyang));//self + offset
+}
 extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
 
-static void _I_ViewController_setBoyang_(ViewController * self, SEL _cmd, NSString *Boyang) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct ViewController, _Boyang), (id)Boyang, 0, 1); }
+static void _I_ViewController_setBoyang_(ViewController * self, SEL _cmd, NSString *Boyang) {
+    objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct ViewController, _Boyang), (id)Boyang, 0, 1);
+}
 // @end
 
+
+/*
+ 
+ 类的存储
+ 
+ */
 struct _prop_t {
 	const char *name;
 	const char *attributes;

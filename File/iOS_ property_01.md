@@ -61,6 +61,87 @@ typedef struct {
 ```
 我们使用 **property_getAttributes** 方法，可以知道包括类型、原子性、内存语义和实例变量等。在下面我们可以看到相关代码。
 
+
+# clang 编译
+我们也可以使用 clang 编译，将代码转换为 C++ 代码来查看。
+
+原有代码如下：
+```C++
+#import "ViewController.h"
+
+@interface ViewController ()
+@property (nonatomic, copy) NSString *Boyang;
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.Boyang = @"bby_bby";   
+}
+```
+编译之后如下（截取一部分，完整代码可以到[此处查看](https://github.com/BiBoyang/BoyangBlog/tree/master/Code/property)）：
+```C++
+extern "C" unsigned long OBJC_IVAR_$_ViewController$_Boyang;
+struct ViewController_IMPL {
+	struct UIViewController_IMPL UIViewController_IVARS;
+	NSString *_Boyang;
+};
+......
+
+......
+static void _I_ViewController_viewDidLoad(ViewController * self, SEL _cmd) {
+    ((void (*)(__rw_objc_super *, SEL))(void *)objc_msgSendSuper)((__rw_objc_super){(id)self, (id)class_getSuperclass(objc_getClass("ViewController"))}, sel_registerName("viewDidLoad"));
+
+    ((void (*)(id, SEL, NSString *))(void *)objc_msgSend)((id)self, sel_registerName("setBoyang:"), (NSString *)&__NSConstantStringImpl__var_folders_jm_ysj60wg13t550dd6gv6l5d600000gn_T_ViewController_be3765_mi_0);
+
+}
+
+
+
+static NSString * _I_ViewController_Boyang(ViewController * self, SEL _cmd) { return (*(NSString **)((char *)self + OBJC_IVAR_$_ViewController$_Boyang)); }
+extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
+
+static void _I_ViewController_setBoyang_(ViewController * self, SEL _cmd, NSString *Boyang) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct ViewController, _Boyang), (id)Boyang, 0, 1); }
+......
+
+......
+
+extern "C" unsigned long int OBJC_IVAR_$_ViewController$_Boyang __attribute__ ((used, section ("__DATA,__objc_ivar"))) = __OFFSETOFIVAR__(struct ViewController, _Boyang);
+
+static struct /*_ivar_list_t*/ {
+	unsigned int entsize;  // sizeof(struct _prop_t)
+	unsigned int count;
+	struct _ivar_t ivar_list[1];
+} _OBJC_$_INSTANCE_VARIABLES_ViewController __attribute__ ((used, section ("__DATA,__objc_const"))) = {
+	sizeof(_ivar_t),
+	1,
+	{{(unsigned long int *)&OBJC_IVAR_$_ViewController$_Boyang, "_Boyang", "@\"NSString\"", 3, 8}}
+};
+
+static struct /*_method_list_t*/ {
+	unsigned int entsize;  // sizeof(struct _objc_method)
+	unsigned int method_count;
+	struct _objc_method method_list[5];
+} _OBJC_$_INSTANCE_METHODS_ViewController __attribute__ ((used, section ("__DATA,__objc_const"))) = {
+	sizeof(_objc_method),
+	5,
+	{{(struct objc_selector *)"viewDidLoad", "v16@0:8", (void *)_I_ViewController_viewDidLoad},
+	{(struct objc_selector *)"Boyang", "@16@0:8", (void *)_I_ViewController_Boyang},
+	{(struct objc_selector *)"setBoyang:", "v24@0:8@16", (void *)_I_ViewController_setBoyang_},
+	{(struct objc_selector *)"Boyang", "@16@0:8", (void *)_I_ViewController_Boyang},
+	{(struct objc_selector *)"setBoyang:", "v24@0:8@16", (void *)_I_ViewController_setBoyang_}}
+};
+```
+我们可以发现， 编译器自动生成了一个 `ViewController_IMPL`结构体，保存了名为 **_Boyang** 的实例变量。
+
+然后会在 viewDidLoad 中自动生成它的 set 方法。
+
+
+
+
+
 # 关键字
 
 默认状况下，OC 对象关键字是  **atomic**、**readwrite**、**strong**；而基本数据类型是： **atomic**、**readwrite**、**assign**。
