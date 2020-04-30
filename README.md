@@ -24,7 +24,10 @@
 
 
 ### 小Tips
-[clang -rewrite-objc 编译小Tips](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips_01.md)
+
+[clang -rewrite-objc 编译小Tips](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_01.md)
+[如何获取 LinkMap](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_02.md)
+[获取OC汇编代码](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_03.md)
 
 ##  📖 源码解读
 |  Name | Article_Link  |  Info |
