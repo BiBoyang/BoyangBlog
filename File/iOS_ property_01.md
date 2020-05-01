@@ -239,7 +239,10 @@ id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
     return objc_autoreleaseReturnValue(value);
 }
 ```
-我们可以很有趣的发现，在 getter 方法中，修饰词里直接有关联的只有 atomic 和 nonatomic.
+> 很有趣的一点：在 clang 转换过来的代码中，是找不到这个方法的，但是如果查看汇编，是可以找到 jmp	_objc_getProperty 的。
+
+我们可以很有趣的发现，在 getter 方法中，修饰词里直接有关联的只有 atomic 和 nonatomic。
+
 使用nonatomic修饰词，获取到属性值后立马返回；而使用 atomic 修饰的属性，在使用的过程中会有一段加锁解锁的过程，势必会造成性能的损耗，而且在最后会将获取到的对象加入自动释放池中。
 
 这里的锁，是 PropertyLocks 类型的锁，类型是 StripedMap，它是一个模板类，传入类的参数，然后动态修改 array 的成员类型。

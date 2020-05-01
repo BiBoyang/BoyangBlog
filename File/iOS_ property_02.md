@@ -1,5 +1,5 @@
 ##### @property 原理（二）：关键字探究 及 nonatomic & atomic
-# 关键字
+# 1. 关键字
 
 默认状况下，OC 对象关键字是  **atomic**、**readwrite**、**strong**；而基本数据类型是： **atomic**、**readwrite**、**assign**。
 
@@ -49,7 +49,7 @@ NSLog(@"方法列表:%@",methodList);
     )
 ```
 
-然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到T表示类型，C表示copy，N表示nonatomic，V表示实例变量————这个实际上就是方法签名。
+然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到 T 表示类型，C 表示 copy，N 表示nonatomic，V 表示实例变量————这个实际上就是方法签名。
 
 
 ## .cxx_destruct
@@ -60,3 +60,8 @@ NSLog(@"方法列表:%@",methodList);
 * 1.只有在ARC下这个方法才会出现（试验代码的情况下）
 * 2.只有当前类拥有实例变量时（不论是不是用property）这个方法才会出现，且父类的实例变量不会导致子类拥有这个方法
 * 3.出现这个方法和变量是否被赋值，赋值成什么没有关系
+
+
+# 2. 什么是原子性
+
+atomic 一般会被翻译成原子性。它表示一个”不可再分割“的单元。
