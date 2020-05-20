@@ -294,7 +294,7 @@ void objc_setProperty_nonatomic_copy(id self, SEL _cmd, id newValue, ptrdiff_t o
 static void _I_ViewController_setBoyang_(ViewController * self, SEL _cmd, NSString *Boyang) { 
 objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct ViewController, _Boyang), (id)Boyang, 0, 1); }
 ```
-通过它，我们套入到第一个函数之中，可以发现，它实际上也就是 objc_setProperty_nonatomic_copy 的实现。
+通过它，我们套入到第一个函数之中，可以发现，它实际上也就是 **objc_setProperty_nonatomic_copy** 的实现。
 
 它们都最终使用 reallySetProperty 方法，我们来查看它。
 ```C++
@@ -315,7 +315,6 @@ static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t o
         newValue = [newValue copyWithZone:nil];
     } else if (mutableCopy) {
         //深拷贝，将传入的新对象调用mutableCopyWithZone方法深拷贝一份，并且赋值给newValue变量
-        newValue = [newValue mutableCopyWithZone:nil];
         newValue = [newValue mutableCopyWithZone:nil];
     } else {
         //非拷贝，且传入的对象与旧对象一致，直接返回
