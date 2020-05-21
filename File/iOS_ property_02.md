@@ -1,68 +1,4 @@
-# @property 原理（二）：关键字探究 及 nonatomic & atomic
-# 1. 关键字
-
-默认状况下，OC 对象关键字是  **atomic**、**readwrite**、**strong**；而基本数据类型是： **atomic**、**readwrite**、**assign**。
-
-用 @property 的时候会自动创建创建实例变量和 setter、getter 方法。
-
-我们写一个属性:
-
-```C++
-@property (nonatomic, copy) NSString *Balaeniceps_rex;
-```
-
-然后利用 **class_copyPropertyList** 和 **class_copyMethodList**方法查看属性和方法
-
-```C++
-unsigned int propertyCount;
-objc_property_t *propertyList = class_copyPropertyList([self class], &propertyCount);
-for (unsigned int i = 0; i< propertyCount; i++) {
-    const char *name = property_getName(propertyList[i]);
-    NSLog(@"__%@",[NSString stringWithUTF8String:name]);            
-    objc_property_t property = propertyList[i];
-    const char *a = property_getAttributes(property);        
-    NSLog(@"属性信息__%@",[NSString stringWithUTF8String:a]);
-    }
-
-u_int methodCount;
-NSMutableArray *methodList = [NSMutableArray array];
-Method *methods = class_copyMethodList([self class], &methodCount);
-for (int i = 0; i < methodCount; i++) {
-    SEL name = method_getName(methods[i]);
-    NSString *strName = [NSString stringWithCString:sel_getName(name) encoding:NSUTF8StringEncoding];
-    [methodList addObject:strName];
-}
-free(methods);
-    
-NSLog(@"方法列表:%@",methodList);
-```
-
-打印出来结果
-
-```
-属性信息__T@"NSString",C,N,V_Balaeniceps_rex
-方法列表:(
-    "Balaeniceps_rex",
-    "setBalaeniceps_rex:",
-    ".cxx_destruct",
-    viewDidLoad
-    )
-```
-
-然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到 T 表示类型，C 表示 copy，N 表示nonatomic，V 表示实例变量————这个实际上就是方法签名。
-
-
-## .cxx_destruct
-
-在上一节，我们会发现打印的时候多出来一个 **.cxx_destruct** ，可以查看sunnyxx的[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)来理解。
-这个方法简单来讲作用如下：
-
-* 1.只有在ARC下这个方法才会出现（试验代码的情况下）
-* 2.只有当前类拥有实例变量时（不论是不是用property）这个方法才会出现，且父类的实例变量不会导致子类拥有这个方法
-* 3.出现这个方法和变量是否被赋值，赋值成什么没有关系
-
-
-# 2. atomic
+# @property 原理（二）：nonatomic & atomic
 
 atomic 一般会被翻译成原子性。它表示一个”不可再分割“的单元，也就是**单指令操作**。
 
@@ -70,7 +6,7 @@ atomic 一般会被翻译成原子性。它表示一个”不可再分割“的�
 
 从某种意义上来讲，线程安全的元素是，它本身就是 atomic 的。
 
-## iOS 中的 atomic
+# iOS 中的 atomic
 
 在我们日常的使用过程中，我们经常是使用 nonatomic 的，很少使用 atomic，这个主要是因为 atomic 本身就一些缺陷，但是并非不能使用，在某些情况下，使用 atomic 反而是某种较优解。
 
@@ -110,7 +46,7 @@ if (!atomic) {
 
 继续探究锁的实现。
 
-### StripedMap
+## StripedMap
 
 **PropertyLocks** 是一个 **StripedMap<spinlock_t>** 类型的全局变量,而**StripedMap** 是一个 **hashMap**，key 是指针，value 是 spinlock_t 对象。
 
@@ -217,7 +153,7 @@ StripedMap<T> 是一个模板类，根据传递的实际参数决定其中 array
 
 这里的 CacheLineSize 显然代表的时候用于缓存的 value 大小，使用 alignas 让字节对齐；而 StripeCount 则表示在 iPhone 中，创建的 array 大小是 8 。
 
-### spinlock_t
+## spinlock_t
 
 它被指定了别名
 ```C++
@@ -326,14 +262,78 @@ class mutex_tt : nocopy_t {
 
 > As with OSSpinLock there is no attempt at fairness or lock ordering, e.g. an unlocker can potentially immediately reacquire the lock before a woken up waiter gets an opportunity to attempt to acquire the lock. This may be advantageous for performance reasons, but also makes starvation of waiters a possibility.
 
-* 低等级的锁，允许等待者在竞争中高效的阻挡。
-* 一般来说，应该首选更高级别的同步原语，如pthread或dispatch子系统提供的同步原语。 
-* 存储在锁中的值应该被视为不透明的，并且应该定义实现，它们包含系统可能用来解决优先级反转的线程所有权信息。 
-* 此锁解锁，必须从锁定它的同一线程，尝试从其他线程解除锁定将导致断言中止进程。 
-* 不能通过共享或多重映射内存从多个进程或线程访问此锁，锁的实现依赖于锁值和所属进程的地址。
-* 必须使用 OS_UNFAIR_LOCK_INIT 初始化
-* 替换已弃用的OSSpinLock。不会在争用时旋转，而是在内核中等待解锁唤醒。
-* 与OSSpinLock一样，不存在公平性或锁排序的尝试，例如，在被叫醒的等待者有机会尝试获取锁之前，解锁器可能会立即重新获取锁。这可能有利于性能的原因，但也增加等待者饥饿的一点可能。
+> 低等级的锁，允许等待者在竞争中高效的阻挡。
+> 一般来说，应该首选更高级别的同步原语，如pthread或dispatch子系统提供的同步原语。 
+> 存储在锁中的值应该被视为不透明的，并且应该定义实现，它们包含系统可能用来解决优先级反转的线程所有权信息。 
+> 此锁解锁，必须从锁定它的同一线程，尝试从其他线程解除锁定将导致断言中止进程。 
+> 不能通过共享或多重映射内存从多个进程或线程访问此锁，锁的实现依赖于锁值和所属进程的地址。
+> 必须使用 OS_UNFAIR_LOCK_INIT 初始化
+> 替换已弃用的OSSpinLock。不会在争用时旋转，而是在内核中等待解锁唤醒。
+> 与OSSpinLock一样，不存在公平性或锁排序的尝试，例如，在被叫醒的等待者有机会尝试获取锁之前，解锁器可能会立即重新获取锁。这可能有利于性能的原因，但也增加等待者饥饿的一点可能。
 
-看到这段话，我立刻想起了[不再安全的 OSSpinLock](https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/) 这篇文章。里面写明了，因为自旋锁的优先级反转问题，是的自旋锁被弃用，这样一来一切都说的通了。
+看到这段话，我立刻想起了[不再安全的 OSSpinLock](https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/) 这篇文章。里面写明了，因为自旋锁的优先级反转问题，使自旋锁被弃用，这样一来一切都说的通了。目前 atomic 使用的是**互斥锁**。
+
+
+# 自旋锁和互斥锁的区别
+自旋锁是一种 busy-waiting 类型的锁，如果别的线程一直持有这个锁，在本线程上，就会一直处于 busy 状态，一直在循环的请求锁，当然这时候也是在消耗 CPU。
+
+有时候，我们没有必要一直去尝试加锁，可以在抢锁失败之后，只要锁的状态没有改变，那么就不去管它；其他线程的锁的状态一旦改变，操作系统会进行通知，这样就叫做互斥锁。这里涉及到了线程的上下文切换，所以操作花销相对的多一些。
+
+自旋锁因为在未获得锁的时候不断的进行请求。而互斥锁则算的上一劳永逸，等到锁好了再开始。
+所以，如果当前的操作比较小，持有锁的时间短，就可以使用自旋锁；而如果一旦持有锁的时间长，耗费的 CPU 时间已经比线程调度要多的时候，就可以使用互斥锁。
+
+
+# 并不安全的 atomic
+认真的说，atmoic 的所谓的线程安全，其实只是针对修饰的对象的**读/写**操作，如果一个线程在对它进行 setter/getter 操作，其他的线程就需要等待。
+
+但是如果将它添加到另外一个线程，或者在另外的线程调用了 release 方法，那么就会出问题，因为 release 方法本身就不受 getter/setter 操作的限制。
+
+# 实际场景
+
+看起来，atomic 好像完全没什么用了，但是其实 atomic 单纯的作为锁来使用，性能还算不错，但是只能**对读写操作**进行使用，我们依然可以在某些情况下使用它。
+
+我曾经接收过一个老项目，项目里有一个集中展示其他人头像的页面，在这个页面，检测平台会上报几个 crash，而且版本分部很均匀，使用的版本库还是手动引入的 SDWebImage，版本推测是 3.8。
+
+具体的堆栈我没有记录，崩溃的点是在 SDWebImageDownloaderOperation 方法上，是一个 EXC_BAD_ACCESS 错误。
+
+当时想了很久，还是百思不得其解，然后询问了几个朋友，才发现这个 crash 的原因。
+
+```C++
+objc_getProperty
+······
+    // M:如果是非原子性操作，直接返回属性的对象指针
+    if (!atomic) return *slot;
+······
+reallySetProperty
+······
+if (!atomic) {
+        //M:非原子操作，将slot指针指向的对象引用赋值给oldValue
+        oldValue = *slot;
+        //M:slot指针指向newValue，完成赋值操作
+        *slot = newValue;
+    } 
+objc_release(oldValue);
+```
+
+直接看这段代码，会发现，nonatomic 修饰的对象，它如果先进行 getter 操作，但是没有完成，这个时候进行 setter，会将 oldValue 进行 release 操作；然后 getter 操作继续进行，使用到的是已经执行完 release 操作的 oldValue，就会发生 EXC_BAD_ACCESS。
+
+这里有个最简单的修改方法，是直接使用 atomic 进行修饰，替换掉 nonatomic 。在新的版本里，就再也没有报这个错误了。
+
+当然，实际上最安全的方式是将 SDWebImage 的版本进行更新，这个问题已经在 4.2 版本进行了修复。
+
+另外还有一个曾经遇到的[面试题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/InterviewQue_01%20.md)，里面就有 atomic 的比较简单的用法，可以用来借鉴学习。
+
+
+
+
+
+
+
+# 引用
+
+[不再安全的 OSSpinLock](https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/)
+
+
+
+
 

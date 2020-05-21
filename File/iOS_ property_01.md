@@ -2,7 +2,6 @@
 > 原作于：2017-10-02           
 > GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
 
-
 > 如果没有特殊标明，下面的所有代码都是在ARC环境下。
 
 # 0. 前言
@@ -31,9 +30,8 @@
     return self.name;  // 错误的写法，会造成死循环
 }
 ```
-self.name 实际上就是执行了属性 name 的 getter 方法，getter 方法中又调用了self.name，会一直递归调用，直到程序崩溃.
 
-接着往下说。
+self.name 实际上就是执行了属性 name 的 getter 方法，getter 方法中又调用了self.name，会一直递归调用，直到程序崩溃.
 
 编译器在编译期为实例变量添加的 setter、getter 方法。在 **runtime.h** 文件中，定义如下：
 
@@ -82,6 +80,7 @@ typedef struct {
 }
 ```
 编译之后如下（截取一部分，完整代码可以到[此处查看](https://github.com/BiBoyang/BoyangBlog/tree/master/Code/property)）：
+
 ```C++
 extern "C" unsigned long OBJC_IVAR_$_ViewController$_Boyang;
 struct ViewController_IMPL {
@@ -216,14 +215,23 @@ struct _prop_t {
 _prop_t 结构体描述了每一个属性，包括名称和属性值，其实就是 property_t 在 clang 中的表示。
 
 ## 小结
-以上是使用 clang 转换过的代码得到的一些信息，不过我们要注意，使用 clang 和实际的底层实现，可能表现的并非完全一致， clang 会做很多优化，添加很多代码，如果看过 clang 转换 block 代码的话，可能会更加理解。
+以上是使用 clang 转换过的代码得到的一些信息，不过我们要注意，使用 clang 和实际的底层实现，可能表现的并非完全一致， clang 本身会做很多优化，添加很多代码，如果看过 clang 转换 block 代码的话，可能会更加理解。
 
 
 # 3. get 方法
 
 这里不再需要使用 clang 来转换了，直接来看 runtime 的源码吧。
 
-在 objc-accessors.mm 文件中，有详细的 getter 实现的代码。
+在 `objc-accessors.mm` 文件中，有详细的 getter 实现的代码。
+
+这里将 **id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic)** 的参数说明一下。
+
+* self   : 隐含参数，对象消息接收者
+* _cmd   : 隐含参数，setter对应函数
+* offset : 属性所在指针的偏移量
+* atomic : 是否是原子操作
+
+
 ```C++
 id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
     if (offset == 0) {
@@ -239,23 +247,22 @@ id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
     return objc_autoreleaseReturnValue(value);
 }
 ```
-> 很有趣的一点：在 clang 转换过来的代码中，是找不到这个方法的，但是如果查看汇编，是可以找到 jmp	_objc_getProperty 的。
+> * 很有趣的一点：在 clang 转换过来的代码中，是找不到这个方法的，但是如果查看汇编，是可以找到 jmp	_objc_getProperty 的。
 
-我们可以很有趣的发现，在 getter 方法中，修饰词里直接有关联的只有 atomic 和 nonatomic。
+我们可以很有趣的发现，在 getter 方法中，修饰词里直接有关联的只有 atomic 和 nonatomic；并且实际上只使用到了 self 和 offset，getter 方法确实相对简单。
 
-使用nonatomic修饰词，获取到属性值后立马返回；而使用 atomic 修饰的属性，在使用的过程中会有一段加锁解锁的过程，势必会造成性能的损耗，而且在最后会将获取到的对象加入自动释放池中。
+使用 nonatomic 修饰词，获取到属性值后立马返回；而使用 atomic 修饰的属性，在使用的过程中会有一段加锁解锁的过程，势必会造成性能的损耗，而且在最后会将获取到的对象加入自动释放池中。
 
 这里的锁，是 PropertyLocks 类型的锁，类型是 StripedMap，它是一个模板类，传入类的参数，然后动态修改 array 的成员类型。
 
-而最后， atomic 修饰的对象，会存注册到自动释放池之中。
+而最后，atomic 修饰的对象，会存注册到自动释放池之中。
 
 更加具体的分析可以阅读下一节。
 
 
-
 # 4. set 方法
 
-同样在 objc-accessors.mm 文件中，有详细的 setter 实现的代码。
+同样在 `objc-accessors.mm` 文件中，有详细的 setter 实现的代码。
 
 ```C++
 void objc_setProperty(id self, SEL _cmd, ptrdiff_t offset, id newValue, BOOL atomic, signed char shouldCopy) 
@@ -297,6 +304,18 @@ objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct ViewController, _Boyang), 
 通过它，我们套入到第一个函数之中，可以发现，它实际上也就是 **objc_setProperty_nonatomic_copy** 的实现。
 
 它们都最终使用 reallySetProperty 方法，我们来查看它。
+
+这里将 **static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)** 的参数说明一下。
+
+* self:隐含参数，对象消息接收者
+* _cmd:隐含参数，setter对应函数
+* newValue:需要赋值的传入
+* offset:属性所在指针的偏移量
+* atomic:是否是原子操作
+* copy:是否是浅拷贝
+* mutableCopy:是否是深拷贝
+
+
 ```C++
 static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)
 {
@@ -339,14 +358,66 @@ static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t o
     objc_release(oldValue);
 }
 ```
-这里将 **static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)** 的参数说明一下。
-
-* self:隐含参数，对象消息接收者
-* _cmd:隐含参数，setter对应函数
-* newValue:需要赋值的传入
-* offset:属性所在指针的偏移量
-* atomic:是否是原子操作
-* copy:是否是浅拷贝
-* mutableCopy:是否是深拷贝
+可以得知，在 setter 方法中，需要考虑到 copy 关键字、atomic 关键字，进行相关处理，并且在处理之后，释放掉旧的对象。
 
 这里涉及到 atomic、copy 等知识点，请阅读后续的文章。
+
+# 5. 关键字
+
+默认状况下，OC 对象关键字是  **atomic**、**readwrite**、**strong**；而基本数据类型是： **atomic**、**readwrite**、**assign**。
+
+我们写一个属性:
+
+```C++
+@property (nonatomic, copy) NSString *Balaeniceps_rex;
+```
+
+然后利用 **class_copyPropertyList** 和 **class_copyMethodList**方法查看属性和方法：
+
+```C++
+unsigned int propertyCount;
+objc_property_t *propertyList = class_copyPropertyList([self class], &propertyCount);
+for (unsigned int i = 0; i< propertyCount; i++) {
+    const char *name = property_getName(propertyList[i]);
+    NSLog(@"__%@",[NSString stringWithUTF8String:name]);            
+    objc_property_t property = propertyList[i];
+    const char *a = property_getAttributes(property);        
+    NSLog(@"属性信息__%@",[NSString stringWithUTF8String:a]);
+    }
+
+u_int methodCount;
+NSMutableArray *methodList = [NSMutableArray array];
+Method *methods = class_copyMethodList([self class], &methodCount);
+for (int i = 0; i < methodCount; i++) {
+    SEL name = method_getName(methods[i]);
+    NSString *strName = [NSString stringWithCString:sel_getName(name) encoding:NSUTF8StringEncoding];
+    [methodList addObject:strName];
+}
+free(methods);
+    
+NSLog(@"方法列表:%@",methodList);
+```
+
+打印出来结果
+
+```
+属性信息__T@"NSString",C,N,V_Balaeniceps_rex
+方法列表:(
+    "Balaeniceps_rex",
+    "setBalaeniceps_rex:",
+    ".cxx_destruct",
+    viewDidLoad
+    )
+```
+
+然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到 T 表示类型，C 表示 copy，N 表示nonatomic，V 表示实例变量————这个实际上就是方法签名。
+
+
+## .cxx_destruct
+
+在上一节，我们会发现打印的时候多出来一个 **.cxx_destruct** ，可以查看sunnyxx的[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)来理解。
+这个方法简单来讲作用如下：
+
+* 1.只有在ARC下这个方法才会出现（试验代码的情况下）
+* 2.只有当前类拥有实例变量时（不论是不是用property）这个方法才会出现，且父类的实例变量不会导致子类拥有这个方法
+* 3.出现这个方法和变量是否被赋值，赋值成什么没有关系
