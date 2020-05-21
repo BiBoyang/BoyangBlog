@@ -323,12 +323,6 @@ objc_release(oldValue);
 
 另外还有一个曾经遇到的[面试题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/InterviewQue_01%20.md)，里面就有 atomic 的比较简单的用法，可以用来借鉴学习。
 
-
-
-
-
-
-
 # 引用
 
 [不再安全的 OSSpinLock](https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/)

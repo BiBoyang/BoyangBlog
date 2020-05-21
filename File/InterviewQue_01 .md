@@ -69,3 +69,11 @@ atomic 关键字相当于在 setter 方法加锁，这样每次执行 setter 都
 
 这里我们可以查看 MrPeak 的文章[iOS 多线程到底不安全在哪里？](https://zhuanlan.zhihu.com/p/23998703)
 > 简而言之，atomic 的作用只是给 getter 和 setter 加了个锁，atomic 只能保证代码进入 getter 或者 setter 函数内部时是安全的，一旦出了 getter 和 setter，多线程安全只能靠程序员自己保障了。所以 atomic 属性和使用 property 的多线程安全并没什么直接的联系。另外，atomic 由于加锁也会带来一些性能损耗，所以我们在编写 iOS 代码的时候，一般声明 property 为 nonatomic，在需要做多线程安全的场景，自己去额外加锁做同步。
+
+## 方法五：危险
+```C++
+@property (atomic, assign) NSString *target;
+```
+这里使用 assign，也不会产生 retain 和 release，所以也能成立。
+
+代价是有可能发生野指针。
