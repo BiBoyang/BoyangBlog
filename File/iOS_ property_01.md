@@ -25,7 +25,7 @@
 
 当使用 self.xx 的时候，如果是设置值，那么就是在调用 setter 方法，如果是获取值，那就是在调用 getter 方法。这也是为什么 getter 方法中为何不能用 self.xx 的原因。
 
-```c++
+```C++
 - (NSString *)name {
     return self.name;  // 错误的写法，会造成死循环
 }
@@ -57,6 +57,7 @@ typedef struct {
     const char *value;          /**< The value of the attribute (usually empty) */
 } objc_property_attribute_t;
 ```
+
 我们使用 **property_getAttributes** 方法，可以知道包括类型、原子性、内存语义和实例变量等。在后面我们可以看到相关代码。
 
 
@@ -413,7 +414,7 @@ NSLog(@"方法列表:%@",methodList);
 然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到 T 表示类型，C 表示 copy，N 表示nonatomic，V 表示实例变量————这个实际上就是方法签名。
 
 
-## .cxx_destruct
+### .cxx_destruct
 
 在上一节，我们会发现打印的时候多出来一个 **.cxx_destruct** ，可以查看sunnyxx的[ARC下dealloc过程及.cxx_destruct的探究](http://blog.sunnyxx.com/2014/04/02/objc_dig_arc_dealloc/)来理解。
 这个方法简单来讲作用如下：
