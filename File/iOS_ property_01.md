@@ -308,13 +308,13 @@ objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct ViewController, _Boyang), 
 
 这里将 **static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)** 的参数说明一下。
 
-* self:隐含参数，对象消息接收者
-* _cmd:隐含参数，setter对应函数
-* newValue:需要赋值的传入
-* offset:属性所在指针的偏移量
-* atomic:是否是原子操作
-* copy:是否是浅拷贝
-* mutableCopy:是否是深拷贝
+* self : 隐含参数，对象消息接收者
+* _cmd : 隐含参数，setter对应函数
+* newValue : 需要赋值的传入
+* offset : 属性所在指针的偏移量
+* atomic : 是否是原子操作
+* copy : 是否是浅拷贝
+* mutableCopy : 是否是深拷贝
 
 
 ```C++
@@ -401,7 +401,7 @@ NSLog(@"方法列表:%@",methodList);
 
 打印出来结果
 
-```
+```C++
 属性信息__T@"NSString",C,N,V_Balaeniceps_rex
 方法列表:(
     "Balaeniceps_rex",
