@@ -218,3 +218,84 @@ while(total < R * C) {
     total++；
     step++;
 ```
+完整代码如下：
+```C++
+class Solution {
+public:
+    bool isInArea(int a,int b,int r,int c) {
+        if(a >= 0 && b >= 0 && a < r && b < c) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    vector<vector<int>> spiralMatrixIII(int R, int C, int r0, int c0) {
+        int total = 1;
+        vector<vector<int>> res;
+        vector<int> temp(2);
+        temp[0] = r0;
+        temp[1] = c0;
+        res.push_back(temp);
+
+        int step = 1;//每一轮移动的步长
+
+        while(total < R * C) {
+            
+            //向东走
+            int n = 1;
+            while(n <= step) {
+                c0++;
+                if(isInArea(r0, c0, R, C)){
+                    temp[0] = r0;
+                    temp[1] = c0;
+                    res.push_back(temp);
+                    total++;
+                }
+                n++;
+            }
+
+            //向南走
+            n = 1;
+            while(n <= step) {
+                r0++;
+                if(isInArea(r0, c0, R, C)){
+                    temp[0] = r0;
+                    temp[1] = c0;
+                    res.push_back(temp);
+                    total++;
+                }
+                n++;
+            }
+
+            step++;
+            //向西走
+            n = 1;
+            while(n <= step) {
+                c0--;
+                if(isInArea(r0, c0, R, C)){
+                    temp[0] = r0;
+                    temp[1] = c0;
+                    res.push_back(temp);
+                    total++;
+                }
+                n++;
+            }
+
+            //向北走
+            n = 1;
+            while(n <= step) {
+                r0--;
+                if(isInArea(r0, c0, R, C)){
+                    temp[0] = r0;
+                    temp[1] = c0;
+                    res.push_back(temp);
+                    total++;
+                }
+                n++;
+            }
+            step++;
+        }
+        return res;
+    }
+};
+```
