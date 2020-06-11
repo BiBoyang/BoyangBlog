@@ -2,7 +2,7 @@
 #### 题目链接
 [螺旋矩阵 I](https://leetcode-cn.com/problems/spiral-matrix/)    [螺旋矩阵 II](https://leetcode-cn.com/problems/spiral-matrix-ii/)    [螺旋矩阵 III](https://leetcode-cn.com/problems/spiral-matrix-iii/)
 
-# 解答
+# 正文
 
 螺旋矩阵是几道题是很有趣的题，考察程序员对于边界的处理和敏感度。 
 
@@ -28,6 +28,24 @@
 3. 从下边界开始的边界 **down** 小于上边界 **up**；
 4. 从左边界开始的边界 **left** 大于右边界 **right**；
 
+对于这种算法难度不高、但是边界条件比较突出的题，我们可以在写的时候，先将边界条件写出。比如说：
+```C++
+while (true) {
+    //从左上往右上
+    //如果上面大于下面，则结束
+    
+    //从右上往右下
+    //如果右边小于左边，则结束
+    
+    //从右下往左下
+    //如果下边小于上面，则结束
+ 
+    //从左下往左上
+    //如果左边超过了右边，则结束
+}
+```
+那么，我们就可以在每一阶段当中写出对应的代码。
+
 
 ```C++
 class Solution {
@@ -43,7 +61,7 @@ public:
         int up = 0, down = height - 1, left = 0, right = width - 1;
         
         while (true) {
-            //从左往右
+            //从左上往右上
             for(int i = left;i <= right;i++) {
                res.push_back(matrix[up][i]);
             }
@@ -80,5 +98,59 @@ public:
 };
 ```
 
+我们遍历一个二维数组的，接下来，给定一个数，如何去构建一个二维数组。即：有一个数 n，生成一个包含 1 到 n * n 所有元素，且元素按顺时针顺序螺旋排列的正方形矩阵。
+
+对于此题，我们可以设定初始值为 num = 1，目标值为 target = n * n。在循环的过程中，每次增加 num 的值，直到等于 target。
+
+遍历的过程则和上面非常类似，每次执行过一条边之后，将其对应的边界加一或者减一。
+```C++
+while(num <= target) {
+    //左上--右上
+    up++;
+    //右上--右下
+    right--;
+    //右下--左下
+    down--;
+    //左下--左上
+    left++;
+}
+```
+
+全部代码如下：
+```C++
+class Solution {
+public:
+    vector<vector<int>> generateMatrix(int n) {
+        if(n == 0)return {};
+
+        vector<vector<int>> res(n,vector<int>(n,0));
+        int up = 0,down = n-1,left = 0,right = n-1,num = 1,target = n * n;
+
+        while(num <= target) {
+            //左上--右上
+            for(int i = left;i<=right;i++) {
+                res[up][i] = num++;
+            }
+            up++;
+            //右上--右下
+            for(int i = up;i<= down;i++) {
+                res[i][right] = num++;
+            } 
+            right--;
+            //右下--左下
+            for(int i = right;i>=left;i--){
+                res[down][i] = num++;
+            }
+            down--;
+            //左下--左上
+            for(int i = down;i>=up;i--) {
+                res[i][left] = num++;
+            }
+            left++;
+        }
+        return res;
+    }
+};
+```
 
 
