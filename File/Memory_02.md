@@ -1,4 +1,15 @@
 # 《垃圾回收算法手册：自动内存管理的艺术》阅读笔记
 
-对于垃圾回收，一般的来说，我们会认为有两种方案，即 GC 和 RC。
+## 1.1
+
+* 显式释放：C语言
+* 引用计数：OC
+* 追踪式垃圾回收器：Java
+
+显式释放的缺点：
+1. 过早的回收：悬挂指针
+2. 未释放：内存泄漏
+
+
+https://cdn.jsdelivr.net/gh/mzlogin/mzlogin.github.io/2018/07/iOS_Dev_Note3Property/
 
