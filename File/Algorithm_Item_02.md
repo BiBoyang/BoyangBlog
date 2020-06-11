@@ -260,7 +260,7 @@ public·:
         return res;
     }
     void bfs(vector<vector<int>>& res,TreeNode* node,int level){
-        if(node==NULL) return ;
+        if(node == NULL) return ;
         if(level >= res.size()){
             vector<int> level_res;
             res.push_back(level_res);
@@ -403,7 +403,9 @@ void dfs(vector<int>& ans,TreeNode* root) {
 
 但是后序遍历情况则不同。后序遍历，实际上是带有破坏性质的遍历方法。
 
-在方法二：反向操作 中，我实际上破坏的其中一部分的结构，
+在方法二：反向操作 中，我实际上破坏的其中一部分的结构，不然会有重复添加的情况。
+
+这道题最好是画一遍，自然了解。
 ```C++
     
 nodeStack.push(root);
