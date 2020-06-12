@@ -55,10 +55,8 @@ public:
 ```
 看起来求最大深度非常简单易懂，即使是用迭代的方法，也是将所有的节点的高度都加入到栈中，然后每次拿出栈顶点和最大值作对比，得到最深的深度。
 
-然而求最小的深度的时候，就有点难办了。
+然而求最小的深度的时候，就有点难办了。这里的关键点在于：我们要在每次一层递归的去计算深度的时候，就判断出最小的那个，同时，如果依然存在左右子节点的时候，还为层数 +1。
 
-递归法。
-也是同样的递归求值。
 ```C++
 class Solution {
 public:
@@ -80,11 +78,14 @@ public:
     }
 };
 ```
-时间复杂度：O(n)。
-空间复杂度：O(n)。
 
-迭代法。
-深度优先搜索。
+迭代法则可以使用深度优先搜索的思想，模仿上一题的思路进行下去。
+
+1. 先将根节点和深度（为 1 ）加入栈中；
+2. 然后取出栈顶元素，同时弹出；
+3. 如果没有左右节点，则判断当前深度和最大深度那个更小；
+4. 如果有左节点，则在将此节点和深度加入栈中；右节点也类似；
+
 ```C++
 class Solution {
 public:
@@ -96,11 +97,14 @@ public:
             NodeStack.push(pair<TreeNode *,int>(root,1));
         }
         int min_depth = INT_MAX;
+        
         while(!NodeStack.empty()) {
             pair<TreeNode*, int> current = NodeStack.top();
             NodeStack.pop();
+            
             root = current.first;
             int current_depth = current.second;
+            
             if((root->left == NULL) && (root->right == NULL)) {
                 min_depth = min(min_depth,current_depth);
             }
@@ -115,8 +119,7 @@ public:
     }
 };
 ```
-时间复杂度：O(n)。
-空间复杂度：O(n)。
+
 
 
 ## N叉树的最大深度
@@ -142,5 +145,7 @@ public:
 
 # 总结
 总的来说，非必要情况下，直接使用递归就能很好的解决深度问题。时间复杂度和空间复杂度上都要优于迭代。
+
 递归的方法非常好理解，注意边界条件就可以了。
+
 迭代的情况下，重点是要同时记录节点和节点的深度，再去进行判断。
