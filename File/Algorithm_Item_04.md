@@ -3,9 +3,9 @@
 
 [路径总和II](https://leetcode-cn.com/problems/path-sum-ii/)
 
-[路径总和](https://leetcode-cn.com/problems/path-sum/)
+[路径总和III](https://leetcode-cn.com/problems/path-sum-iii/)
 
-[路径总和](https://leetcode-cn.com/problems/path-sum/)
+[路径总和IV](https://leetcode-cn.com/problems/path-sum-iv/)
 
 
 路径总和是
