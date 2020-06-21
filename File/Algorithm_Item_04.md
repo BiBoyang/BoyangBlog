@@ -28,3 +28,20 @@
 
 返回 **true**， 因为存在目标和为 22 的根节点到叶子节点的路径 **5->4->11->2**。
 
+想当然的，我们可以这么想，
+
+
+```C++
+bool hasPathSum(TreeNode* root, int sum) {
+        if(root == NULL) return false;
+        sum = sum - root->val;
+        if((root->left == NULL) && (root->right == NULL)) {
+            if(sum == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return hasPathSum(root->left, sum) || hasPathSum(root->right, sum);
+    }
+```
