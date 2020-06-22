@@ -47,3 +47,5 @@ bool hasPathSum(TreeNode* root, int sum) {
         return hasPathSum(root->left, sum) || hasPathSum(root->right, sum);
     }
 ```
+
+然后接着问，如果
