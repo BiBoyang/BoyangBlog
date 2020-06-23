@@ -50,3 +50,9 @@ bool hasPathSum(TreeNode* root, int sum) {
 
 然后接着深入问，如果知道存在根节点到叶子节点的路径，那么有几条呢？
 
+依旧使用递归方法。
+
+```C++
+
+```
+
