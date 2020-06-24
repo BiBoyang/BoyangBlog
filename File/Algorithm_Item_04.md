@@ -53,6 +53,29 @@ bool hasPathSum(TreeNode* root, int sum) {
 依旧使用递归方法。
 
 ```C++
+class Solution {
+public:
+	vector<vector<int>> res;
+	vector<int> current_total;
+	
+	void dfs(TreeNode *root,int sum) {
+		if(root == NULL) return ;
+		sum = sum - root->val;
+		current_total.push_back(root->val);
+		if(root->left == NULL && root->right == NULL && sum == 0) {
+			res.push_back(current_total);
+		}
+		if(root->left) dfs(root->left,sum);
+		if(root->right) dfs(root->right,sum);
+
+		current_total.pop_back();
+	}
+
+    vector<vector<int>> pathSum(TreeNode* root, int sum) {
+        if(root) dfs(root,sum);
+        return res;
+    }
+};
 
 ```
 
