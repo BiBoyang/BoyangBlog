@@ -52,6 +52,8 @@ bool hasPathSum(TreeNode* root, int sum) {
 
 依旧使用递归方法。
 
+我们可以继续延续上面的思路，然后
+
 ```C++
 class Solution {
 public:
