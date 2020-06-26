@@ -203,12 +203,14 @@
 | [Understanding Crashes and Crash Logs](https://developer.apple.com/videos/play/wwdc2018/414/) | 了解崩溃日志  |
 | [Optimizing Storage in Your App](https://developer.apple.com/videos/play/wwdc2019/419/) | 优化 App 中的存储  |
 
-## 内存
+## 内存相关
 |link  | info  |  
 |---|---|
 | [iOS App Performance: Memory](https://developer.apple.com/videos/play/wwdc2012/242/) | iOS 应用性能：内存  |
 | [Fixing Memory Issues](https://developer.apple.com/videos/play/wwdc2013/410/) | 修复内存问题  |
 | [iOS Memory Deep Dive](https://developer.apple.com/videos/play/wwdc2018/416/) | iOS 内存深入研究  |
+| [Image and Graphics Best Practices](https://developer.apple.com/videos/play/wwdc2018/219/) | 图像优化  |
+| [Understanding Crashes and Crash Logs](https://developer.apple.com/videos/play/wwdc2018/414/) | 了解崩溃日志  |
 
 ## 图像
 |link  | info  |  
@@ -227,7 +229,7 @@
 |---|---|
 | [Advanced NSOperations](https://developer.apple.com/videos/play/wwdc2015/226/) | NSOperations 高级操作  |
 | [Building Responsive and Efficient Apps with GCD](https://developer.apple.com/videos/play/wwdc2015/718/) |使用 GCD 构建应用 |
-[Concurrent Programming With GCD in Swift 3](https://developer.apple.com/videos/play/wwdc2016/720/)
+|[Concurrent Programming With GCD in Swift 3](https://developer.apple.com/videos/play/wwdc2016/720/)|
 | [Modernizing Grand Central Dispatch Usage](https://developer.apple.com/videos/play/wwdc2017/706/) | GCD 的新用法  |
 
 
@@ -270,10 +272,15 @@
 
 |link  | info  |  
 |---|---|
-| [Getting Started with Swift](https://developer.apple.com/videos/play/wwdc2016/404/)  | 开始使用 Swift3  |  
-| [Swift API Design Guidelines](https://developer.apple.com/videos/play/wwdc2016/403/)  | Swift API 设计指南  | 
-| [Understanding Swift Performance](https://developer.apple.com/videos/play/wwdc2016/416/)  |  了解 Swift 性能| 
-| [What's New in Swift](https://developer.apple.com/videos/play/wwdc2017/402/) | Swift4 新功能  |
-| [Swift Generics (Expanded)](https://developer.apple.com/videos/play/wwdc2018/406/) | Swift 泛型  |
-| [What's New in Swift](https://developer.apple.com/videos/play/wwdc2018/401/) | Swift 新功能  |
-| [What's New in Swift](https://developer.apple.com/videos/play/wwdc2019/402/) | Swift 新功能  |
+| 15:[Optimizing Swift Performance](https://developer.apple.com/videos/play/wwdc2015/409/)||
+| 16:[Getting Started with Swift](https://developer.apple.com/videos/play/wwdc2016/404/)  | 开始使用 Swift3  |  
+| 16:[What's New in Foundation for Swift](https://developer.apple.com/videos/play/wwdc2016/207)| Swift3 中 Foundation 新功能 |
+| 16:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2016/402)||
+| 16:[Swift API Design Guidelines](https://developer.apple.com/videos/play/wwdc2016/403/)  | Swift API 设计指南  | 
+| 16:[Understanding Swift Performance](https://developer.apple.com/videos/play/wwdc2016/416/)  |  了解 Swift 性能|
+| 16:[Concurrent Programming With GCD in Swift 3](https://developer.apple.com/videos/play/wwdc2016/720)| Swift3 中的 GCD| 
+| 17:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2017/402/) | Swift4 新功能  |
+| 17:[What’s New in Swift Playgrounds](https://developer.apple.com/videos/play/wwdc2017/408/)||
+| 18:[Swift Generics (Expanded)](https://developer.apple.com/videos/play/wwdc2018/406/) | Swift 泛型  |
+| 18:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2018/401/) | Swift 新功能  |
+| 19:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2019/402/) | Swift 新功能  |
