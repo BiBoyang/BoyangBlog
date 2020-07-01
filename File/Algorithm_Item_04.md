@@ -8,8 +8,12 @@
 <!--[路径总和IV](https://leetcode-cn.com/problems/path-sum-iv/)
 -->
 
+[二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)
+
+# 正文
 路径总和是二叉树系列的一种经典题型，即**通过一个值，来找到二叉树中的路径**。
 
+## 根节点参与的情况下
 先从头说起，给定一个二叉树和一个目标和，判断该树中是否存在根节点到叶子节点的路径，这条路径上所有节点值相加等于目标和。
 
 比如说，给了以下这个例子。
@@ -89,6 +93,7 @@ public:
 1. 不断地递归进入下一层的同时减少 sum 的值；
 2. 明确终止条件。
 
+## 如果没有根节点参与
 以上两题，都是**根节点参与其中**的，解题思路实际上只是不停的递归下去；那么如果可以没有根节点参与的情况下呢？这个路径如果可以拐弯呢？那么就变得复杂起来了。
 
 ```C++
@@ -133,4 +138,73 @@ public:
     }
 };
 ```
+## 最大的路径
+这道题简单明了，如何获取最大的那个路径和。这里的路径，被定义为**一条从树中任意节点出发，达到任意节点的序列。该路径至少包含一个节点，且不一定经过根节点**。
 
+我们需要分析各种情况。建立一个简易的二叉树，如图所示：
+```C++
+    d
+    |
+    a
+   / \
+  b   c
+```
+
+对于一个路径，可以有以下几种情况：
+
+1. d->a->b
+2. d->a->c
+3. b->a->c
+
+对于情况 1、2，我们可以递归时计算 a + b 和 a + c，选择一个更优的方案返回，也就是上面思路的递归后的最优解。
+
+而情况 3 则复杂一些：a 点可能是根节点，也就是说 d 其实并不存在；a 是左边路径和右边路径的转折点。
+
+这种路径的方式，本身就有可能是最大和，我们需要考虑到它的情况。我们就可以去递归的计算左节点和右节点的值，即按照情况 1 和 2 的路线走；但是每到一个节点，还需要去计算本身以它为转折点的路径的和，最后将两者进行比较。
+
+```C++
+class Solution {
+public:
+    int maxPath(TreeNode *root,int &sum) {
+        if(root == NULL) return 0;
+        //计算左边分支最大值
+        int left = max(maxPath(root->left, sum),0);
+        //计算右边分支最大值
+        int right = max(maxPath(root->right,sum), 0);
+        //计算 左->根->右 路线上的最大值
+        int lmr = root->val + left +right;
+        // 左->根->右 和 历史最大值做对比
+        sum = max(sum, lmr);
+        // 返回经过root的单边最大分支给上游
+        return root->val + max(left,right);
+    }
+    int maxPathSum(TreeNode* root) {
+        int sum = INT_MIN;
+        maxPath(root, sum);
+        return sum;
+    }
+};
+```
+
+
+# 总结
+
+总结一下规律：
+1. 要循序渐进的递归到下一层；
+2. 要在递归的同时，调整 sum 的变化，并密切观察 sum 为 0 的情况。
+
+我们可以设置一个简易的模板如下。
+```C++
+void dfs(TreeNode *root,int sum) {
+		if(root == NULL) return ;
+		// 每次减少 sum 的值
+		sum = sum - root->val;
+		// 设置终点
+		if(root->left == NULL && root->right == NULL && sum == 0) {
+			// 在终点的操作
+		}
+		// 左右子节点继续递归下去
+		if(root->left) dfs(root->left,sum);
+		if(root->right) dfs(root->right,sum);
+	}
+```
