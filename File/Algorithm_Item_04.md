@@ -185,7 +185,28 @@ public:
     }
 };
 ```
-
+```C++
+class Solution {
+public:
+    int cur_sum = INT_MIN;
+    int maxPathSum(TreeNode* root) {
+        maxPath(root);
+        return cur_sum;
+    }
+    int maxPath(TreeNode *root) {
+        if(root == NULL) return 0;
+        // 左的路线
+        int leftMax = max(maxPath(root->left),0);
+        // 右的路线
+        int rightMax = max(maxPath(root->right),0);
+        // 左中右的路线
+        int lmr = root->val + leftMax + rightMax;
+        
+        cur_sum = max(cur_sum, lmr);
+        return root->val + max(leftMax, rightMax);
+    }
+};
+```
 
 # 总结
 
@@ -208,3 +229,5 @@ void dfs(TreeNode *root,int sum) {
 		if(root->right) dfs(root->right,sum);
 	}
 ```
+
+而对于求最大路径和，我们也继续沿用上述的思路，左右递归，但是同时要考虑到特殊情况，去完善方法。
