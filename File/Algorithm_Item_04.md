@@ -35,23 +35,28 @@
 
 
 ```C++
-bool hasPathSum(TreeNode* root, int sum) {
-        if(root == NULL) return false;
+class Solution {
+public:
+    bool isHasPath = false;
+    void dfs(TreeNode *root,int sum) {
+        if(root == NULL) return;
         sum = sum - root->val;
         if((root->left == NULL) && (root->right == NULL)) {
-            if(sum == 0) {
-                return true;
-            } else {
-                return false;
-            }
+            if(sum == 0) isHasPath = true;
         }
-        return hasPathSum(root->left, sum) || hasPathSum(root->right, sum);
+        if(root->left) dfs(root->left,sum);
+		if(root->right) dfs(root->right,sum);
     }
+    bool hasPathSum(TreeNode* root, int sum) {
+        if(root) dfs(root, sum);
+        return isHasPath;
+    }
+};
 ```
 
-然后接着深入问，如果知道存在根节点到叶子节点的路径，那么有几条呢？
+然后接着深入问，如果知道存在根节点到叶子节点的路径，那么有哪几条呢？
 
-我们可以继续延续上面的思路，然后
+我们可以继续延续上面的思路，**注意这里的根节点一定是在路径中的**。如何符合条件，就加入数组中，如果不符合，则清空数组。
 
 ```C++
 class Solution {
