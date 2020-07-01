@@ -45,7 +45,7 @@ public:
             if(sum == 0) isHasPath = true;
         }
         if(root->left) dfs(root->left,sum);
-		if(root->right) dfs(root->right,sum);
+		   if(root->right) dfs(root->right,sum);
     }
     bool hasPathSum(TreeNode* root, int sum) {
         if(root) dfs(root, sum);
@@ -85,7 +85,30 @@ public:
 
 ```
 
-好了，找到了有几条路径，那么，将路径分别打印出来也就是顺理成章的事了。
+可以总结规律：
+1. 不断地递归进入下一层的同时减少 sum 的值；
+2. 明确终止条件。
+
+以上两题，都是**根节点参与其中**的，解题思路实际上只是不停的递归下去；那么如果可以没有根节点参与的情况下呢？这个路径如果可以拐弯呢？那么就变得复杂起来了。
+
+```C++
+      10
+     /  \
+    5   -3
+   / \    \
+  3   2   11
+ / \   \
+3  -2   1
+```
+比如这个二叉树，如果我求路径和为 8 的路径，那么实际上会有 3 条，即
+```C++
+5 -> 3
+5 -> 2 -> 1
+-3 -> 11
+```
+那么该如何解决呢？
+
+
 
 ```C++
 
