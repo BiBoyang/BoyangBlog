@@ -5,8 +5,8 @@
 
 [路径总和III](https://leetcode-cn.com/problems/path-sum-iii/)
 
-[路径总和IV](https://leetcode-cn.com/problems/path-sum-iv/)
-
+<!--[路径总和IV](https://leetcode-cn.com/problems/path-sum-iv/)
+-->
 
 路径总和是二叉树系列的一种经典题型，即**通过一个值，来找到二叉树中的路径**。
 
