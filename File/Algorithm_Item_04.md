@@ -108,10 +108,29 @@ public:
 ```
 那么该如何解决呢？
 
+我们其实可以将其转化为上面的思路：
+1. 递归下去每个子节点；
+2. 以每个子节点为新的根节点，然后左右递归下去，同时记录 sum 的变化。
 
 
 ```C++
-
-
+class Solution {
+public:
+    int res = 0;
+    void dfs(TreeNode* root, int sum) {
+        if (root== NULL) return ;
+        sum = sum - root->val;
+        if(sum == 0)  res++;
+        if(root->left) dfs(root->left, sum);
+        if(root->right) dfs(root->right, sum);
+    }
+    int pathSum(TreeNode* root, int sum) {
+        if (root == NULL) return 0;
+        dfs(root, sum);
+        if(root->left) pathSum(root->left, sum);
+        if(root->right) pathSum(root->right, sum);
+        return res;
+    }
+};
 ```
 
