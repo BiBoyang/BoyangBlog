@@ -1,4 +1,4 @@
-# 二叉树的刷题之旅（三）：路径之和（上）
+# 二叉树的刷题之旅（三）：路径之和（一）
 [路径总和](https://leetcode-cn.com/problems/path-sum/)
 
 [路径总和II](https://leetcode-cn.com/problems/path-sum-ii/)
@@ -165,29 +165,6 @@ public:
 ```C++
 class Solution {
 public:
-    int maxPath(TreeNode *root,int &sum) {
-        if(root == NULL) return 0;
-        //计算左边分支最大值
-        int left = max(maxPath(root->left, sum),0);
-        //计算右边分支最大值
-        int right = max(maxPath(root->right,sum), 0);
-        //计算 左->根->右 路线上的最大值
-        int lmr = root->val + left +right;
-        // 左->根->右 和 历史最大值做对比
-        sum = max(sum, lmr);
-        // 返回经过root的单边最大分支给上游
-        return root->val + max(left,right);
-    }
-    int maxPathSum(TreeNode* root) {
-        int sum = INT_MIN;
-        maxPath(root, sum);
-        return sum;
-    }
-};
-```
-```C++
-class Solution {
-public:
     int cur_sum = INT_MIN;
     int maxPathSum(TreeNode* root) {
         maxPath(root);
@@ -195,15 +172,16 @@ public:
     }
     int maxPath(TreeNode *root) {
         if(root == NULL) return 0;
-        // 左的路线
+        // 计算左边分支最大值
         int leftMax = max(maxPath(root->left),0);
-        // 右的路线
+        // 计算右边分支最大值
         int rightMax = max(maxPath(root->right),0);
-        // 左中右的路线
-        int lmr = root->val + leftMax + rightMax;
-        
-        cur_sum = max(cur_sum, lmr);
-        return root->val + max(leftMax, rightMax);
+        // 计算 左->根->右 路线上的最大值
+        int lmr = root->val + left +right;
+        // 左->根->右 和 历史最大值做对比
+        sum = max(sum, lmr);
+        // 返回经过root的单边最大分支给上游
+        return root->val + max(left,right);
     }
 };
 ```
