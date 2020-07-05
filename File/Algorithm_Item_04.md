@@ -48,8 +48,9 @@ public:
         if((root->left == NULL) && (root->right == NULL)) {
             if(sum == 0) isHasPath = true;
         }
-        if(root->left) dfs(root->left,sum);
-		   if(root->right) dfs(root->right,sum);
+    if(root->left) dfs(root->left,sum);
+    if(root->right) dfs(root->right,sum);
+	   
     }
     bool hasPathSum(TreeNode* root, int sum) {
         if(root) dfs(root, sum);
