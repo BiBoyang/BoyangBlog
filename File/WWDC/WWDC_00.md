@@ -142,11 +142,34 @@
 | [Advances in Networking, Part 1](https://developer.apple.com/videos/play/wwdc2019/712/) | 网络优化  |
 | [Advances in Networking, Part 2](https://developer.apple.com/videos/play/wwdc2019/713/) | 网络优化  |
 | [Creating Great Localized Experiences with Xcode 11](https://developer.apple.com/videos/play/wwdc2019/403/) | Xcode11 的本地化  |
+|[Advances in App Background Execution](https://developer.apple.com/videos/play/wwdc2019/707)| 后台任务优化|
 
 # WWDC 2020
 |link  | info  |  
 |---|---|
 | [Why is my app getting killed?](https://developer.apple.com/videos/play/wwdc2020/10078/) |  为什么App被干掉 |
+| [What's new in MetricKit](https://developer.apple.com/videos/play/wwdc2020/10081/) | MetricKit的新功能 |
+| [Refine Objective-C frameworks for Swift](https://developer.apple.com/videos/play/wwdc2020/10680/)| Swift调用OC |
+| [Identify trends with the Power and Performance API](https://developer.apple.com/videos/play/wwdc2020/10057/)| 跟踪性能指标|
+|[Diagnose performance issues with the Xcode Organizer](https://developer.apple.com/videos/play/wwdc2020/10076/) | 使用Xcode Organizer诊断性能问题|
+| [Boost performance and security with modern networking](https://developer.apple.com/videos/play/wwdc2020/10111/)| 通过现代网络提高性能和安全性|
+| [Enable encrypted DNS](https://developer.apple.com/videos/play/wwdc2020/10047)| 加密DNS|
+| [Become a Simulator expert](https://developer.apple.com/videos/play/wwdc2020/10647/)| 成为模拟器专家|
+| [Background execution demystified](https://developer.apple.com/videos/play/wwdc2020/10063/) |  后台任务优化|
+| [Advancements in the Objective-C runtime](https://developer.apple.com/videos/play/wwdc2020/10163/)| OC 的 Runtime 优化|
+| [Discover WKWebView enhancements](https://developer.apple.com/videos/play/wwdc2020/10188/)| 探索WKWebView增强功能|
+| [What's new for web developers](https://developer.apple.com/videos/play/wwdc2020/10663)| web开发的新花样 |
+| [What's new in Swift](https://developer.apple.com/videos/play/wwdc2020/10170/)| Swift新功能 |
+| [What's new in SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10041/)| SwiftUI新功能|
+| | |
+| | |
+| | |
+| | |
+| | |
+| | |
+
+
+
 
 
 
@@ -284,3 +307,5 @@
 | 18:[Swift Generics (Expanded)](https://developer.apple.com/videos/play/wwdc2018/406/) | Swift 泛型  |
 | 18:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2018/401/) | Swift 新功能  |
 | 19:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2019/402/) | Swift 新功能  |
+| 20:[What's new in Swift](https://developer.apple.com/videos/play/wwdc2020/10170/)| Swift新功能 |
+| 20:[What's new in SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10041/)| SwiftUI新功能|
