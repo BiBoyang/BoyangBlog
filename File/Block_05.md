@@ -459,4 +459,4 @@ void HookBlockToPrintArguments(id block) {
 在ARC中我们使用的都是堆block，但是创建的时候是栈block，它会经过一个copy的过程，将栈block转换成堆block，中间会有**objc_retainBlock->_Block_copy->_Block_copy_internal**方法链。我们可以hook这几个方法，去修改。
 
 
-[demo地址](https://github.com/BiBoyang/BBY_TESTDEMO/blob/master/BlockBlogTest.zip)
+[demo地址](https://github.com/BiBoyang/BlogDemo/tree/master/BlockBlogTest)
