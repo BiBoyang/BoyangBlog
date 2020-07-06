@@ -147,26 +147,22 @@
 # WWDC 2020
 |link  | info  |  
 |---|---|
-| [Why is my app getting killed?](https://developer.apple.com/videos/play/wwdc2020/10078/) |  为什么App被干掉 |
-| [What's new in MetricKit](https://developer.apple.com/videos/play/wwdc2020/10081/) | MetricKit的新功能 |
-| [Refine Objective-C frameworks for Swift](https://developer.apple.com/videos/play/wwdc2020/10680/)| Swift调用OC |
+| [Why is my app getting killed?](https://developer.apple.com/videos/play/wwdc2020/10078/) |  为什么 App 被干掉 |
+| [What's new in MetricKit](https://developer.apple.com/videos/play/wwdc2020/10081/) | MetricKit 的新功能 |
+| [Refine Objective-C frameworks for Swift](https://developer.apple.com/videos/play/wwdc2020/10680/)| Swift 调用 OC |
 | [Identify trends with the Power and Performance API](https://developer.apple.com/videos/play/wwdc2020/10057/)| 跟踪性能指标|
-|[Diagnose performance issues with the Xcode Organizer](https://developer.apple.com/videos/play/wwdc2020/10076/) | 使用Xcode Organizer诊断性能问题|
+|[Diagnose performance issues with the Xcode Organizer](https://developer.apple.com/videos/play/wwdc2020/10076/) | 使用 Xcode Organizer 诊断性能问题|
 | [Boost performance and security with modern networking](https://developer.apple.com/videos/play/wwdc2020/10111/)| 通过现代网络提高性能和安全性|
-| [Enable encrypted DNS](https://developer.apple.com/videos/play/wwdc2020/10047)| 加密DNS|
+| [Enable encrypted DNS](https://developer.apple.com/videos/play/wwdc2020/10047)| 加密 DNS|
 | [Become a Simulator expert](https://developer.apple.com/videos/play/wwdc2020/10647/)| 成为模拟器专家|
 | [Background execution demystified](https://developer.apple.com/videos/play/wwdc2020/10063/) |  后台任务优化|
 | [Advancements in the Objective-C runtime](https://developer.apple.com/videos/play/wwdc2020/10163/)| OC 的 Runtime 优化|
-| [Discover WKWebView enhancements](https://developer.apple.com/videos/play/wwdc2020/10188/)| 探索WKWebView增强功能|
-| [What's new for web developers](https://developer.apple.com/videos/play/wwdc2020/10663)| web开发的新花样 |
-| [What's new in Swift](https://developer.apple.com/videos/play/wwdc2020/10170/)| Swift新功能 |
-| [What's new in SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10041/)| SwiftUI新功能|
-| | |
-| | |
-| | |
-| | |
-| | |
-| | |
+| [Discover WKWebView enhancements](https://developer.apple.com/videos/play/wwdc2020/10188/)| 探索 WKWebView 增强功能|
+| [What's new for web developers](https://developer.apple.com/videos/play/wwdc2020/10663)| web 开发的新花样 |
+| [What's new in Swift](https://developer.apple.com/videos/play/wwdc2020/10170/)| Swift 新功能 |
+| [What's new in SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10041/)| SwiftUI 新功能|
+| [Introduction to SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10119/)| SwiftUI 介绍|
+
 
 
 
@@ -200,7 +196,10 @@
 | [Optimizing Your App for Today’s Internet](https://developer.apple.com/videos/play/wwdc2018/714/) | 根据现有互联网进行网络优化  |
 | [Advances in Networking, Part 1](https://developer.apple.com/videos/play/wwdc2019/712/) | 网络优化  |
 | [Advances in Networking, Part 2](https://developer.apple.com/videos/play/wwdc2019/713/) | 网络优化  |
-
+| [Discover WKWebView enhancements](https://developer.apple.com/videos/play/wwdc2020/10188/)| 探索 WKWebView 增强功能|
+| [What's new for web developers](https://developer.apple.com/videos/play/wwdc2020/10663)| web 开发的新花样 |
+| [Boost performance and security with modern networking](https://developer.apple.com/videos/play/wwdc2020/10111/)| 通过现代网络提高性能和安全性|
+| [Enable encrypted DNS](https://developer.apple.com/videos/play/wwdc2020/10047)| 加密 DNS|
 
 ## 启动优化& 构建优化
 |link  | info  |  
@@ -225,6 +224,11 @@
 | [Practical Approaches to Great App Performance](https://developer.apple.com/videos/play/wwdc2018/407/) | 优化性能的实用方法  |
 | [Understanding Crashes and Crash Logs](https://developer.apple.com/videos/play/wwdc2018/414/) | 了解崩溃日志  |
 | [Optimizing Storage in Your App](https://developer.apple.com/videos/play/wwdc2019/419/) | 优化 App 中的存储  |
+| [Identify trends with the Power and Performance API](https://developer.apple.com/videos/play/wwdc2020/10057/)| 跟踪性能指标|
+|[Diagnose performance issues with the Xcode Organizer](https://developer.apple.com/videos/play/wwdc2020/10076/) | 使用 Xcode Organizer 诊断性能问题|
+| [Boost performance and security with modern networking](https://developer.apple.com/videos/play/wwdc2020/10111/)| 通过现代网络提高性能和安全性|
+| [Why is my app getting killed?](https://developer.apple.com/videos/play/wwdc2020/10078/) |  为什么 App 被干掉 |
+| [What's new in MetricKit](https://developer.apple.com/videos/play/wwdc2020/10081/) | MetricKit 的新功能 |
 
 ## 内存相关
 |link  | info  |  
@@ -309,3 +313,4 @@
 | 19:[What's New in Swift](https://developer.apple.com/videos/play/wwdc2019/402/) | Swift 新功能  |
 | 20:[What's new in Swift](https://developer.apple.com/videos/play/wwdc2020/10170/)| Swift新功能 |
 | 20:[What's new in SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10041/)| SwiftUI新功能|
+| 20:[Introduction to SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10119/)| SwiftUI 介绍|
