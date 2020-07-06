@@ -17,7 +17,7 @@
 | **倒计时**  |  [iOS四种倒计时记录](https://github.com/BiBoyang/Study/blob/master/File/003.md)🐕 |   |
 |  **基本数据结构** |  [NSArray研究](https://github.com/BiBoyang/Study/blob/master/File/004.md)👀<br>[iOS中isEqual和Hash的笔记（一）](https://github.com/BiBoyang/Study/blob/master/File/hash_01.md) |   |
 | **有趣的面试题**  | [有趣的面试题_1.GCD、property、Tagged Pointer](https://github.com/BiBoyang/Study/blob/master/File/InterviewQue_01%20.md)   
-| APM之路<br>(**天坑**) |  [iOS性能优化之路](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_04.md)🐕<br>[iOS启动速度优化](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_03.md)🐕<br>[检测内存泄漏](https://github.com/BiBoyang/Study/wiki/%E6%A3%80%E6%B5%8B%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F)🐕<br>[iOS电量优化之路（一）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md)🐕<br>[iOS电量优化之路（二）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_02.md)<br>[iOS启动优化简述（一）：总览](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_StartupTime_01.md)|
+| APM之路<br>(**天坑**) |  [iOS性能优化之路](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_04.md)🐕<br>[iOS启动速度优化](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_03.md)🐕<br>[检测内存泄漏](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_10.md)🐕<br>[iOS电量优化之路（一）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md)🐕<br>[iOS电量优化之路（二）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_02.md)<br>[iOS启动优化简述（一）：总览](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_StartupTime_01.md)|
  **Runtime** | [@property的研究（一）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/runtime_02.md)<br>[@property的研究（二）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/runtime_03.md) |
 |  **Block** | [block(一)：block的本质](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_01.md)<br>[block(二)：block截获变量](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_02.md)<br>[block(三)：copy 和 release](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_03.md)<br>[block(四)：strong 和 weak](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_04.md)<br>[block(五)：有趣的 block 面试题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_05.md)   |   |
 |KVO|[夜半无事--探究KVO的实现](https://github.com/BiBoyang/Study/blob/master/File/KVO_00.md)|  |
@@ -70,8 +70,8 @@
 ##  📒读书笔记
 |  Name | Article_Link  |  Info |
 |---|---|---|
-| Effective Objective-C  |  [读书小记](https://github.com/BiBoyang/Study/wiki/%E3%80%8AEffective-Objective-C-2.0%E7%BC%96%E5%86%99%E9%AB%98%E8%B4%A8%E9%87%8FiOS%E4%B8%8EOS-X%E4%BB%A3%E7%A0%81%E7%9A%8452%E4%B8%AA%E6%9C%89%E6%95%88%E6%96%B9%E6%B3%95%E3%80%8B%E8%AF%BB%E4%B9%A6%E5%B0%8F%E8%AE%B0) |   |
-|深入理解计算机系统|[第九章：内存](https://github.com/BiBoyang/Study/wiki/%E5%86%85%E5%AD%98%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89)<br>[第12章：并发](https://github.com/BiBoyang/Study/blob/master/File/CSAPP_12.md)||
+| Effective Objective-C  |  [读书小记](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md) |   |
+|深入理解计算机系统|[第九章：内存](https://github.com/BiBoyang/BoyangBlog/blob/master/File/memory_01.md)<br>[第12章：并发](https://github.com/BiBoyang/Study/blob/master/File/CSAPP_12.md)||
 
 ## 🍎 操作系统
 |Name|Article_Link|Info|
