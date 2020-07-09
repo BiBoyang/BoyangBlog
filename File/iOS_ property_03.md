@@ -268,6 +268,13 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 }
 ```
 
+从上面两份代码，我们可以可以：
+1. immutable 和 mutable 数组的拷贝，都是会调用 __CFArrayInit 函数去创建一个新的对象；
+2. 内部元素实际上都是指向源数组；
+3. 不可变数组的 copy 没有体现在代码中，个人猜测可能是实现过于简单，所以也就没有在这里实现。
+
+其他的容器，类似 CFDictionary、CFSet 等，也是类似的结果。
+
 
 
 

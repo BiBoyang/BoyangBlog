@@ -29,6 +29,16 @@
 @property (nonatomic, copy) NSArray *arrayE;
 
 
+
+@property (nonatomic, strong) NSMutableDictionary *mutableDictionaryA;
+@property (nonatomic, copy) NSDictionary *dictionaryA;
+
+@property (nonatomic, strong) NSMutableDictionary *dictionaryB;
+@property (nonatomic, copy) NSMutableDictionary *dictionaryC;
+@property (nonatomic, strong) NSDictionary *dictionaryD;
+@property (nonatomic, copy) NSDictionary *dictionaryE;
+
+
 @end
 
 @implementation ViewController
@@ -42,6 +52,7 @@
     
     int a = 1 ;
     
+    /*
     NSLog(@"不可变对象----------------------");
 
     self.stringA = [NSString stringWithFormat:@"Bo"];
@@ -130,7 +141,7 @@
     self.arrayA = @[@"value1",@"value2",@"value3"];
     
     BYLog(self.arrayA);
-     NSLog(@"%p-%p-%p", self.arrayA[0], self.arrayA[1], self.arrayA[2]);
+    NSLog(@"%p-%p-%p", self.arrayA[0], self.arrayA[1], self.arrayA[2]);
     NSLog(@"不可变对象----------------------");
 
     if(a == 0) {
@@ -225,10 +236,56 @@
         BYLog(self.arrayE);
         NSLog(@"%p-%p-%p", self.arrayE[0], self.arrayE[1], self.arrayE[2]);
         
+    }
+    */
+    
+    self.dictionaryA = @{@"A":@"aa",@"B":@"bb"};
+        
+    BYLog(self.dictionaryA);
+    NSLog(@"%p-%p", self.dictionaryA[@"A"], self.dictionaryA[@"B"]);
+    NSLog(@"不可变字典----------------------");
+
+    if(a == 0) {
+        
+        NSLog(@"使用 copy ----------------------");
+        self.dictionaryB = [self.dictionaryA copy];
+        BYLog(self.dictionaryB);
+        NSLog(@"%p-%p", self.dictionaryB[@"A"], self.dictionaryB[@"B"]);
+        
+        self.dictionaryC = [self.dictionaryA copy];
+        BYLog(self.dictionaryC);
+        NSLog(@"%p-%p", self.dictionaryC[@"A"], self.dictionaryC[@"B"]);
+       
+        self.dictionaryD = [self.dictionaryA copy];
+        BYLog(self.dictionaryD);
+        NSLog(@"%p-%p", self.dictionaryD[@"A"], self.dictionaryD[@"B"]);
+        
+        self.dictionaryE = [self.dictionaryA copy];
+        BYLog(self.dictionaryE);
+        NSLog(@"%p-%p", self.dictionaryE[@"A"], self.dictionaryE[@"B"]);
+    
+    } else {
+        
+        NSLog(@"使用 mutableCopy ----------------------");
+
+        self.dictionaryB = [self.dictionaryA mutableCopy];
+        BYLog(self.dictionaryB);
+        NSLog(@"%p-%p", self.dictionaryB[@"A"], self.dictionaryB[@"B"]);
+         
+        self.dictionaryC = [self.dictionaryA mutableCopy];
+        BYLog(self.dictionaryC);
+        NSLog(@"%p-%p", self.dictionaryC[@"A"], self.dictionaryC[@"B"]);
+        
+        self.dictionaryD = [self.dictionaryA mutableCopy];
+        BYLog(self.dictionaryD);
+        NSLog(@"%p-%p", self.dictionaryD[@"A"], self.dictionaryD[@"B"]);
+         
+        self.dictionaryE = [self.dictionaryA mutableCopy];
+        BYLog(self.dictionaryE);
+        NSLog(@"%p-%p", self.dictionaryE[@"A"], self.dictionaryE[@"B"]);
         
         
     }
-    
     
     
     
