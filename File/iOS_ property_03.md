@@ -1,4 +1,4 @@
-##### @property 原理（三）：内存管理相关（上）
+##### @property 原理（三）：内存管理相关（上）- iOS 中 copy 的原理
 
 
 # strong/retain
@@ -79,6 +79,10 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 
 我们分别使用 copy 和 strong，对 NSString 和 NSMutableString进行两两分配；以及对 NSArray 和 NSMutableArray 进行两两分配，可以得到一个结果。
 
+测试的[源码在这里](https://github.com/BiBoyang/BoyangBlog/blob/master/CopyTest/CopyTest/ViewController.m)，可以查看测试的代码。
+
+通过一系列测试，我得到了一个这样的结论。
+
 非容器对象：
 
 |  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |
@@ -88,15 +92,21 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 |不可变对象| mutableCopy | 深拷贝 | 可变 |
 |可变对象| mutableCopy | 深拷贝 | 可变 |
 
+* 注意：接收 copy 结果的对象，也需要是可变的并且属性关键字是 strong，才可以进行修改，也就是可变，两个条件一个不符合则无法改变。
+
 容器对象：
 
-|  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |
+|  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 |
 |---|---|---|---|
-|不可变对象| copy | 浅拷贝 | 不可变 |
-|可变对象| copy | 浅拷贝 | 不可变 |
-|不可变对象| mutableCopy | 深拷贝 | 可变 |
-|可变对象| mutableCopy | 深拷贝 | 可变 |
+|不可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|
+|可变对象| copy | 浅拷贝 | 不可变 |内部元素是浅拷贝|
+|不可变对象| mutableCopy | 深拷贝 | 可变 |内部元素是浅拷贝|
+|可变对象| mutableCopy | 深拷贝 | 可变 |内部元素是浅拷贝|
 
+
+#### 参考源码
+
+对于字符串，我们虽然因为 Foundation.framework 并未开源找不到源码，但是我们依旧可以去查阅开源的 CoreFoundation.framework 源码。因为 CoreFoundation 和 Foundation 的对象是 Toll-free bridge 的，所以，可以从CoreFoundation的源代码进行了解。
 
 
 
