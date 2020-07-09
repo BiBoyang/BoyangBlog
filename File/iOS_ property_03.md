@@ -276,6 +276,21 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 其他的容器，类似 CFDictionary、CFSet 等，也是类似的结果。
 
 
+## 真正的深拷贝
+
+那么该如何实现真正的深拷贝呢？有两个办法。
+
+#### 使用对象的序列化拷贝：
+
+```C++
+//数组内对象是指针复制
+NSArray *deepCopyArray = [[NSArray alloc] initWithArray:array];
+//真正意义上的深复制，数组内对象是对象复制
+NSArray *trueDeepCopyArray = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:array]];
+```
+#### 自己实现 copy 协议 
+
+也就是 **<NSCopying,NSMutableCopying>**
 
 
 
@@ -286,7 +301,15 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 
 
 
-#### 特殊情况
+
+
+# 参考
+
+[代码查阅地址](https://opensource.apple.com/source/CF/CF-1151.16/)
+
+[代码下载地址](https://opensource.apple.com/tarballs/CF/)
+
+## 特殊情况
 在测试的时候，发现如果这个字符串是 isTaggedPointerString ，则有个特殊情况，不过貌似也没什么用处。
 
 |  可不可变对象 |  copy类型 | 深浅拷贝 | 接收对象关键字| 返回对象是否可变 |
@@ -297,15 +320,6 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 |不可变对象| mutableCopy | 浅拷贝 | copy | 不可变 |
 |可变对象| mutableCopy | 深拷贝 | strong | 可变 |
 |可变对象| mutableCopy | 深拷贝 | copy | 不可变 |
-
-
-# 参考
-
-[代码查阅地址](https://opensource.apple.com/source/CF/CF-1151.16/)
-
-[代码下载地址](https://opensource.apple.com/tarballs/CF/)
-
-
 
 
 
