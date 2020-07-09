@@ -92,21 +92,213 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 |不可变对象| mutableCopy | 深拷贝 | 可变 |
 |可变对象| mutableCopy | 深拷贝 | 可变 |
 
+* 这里的源字符串如果是 Tagged Pointer 类型，即 NSTaggedPointerString，会有些有趣的情况，不过并不影响结果。可以在文章末尾查看。
+
 * 注意：接收 copy 结果的对象，也需要是可变的并且属性关键字是 strong，才可以进行修改，也就是可变，两个条件一个不符合则无法改变。
 
 容器对象：
 
 |  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 |
-|---|---|---|---|
+|---|---|---|---|---|
 |不可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|
-|可变对象| copy | 浅拷贝 | 不可变 |内部元素是浅拷贝|
+|可变对象| copy | 深拷贝 | 不可变 | 内部元素是浅拷贝|
 |不可变对象| mutableCopy | 深拷贝 | 可变 |内部元素是浅拷贝|
 |可变对象| mutableCopy | 深拷贝 | 可变 |内部元素是浅拷贝|
 
 
-#### 参考源码
+
+
+
+
+
+
+
+## 参考源码
+
+上面的测试更多的是我们自己去一个一个的测试，更底层的实现原理，还是要看源码。
 
 对于字符串，我们虽然因为 Foundation.framework 并未开源找不到源码，但是我们依旧可以去查阅开源的 CoreFoundation.framework 源码。因为 CoreFoundation 和 Foundation 的对象是 Toll-free bridge 的，所以，可以从CoreFoundation的源代码进行了解。
+
+我们进入到这里查阅相关代码 [CFString.h](https://opensource.apple.com/source/CF/CF-1151.16/CFString.c.auto.html)，里面给出了 CFStringCreateCopy 和 CFStringCreateMutableCopy 这两个方法，分别对应 copy 和 mutableCopy；以及 [CFArray.c](https://opensource.apple.com/source/CF/CF-1151.16/CFArray.c.auto.html)，里面给出了 CFArrayCreateCopy 和 CFArrayCreateMutableCopy 两个方法，分别对应 copy 和 mutableCopy。
+
+#### CFStringCreateCopy
+
+```C++
+/**
+ * >> 字符串的 copy 操作
+ */
+CFStringRef CFStringCreateCopy(CFAllocatorRef alloc, CFStringRef str) {
+//  CF_OBJC_FUNCDISPATCHV(__kCFStringTypeID, CFStringRef, (NSString *)str, copy);
+
+    /*
+     * 如果该字符串不是可变的，并且与我们使用的分配器具有相同的分配器，
+     并且这些字符是内联的，或者由该字符串拥有，或者该字符串是常量。
+     然后保留而不是制作真实副本。
+     */
+    __CFAssertIsString(str);
+    // >> 判断源字符串是否是 mutable
+    if (!__CFStrIsMutable((CFStringRef)str) && 								// If the string is not mutable
+        ((alloc ? alloc : __CFGetDefaultAllocator()) == __CFGetAllocator(str)) &&		//  and it has the same allocator as the one we're using
+        (__CFStrIsInline((CFStringRef)str) || __CFStrFreeContentsWhenDone((CFStringRef)str) || __CFStrIsConstant((CFStringRef)str))) {	//  and the characters are inline, or are owned by the string, or the string is constant
+        // >> 使用引用计数加一来代替真正的copy,也就是这里是浅拷贝。
+        if (!(kCFUseCollectableAllocator && (0))) CFRetain(str);			// Then just retain instead of making a true copy
+	return str;
+    }
+    
+    
+    if (__CFStrIsEightBit((CFStringRef)str)) {
+        const uint8_t *contents = (const uint8_t *)__CFStrContents((CFStringRef)str);
+        return __CFStringCreateImmutableFunnel3(alloc, contents + __CFStrSkipAnyLengthByte((CFStringRef)str), __CFStrLength2((CFStringRef)str, contents), __CFStringGetEightBitStringEncoding(), false, false, false, false, false, ALLOCATORSFREEFUNC, 0);
+    } else {
+        const UniChar *contents = (const UniChar *)__CFStrContents((CFStringRef)str);
+        return __CFStringCreateImmutableFunnel3(alloc, contents, __CFStrLength2((CFStringRef)str, contents) * sizeof(UniChar), kCFStringEncodingUnicode, false, true, false, false, false, ALLOCATORSFREEFUNC, 0);
+    }
+}
+```
+从上面代码我们可以得到几条信息：
+1. CFStringCreateCopy 函数，返回的字符串是否返回新的对象，要看源字符串是 immutable 还是 mutable 的；
+2. 如果源字符串是 mutable 的，会开辟一片新的内存，生成一个新的 immutable 对象返回，创建使用 __CFStringCreateImmutableFunnel3 方法，这个是**深拷贝**；
+3. 如果源字符串是 immutable 的，且是内联的、string 所持有或者是常量，那么只对源 CFStringRef 对象引用计数加一，这个是**浅拷贝**。
+
+
+
+#### CFStringCreateMutableCopy
+```C++
+/*
+ * >>>> 字符串的 copy 操作
+ */
+CFMutableStringRef  CFStringCreateMutableCopy(CFAllocatorRef alloc, CFIndex maxLength, CFStringRef string) {
+    CFMutableStringRef newString;
+
+    //  CF_OBJC_FUNCDISPATCHV(__kCFStringTypeID, CFMutableStringRef, (NSString *)string, mutableCopy);
+
+    __CFAssertIsString(string);
+
+    newString = CFStringCreateMutable(alloc, maxLength);
+    // 将源对象的内容，放到新创建的newString中
+    __CFStringReplace(newString, CFRangeMake(0, 0), string);
+
+    return newString;
+}
+```
+在这里，我们可以知道，在 CFStringCreateMutableCopy 函数里，我们不再需要判断源对象是否是 mutable，直接创建一个新的对象，然后将源内容拷贝一份放到新的对象里，这里也就是深拷贝。
+
+
+
+#### CFArrayCreateCopy
+```C++
+CFArrayRef CFArrayCreateCopy(CFAllocatorRef allocator, CFArrayRef array) {
+    return __CFArrayCreateCopy0(allocator, array);
+}
+
+CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef array) {
+    
+    CFArrayRef result;
+    // >>>> CFArrayCallBacks变量，用于存放数组元素的回调
+    const CFArrayCallBacks *cb;
+    
+    // >>>> 存放数组元素的结构体指针
+    struct __CFArrayBucket *buckets;
+    CFAllocatorRef bucketsAllocator;
+    void* bucketsBase;
+    
+    // >>>> 获取源数组元素的总个数
+    CFIndex numValues = CFArrayGetCount(array);
+    CFIndex idx;
+    if (CF_IS_OBJC(CFArrayGetTypeID(), array)) {
+	cb = &kCFTypeArrayCallBacks;
+    } else {
+	cb = __CFArrayGetCallBacks(array);
+	    }
+    
+    // >>>> 初始化以一个不可变数组
+    result = __CFArrayInit(allocator, __kCFArrayImmutable, numValues, cb);
+    cb = __CFArrayGetCallBacks(result); // GC: use the new array's callbacks so we don't leak.
+    buckets = __CFArrayGetBucketsPtr(result);
+    bucketsAllocator = isStrongMemory(result) ? allocator : kCFAllocatorNull;
+	bucketsBase = CF_IS_COLLECTABLE_ALLOCATOR(bucketsAllocator) ? (void *)auto_zone_base_pointer(objc_collectableZone(), buckets) : NULL;
+    for (idx = 0; idx < numValues; idx++) {
+	const void *value = CFArrayGetValueAtIndex(array, idx);
+	if (NULL != cb->retain) {
+	    value = (void *)INVOKE_CALLBACK2(cb->retain, allocator, value);
+	}
+	__CFAssignWithWriteBarrier((void **)&buckets->_item, (void *)value);
+	buckets++;
+    }
+    
+    // >>>> //设定数组的长度count
+    __CFArraySetCount(result, numValues);
+    return result;
+}
+```
+
+在这里，我们可以知道，
+
+
+#### CFArrayCreateMutableCopy
+```C++
+CFMutableArrayRef CFArrayCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFArrayRef array) {
+    return __CFArrayCreateMutableCopy0(allocator, capacity, array);
+}
+
+CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocator, CFIndex capacity, CFArrayRef array) {
+    CFMutableArrayRef result;
+    const CFArrayCallBacks *cb;
+    CFIndex idx, numValues = CFArrayGetCount(array);
+    UInt32 flags;
+    if (CF_IS_OBJC(CFArrayGetTypeID(), array)) {
+	cb = &kCFTypeArrayCallBacks;
+    }
+    else {
+	cb = __CFArrayGetCallBacks(array);
+    }
+    // 将标记设置为双端队列
+    flags = __kCFArrayDeque;
+    // 创建新的不可变数组
+    result = (CFMutableArrayRef)__CFArrayInit(allocator, flags, capacity, cb);
+    //设置数组的容量
+    if (0 == capacity) _CFArraySetCapacity(result, numValues);
+    
+    for (idx = 0; idx < numValues; idx++) {
+        const void *value = CFArrayGetValueAtIndex(array, idx);
+        //将元素对象添加到新的数组列表中
+        CFArrayAppendValue(result, value);
+    }
+    return result;
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+#### 特殊情况
+在测试的时候，发现如果这个字符串是 isTaggedPointerString ，则有个特殊情况，不过貌似也没什么用处。
+
+|  可不可变对象 |  copy类型 | 深浅拷贝 | 接收对象关键字| 返回对象是否可变 |
+|---|---|---|---|---|
+|不可变对象| copy | 浅拷贝 | |不可变 |
+|可变对象| copy | 深拷贝 | |不可变 |
+|不可变对象| mutableCopy | 深拷贝 | strong| 可变 |
+|不可变对象| mutableCopy | 浅拷贝 | copy | 不可变 |
+|可变对象| mutableCopy | 深拷贝 | strong | 可变 |
+|可变对象| mutableCopy | 深拷贝 | copy | 不可变 |
+
+
+# 参考
+
+[代码查阅地址](https://opensource.apple.com/source/CF/CF-1151.16/)
+
+[代码下载地址](https://opensource.apple.com/tarballs/CF/)
+
+
 
 
 
