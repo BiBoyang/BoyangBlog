@@ -1,8 +1,7 @@
-##### @property 原理（一）：概述
-> 原作于：2017-10-02           
-> GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
-
-> 如果没有特殊标明，下面的所有代码都是在ARC环境下。
+# @property 原理（一）：概述
+* 原作于：2017-10-02          
+* GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
+* 如果没有特殊标明，下面的所有代码都是在ARC环境下。
 
 # 0. 前言
 
@@ -411,7 +410,7 @@ NSLog(@"方法列表:%@",methodList);
     )
 ```
 
-然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到 T 表示类型，C 表示 copy，N 表示nonatomic，V 表示实例变量————这个实际上就是方法签名。
+然后通过[官方文档](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html)，查阅到 T 表示类型，C 表示 copy，N 表示nonatomic，V 表示实例变量 ——— 这个实际上就是方法签名。
 
 
 ### .cxx_destruct

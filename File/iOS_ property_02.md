@@ -15,7 +15,7 @@ atomic 一般会被翻译成原子性。它表示一个”不可再分割“的�
 ```C++
 objc_getProperty
 ······
-    // M:如果是非原子性操作，直接返回属性的对象指针
+    // >> 如果是非原子性操作，直接返回属性的对象指针
     if (!atomic) return *slot;
         
     // Atomic retain release world
@@ -28,12 +28,12 @@ objc_getProperty
 reallySetProperty
 ······
 if (!atomic) {
-        //M:非原子操作，将slot指针指向的对象引用赋值给oldValue
+        // >> 非原子操作，将slot指针指向的对象引用赋值给oldValue
         oldValue = *slot;
-        //M:slot指针指向newValue，完成赋值操作
+        // >> slot指针指向newValue，完成赋值操作
         *slot = newValue;
     } else {
-        //M:原子操作，则获取锁
+        // >> 原子操作，则获取锁
         spinlock_t& slotlock = PropertyLocks[slot];
         slotlock.lock();//加锁
         oldValue = *slot;//将slot指针指向的对象引用赋值给oldValue
@@ -72,7 +72,7 @@ class StripedMap {
 #endif
 
     struct PaddedT {
-        //M:alignas是字节对齐的意思，表示让数组中每一个元素的起始位置对齐到64的倍数
+        // >> alignas是字节对齐的意思，表示让数组中每一个元素的起始位置对齐到64的倍数
         T value alignas(CacheLineSize);
     };
 
@@ -157,7 +157,7 @@ StripedMap<T> 是一个模板类，根据传递的实际参数决定其中 array
 
 它被指定了别名
 ```C++
-using spinlock_t = mutex_tt<LOCKDEBUG>;//M:指定别名
+using spinlock_t = mutex_tt<LOCKDEBUG>;// >> 指定别名
 ```
 然后找到 mutex_tt
 ```C++
@@ -301,15 +301,15 @@ class mutex_tt : nocopy_t {
 ```C++
 objc_getProperty
 ······
-    // M:如果是非原子性操作，直接返回属性的对象指针
+    //  >> 如果是非原子性操作，直接返回属性的对象指针
     if (!atomic) return *slot;
-······
+    ······
 reallySetProperty
 ······
 if (!atomic) {
-        //M:非原子操作，将slot指针指向的对象引用赋值给oldValue
+        // >> 非原子操作，将slot指针指向的对象引用赋值给oldValue
         oldValue = *slot;
-        //M:slot指针指向newValue，完成赋值操作
+        // >> slot指针指向newValue，完成赋值操作
         *slot = newValue;
     } 
 objc_release(oldValue);
