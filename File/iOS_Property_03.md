@@ -104,15 +104,12 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 |  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 | |
 |---|---|---|---|---|---|
 |不可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|集合地址不变|
-|可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|
-|不可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|
-|可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|
+|可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|集合地址改变|
+|不可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|集合地址改变|
+|可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|集合地址改变|
 
-
-
-
-
-
+* 除了不可变对象使用 copy，其他的 copy 和 mutableCopy，都是开辟了一个新的集合空间，但是内部的元素的指针还是指向源地址；
+* 有的人将集合地址改变的拷贝称之为深拷贝，但是这个其实是非常错误的理解，深拷贝就是全层次的拷贝。
 
 
 
@@ -235,8 +232,6 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
 }
 ```
 
-在这里，我们可以知道，
-
 
 #### CFArrayCreateMutableCopy
 ```C++
@@ -259,12 +254,12 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
     flags = __kCFArrayDeque;
     // 创建新的不可变数组
     result = (CFMutableArrayRef)__CFArrayInit(allocator, flags, capacity, cb);
-    //设置数组的容量
+    // 设置数组的容量
     if (0 == capacity) _CFArraySetCapacity(result, numValues);
     
     for (idx = 0; idx < numValues; idx++) {
         const void *value = CFArrayGetValueAtIndex(array, idx);
-        //将元素对象添加到新的数组列表中
+        // 将元素对象添加到新的数组列表中
         CFArrayAppendValue(result, value);
     }
     return result;
@@ -283,7 +278,7 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 
 那么该如何实现真正的深拷贝呢？有两个办法。
 
-#### 使用对象的序列化拷贝：
+一. 使用对象的序列化拷贝：
 
 ```C++
 //数组内对象是指针复制
@@ -291,9 +286,9 @@ NSArray *deepCopyArray = [[NSArray alloc] initWithArray:array];
 //真正意义上的深复制，数组内对象是对象复制
 NSArray *trueDeepCopyArray = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:array]];
 ```
-#### 自己实现 copy 协议 
+二. 自己实现 copy 协议 
 
-也就是 **<NSCopying,NSMutableCopying>**
+也就是 **NSCopying,NSMutableCopying**，
 
 
 
@@ -313,6 +308,10 @@ NSArray *trueDeepCopyArray = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyed
 [代码下载地址](https://opensource.apple.com/tarballs/CF/)
 
 [Collections Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Collections/Articles/Copying.html#//apple_ref/doc/uid/TP40010162-SW3)
+
+[Wiki:Deep_copy](https://en.wikipedia.org/wiki/Object_copying#Deep_copy)
+
+[What is the difference between a deep copy and a shallow copy?](https://stackoverflow.com/questions/184710/what-is-the-difference-between-a-deep-copy-and-a-shallow-copy)
 
 ## 特殊情况
 在测试的时候，发现如果这个字符串是 isTaggedPointerString ，则有个特殊情况，不过貌似也没什么用处。
