@@ -182,7 +182,7 @@
         
         
     }
-    
+    */
     
     self.mutableArrayA = [[NSMutableArray alloc]init];
     NSMutableString *mstr3 = [[NSMutableString alloc]initWithString:@"value3"];
@@ -237,8 +237,10 @@
         NSLog(@"%p-%p-%p", self.arrayE[0], self.arrayE[1], self.arrayE[2]);
         
     }
-    */
     
+    
+    
+    /*
     self.dictionaryA = @{@"A":@"aa",@"B":@"bb"};
         
     BYLog(self.dictionaryA);
@@ -286,7 +288,7 @@
         
         
     }
-    
+    */
     
     
     

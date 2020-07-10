@@ -1,7 +1,7 @@
 ##### @property 原理（三）：内存管理相关（上）- iOS 中 copy 的原理
 
 
-# strong/retain
+<!--# strong/retain
 retain 是在 MRC 时代使用的属性关键字，而 strong 是在 ARC 时代使用的属性关键字。
 
 表示实例变量对传入的对象要有所有权关系，即强引用。它们会使对象的引用计数 +1，对于可变数据类型，需要使用它们。
@@ -9,7 +9,7 @@ retain 是在 MRC 时代使用的属性关键字，而 strong 是在 ARC 时代�
 # assign
 assign 是用来修饰基本数据类型的属性修饰词。
 
-它会直接执行 setter 方法，但是不会经过 retain/release 方法，所以，在某种意义上，和 weak 有些类似。
+它会直接执行 setter 方法，但是不会经过 retain/release 方法，所以，在某种意义上，和 weak 有些类似。-->
 
 # copy 
 
@@ -77,6 +77,9 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 * 浅拷贝：只创建一个新的指针，指向原指针指向的内存；
 * 深拷贝：创建一个新的指针，并开辟新的内存空间，内容拷贝自原指针指向的内存，并指向它。
 
+![](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Collections/Art/CopyingCollections_2x.png)
+
+
 我们分别使用 copy 和 strong，对 NSString 和 NSMutableString进行两两分配；以及对 NSArray 和 NSMutableArray 进行两两分配，可以得到一个结果。
 
 测试的[源码在这里](https://github.com/BiBoyang/BoyangBlog/blob/master/CopyTest/CopyTest/ViewController.m)，可以查看测试的代码。
@@ -98,12 +101,12 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 
 容器对象：
 
-|  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 |
-|---|---|---|---|---|
-|不可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|
-|可变对象| copy | 深拷贝 | 不可变 | 内部元素是浅拷贝|
-|不可变对象| mutableCopy | 深拷贝 | 可变 |内部元素是浅拷贝|
-|可变对象| mutableCopy | 深拷贝 | 可变 |内部元素是浅拷贝|
+|  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 | |
+|---|---|---|---|---|---|
+|不可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|集合地址不变|
+|可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|
+|不可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|
+|可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|
 
 
 
@@ -308,6 +311,8 @@ NSArray *trueDeepCopyArray = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyed
 [代码查阅地址](https://opensource.apple.com/source/CF/CF-1151.16/)
 
 [代码下载地址](https://opensource.apple.com/tarballs/CF/)
+
+[Collections Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Collections/Articles/Copying.html#//apple_ref/doc/uid/TP40010162-SW3)
 
 ## 特殊情况
 在测试的时候，发现如果这个字符串是 isTaggedPointerString ，则有个特殊情况，不过貌似也没什么用处。
