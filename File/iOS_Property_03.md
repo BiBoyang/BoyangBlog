@@ -11,11 +11,14 @@ assign 是用来修饰基本数据类型的属性修饰词。
 
 它会直接执行 setter 方法，但是不会经过 retain/release 方法，所以，在某种意义上，和 weak 有些类似。-->
 
-# copy 
+# 属性中的 copy 
 
-在 objc-accessor.mm 中，有着 property 中 copy 的实现。
+我们知道，属性中的 copy，其实是不保留新值的，而是将其拷贝一份，当使用不可变对象的时候，可以用它来保护封装性，确保它不会随意的变动。那么它是如何实现的呢？
+
+在 `objc-accessor.mm` 中，有 property 中 copy 的实现。
 
 这里有两个函数 `objc_copyStruct` 和 `objc_copyCppObjectAtomic`,分别对应结构体的拷贝和对象的拷贝。具体代码如下：
+
 ```C++
 /**
  * 结构体拷贝
@@ -67,8 +70,9 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 ```
 
 从上述代码中，我们可以得出结论：
+
 1. 对结构体进行 copy，直接对结构体指针所指向的内存进行拷贝即可；
-2. 对对象进行 copy，则会传入的源指针和目标对象同时进行加锁，然后在去进行拷贝操作，所以我们可以知道，为什么 copy 操作是线程安全的。
+2. 对对象进行 copy，则会传入的源指针和目标对象同时进行加锁，然后在去进行拷贝操作，所以我们可以知道，copy 操作是线程安全的。
 
 不过这里的 `copyHelper(dest, src); `找不到实现方法，则有些遗憾。
 
@@ -101,23 +105,21 @@ void objc_copyCppObjectAtomic(void *dest, const void *src, void (*copyHelper) (v
 
 容器对象：
 
-|  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 | |
+|  可不可变对象 |  copy类型 | 深浅拷贝 | 返回对象是否可变 |内部元素信息 | Info|
 |---|---|---|---|---|---|
 |不可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|集合地址不变|
-|可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|集合地址改变|
-|不可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|集合地址改变|
-|可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|集合地址改变|
+|可变对象| copy | 浅拷贝 | 不可变 | 内部元素是浅拷贝|集合地址改变<br>看起来是深拷贝，实际不是|
+|不可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|集合地址改变<br>看起来是深拷贝，实际不是|
+|可变对象| mutableCopy | 浅拷贝 | 可变 |内部元素是浅拷贝|集合地址改变<br>看起来是深拷贝，实际不是|
 
 * 除了不可变对象使用 copy，其他的 copy 和 mutableCopy，都是开辟了一个新的集合空间，但是内部的元素的指针还是指向源地址；
 * 有的人将集合地址改变的拷贝称之为深拷贝，但是这个其实是非常错误的理解，深拷贝就是全层次的拷贝。
 
-
-
-## 参考源码
+## 从源码中探究答案
 
 上面的测试更多的是我们自己去一个一个的测试，更底层的实现原理，还是要看源码。
 
-对于字符串，我们虽然因为 Foundation.framework 并未开源找不到源码，但是我们依旧可以去查阅开源的 CoreFoundation.framework 源码。因为 CoreFoundation 和 Foundation 的对象是 Toll-free bridge 的，所以，可以从CoreFoundation的源代码进行了解。
+对于字符串，我们虽然因为 Foundation.framework 并未开源找不到源码，但是我们依旧可以去查阅开源的 CoreFoundation.framework 源码。因为 CoreFoundation 和 Foundation 的对象是 **Toll-free bridge** 的，所以，可以从 CoreFoundation 的源代码进行了解。
 
 我们进入到这里查阅相关代码 [CFString.h](https://opensource.apple.com/source/CF/CF-1151.16/CFString.c.auto.html)，里面给出了 CFStringCreateCopy 和 CFStringCreateMutableCopy 这两个方法，分别对应 copy 和 mutableCopy；以及 [CFArray.c](https://opensource.apple.com/source/CF/CF-1151.16/CFArray.c.auto.html)，里面给出了 CFArrayCreateCopy 和 CFArrayCreateMutableCopy 两个方法，分别对应 copy 和 mutableCopy。
 
@@ -156,6 +158,7 @@ CFStringRef CFStringCreateCopy(CFAllocatorRef alloc, CFStringRef str) {
 }
 ```
 从上面代码我们可以得到几条信息：
+
 1. CFStringCreateCopy 函数，返回的字符串是否返回新的对象，要看源字符串是 immutable 还是 mutable 的；
 2. 如果源字符串是 mutable 的，会开辟一片新的内存，生成一个新的 immutable 对象返回，创建使用 __CFStringCreateImmutableFunnel3 方法，这个是**深拷贝**；
 3. 如果源字符串是 immutable 的，且是内联的、string 所持有或者是常量，那么只对源 CFStringRef 对象引用计数加一，这个是**浅拷贝**。
@@ -181,7 +184,7 @@ CFMutableStringRef  CFStringCreateMutableCopy(CFAllocatorRef alloc, CFIndex maxL
     return newString;
 }
 ```
-在这里，我们可以知道，在 CFStringCreateMutableCopy 函数里，我们不再需要判断源对象是否是 mutable，直接创建一个新的对象，然后将源内容拷贝一份放到新的对象里，这里也就是深拷贝。
+在这里，可以知道，在 CFStringCreateMutableCopy 函数里，不再需要判断源对象是否是 mutable，直接创建一个新的对象，然后将源内容拷贝一份放到新的对象里，这里也就是**深拷贝**。
 
 
 
@@ -234,6 +237,7 @@ CF_PRIVATE CFArrayRef __CFArrayCreateCopy0(CFAllocatorRef allocator, CFArrayRef 
 
 
 #### CFArrayCreateMutableCopy
+
 ```C++
 CFMutableArrayRef CFArrayCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFArrayRef array) {
     return __CFArrayCreateMutableCopy0(allocator, capacity, array);
@@ -268,7 +272,7 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 
 从上面两份代码，我们可以可以：
 1. immutable 和 mutable 数组的拷贝，都是会调用 __CFArrayInit 函数去创建一个新的对象；
-2. 内部元素实际上都是指向源数组；
+2. 内部元素实际上还都是**指向源数组**；
 3. 不可变数组的 copy 没有体现在代码中，个人猜测可能是实现过于简单，所以也就没有在这里实现。
 
 其他的容器，类似 CFDictionary、CFSet 等，也是类似的结果。
@@ -276,7 +280,7 @@ CF_PRIVATE CFMutableArrayRef __CFArrayCreateMutableCopy0(CFAllocatorRef allocato
 
 ## 真正的深拷贝
 
-那么该如何实现真正的深拷贝呢？有两个办法。
+可以发现，其实如果严格按照深拷贝的定义，集合的 copy 和 mutableCopy 其实都是浅拷贝。那么该如何实现真正的深拷贝呢？有两个办法：
 
 一. 使用对象的序列化拷贝：
 
@@ -288,7 +292,7 @@ NSArray *trueDeepCopyArray = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyed
 ```
 二. 自己实现 copy 协议 
 
-也就是 **NSCopying,NSMutableCopying**，
+也就是 **NSCopying,NSMutableCopying**。
 
 
 

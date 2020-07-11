@@ -52,10 +52,10 @@
     
     int a = 1 ;
     
-    /*
+
     NSLog(@"不可变对象----------------------");
 
-    self.stringA = [NSString stringWithFormat:@"Bo"];
+    self.stringA = [NSString stringWithFormat:@"Booooooooooooooooooooo"];
     
     BYLog(self.stringA);
     
@@ -95,7 +95,7 @@
 
     }
     
-    
+    /*
     NSLog(@"可变对象----------------------");
 
     self.mutableStringA = [NSMutableString stringWithFormat:@"Bo"];
@@ -182,8 +182,9 @@
         
         
     }
-    */
+
     
+    /*
     self.mutableArrayA = [[NSMutableArray alloc]init];
     NSMutableString *mstr3 = [[NSMutableString alloc]initWithString:@"value3"];
     NSMutableString *mstr4 = [[NSMutableString alloc]initWithString:@"value4"];
