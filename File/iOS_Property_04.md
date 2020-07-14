@@ -512,7 +512,7 @@ static void grow_refs_and_insert(weak_entry_t *entry,
 
 释放对象的时候，基本流程如下
 1. 调用objc_release
-2. 因为对象的引用计数为0，所以执行dealloc
+2. 因为对象的引用计数为0，所以执行 dealloc
 3. _objc_rootDealloc
 4. object_dispose
 5. objc_destructInstance
