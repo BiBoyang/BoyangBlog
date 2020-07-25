@@ -1,7 +1,9 @@
 ##### @property 原理（四）：内存管理相关（下）- iOS 中 weak 的原理
 
 ## weak的实现
-我们这里直接查看[objc4-723.tar.gz](https://opensource.apple.com/tarballs/objc4/)源码。
+
+可以在此处查看[objc4-723.tar.gz](https://opensource.apple.com/tarballs/objc4/)源码，也可以查看已经[注释过的源码](https://github.com/BiBoyang/iOS_runtime_note/blob/master/objc4-781.2/runtime/NSObject.mm)
+
 流程可以简单地分为以下三步：
 
 1. 初始化时：runtime会调用**objc_initWeak**函数，初始化一个新的weak指针指向对象的地址。
@@ -14,7 +16,7 @@
 objc_initWeak(&obj1,obj);//初始化
 objc_destroyWeak(&obj1);//释放
 ```
-在**NSObject.mm**文件中，找到方法的实现
+在 **[NSObject.mm](https://github.com/BiBoyang/iOS_runtime_note/blob/master/objc4-781.2/runtime/NSObject.mm)** 文件中，找到方法的实现
 
 ```C++
 id objc_initWeak(id *location, id newObj)
