@@ -2,65 +2,68 @@
 
 ## weak的实现
 
-可以在此处查看[objc4-723.tar.gz](https://opensource.apple.com/tarballs/objc4/)源码，也可以查看已经[注释过的源码](https://github.com/BiBoyang/iOS_runtime_note/blob/master/objc4-781.2/runtime/NSObject.mm)
+可以在此处查看 [objc4-723.tar.gz](https://opensource.apple.com/tarballs/objc4/) 源码，也可以查看已经[注释过的源码](https://github.com/BiBoyang/iOS_runtime_note/blob/master/objc4-781.2/runtime/NSObject.mm)
 
-流程可以简单地分为以下三步：
+流程可以简单地分为三步，初始化、存储、释放，如下所示：
 
-1. 初始化时：runtime会调用**objc_initWeak**函数，初始化一个新的weak指针指向对象的地址。
-2. 添加引用时：**objc_initWeak**函数会调用 **objc_storeWeak()** 函数， **objc_storeWeak()** 的作用是更新指针指向，创建对应的弱引用表。
-3. 释放时，调用**clearDeallocating**函数。**clearDeallocating**函数首先根据对象地址获取所有weak指针地址的数组，然后遍历这个数组把其中的数据设为nil，最后把这个entry从weak表中删除，最后清理对象的记录。
+1. 初始化时：系统会调用 **objc_initWeak** 函数，初始化一个新的 weak 指针指向对象的地址；
+2. 添加引用时：**objc_initWeak** 函数会调用 **objc_storeWeak()** 函数， **objc_storeWeak()** 的作用是更新指针指向，创建对应的弱引用表（一个哈希表）。
+3. 释放时，调用 **clearDeallocating** 函数。**clearDeallocating** 函数首先根据对象地址获取所有 weak 指针地址的数组，然后遍历这个数组把其中的数据设为 nil，最后把这个 entry 从 weak 表中删除，最后清理对象的记录。
 
-## 实现过程
-当有一个weak的属性时。编译器会自动创建一下方法
+# 实现过程
+
+当有一个 weak 的属性时。编译器会自动创建以下方法：
+
 ```C++
 objc_initWeak(&obj1,obj);//初始化
 objc_destroyWeak(&obj1);//释放
 ```
+
 在 **[NSObject.mm](https://github.com/BiBoyang/iOS_runtime_note/blob/master/objc4-781.2/runtime/NSObject.mm)** 文件中，找到方法的实现
 
 ```C++
-id objc_initWeak(id *location, id newObj)
-{
-    // 查看对象实例是否有效
-    // 无效对象直接导致指针释放
-    if (!newObj)
-    {
+id objc_initWeak(id *location, id newObj) {
+    // 查看对象实例是否有效，无效对象直接导致指针释放
+    if (!newObj) {
         *location = nil;
         return nil;
     }
     
-    // 这里传递了三个 bool 数值
-    // 使用 template 进行常量参数传递是为了优化性能
-    // DontHaveOld--没有旧对象，
-    // DoHaveNew--有新对象，
-    // DoCrashIfDeallocating-- 如果newObj已经被释放了就Crash提示
+    /**
+     * 这里传递了三个 bool 数值
+     * 使用 template 进行常量参数传递是为了优化性能
+     * DontHaveOld--没有旧对象，
+     * DoHaveNew--有新对象，
+     * DoCrashIfDeallocating -- 如果newObj已经被释放了就Crash提示
+     */
     return storeWeak<DontHaveOld, DoHaveNew, DoCrashIfDeallocating>
         (location, (objc_object*)newObj);
 }
 ```
-**注：这里的实现代码是最新版的，但是即使是倒数第二版和这里稍有不同，不过并不影响读取，新版做了性能的优化。**
+**注：这里的实现代码是最新版的，不同版本的代码可能稍有不同，不过并不影响理解，新版做了性能的优化。**
 
 这里方法比较简单明了，但是我们要知道这里有一个潜在的前提条件：
-> * location是一个没有被注册为__weak对象的有效指针。如果newObj是空指针或它指向的对象已经释放，则location也就是weak的指针将初始化为0（nil）。 否则，将object注册为指向location的__weak对象。 
+> * location 是一个没有被注册为 **__weak** 对象的有效指针。如果 newObj 是空指针或它指向的对象已经释放，则 location 也就是 weak 的指针将初始化为 0（nil）。 否则，将 object注册为指向location的 **__weak** 对象。 
 
-这里是表层的判断，我们继续往下看相关实现
+继续往下看相关实现：
 
 ```C++
-// 更新weak变量.
-// 当设置HaveOld是true，即DoHaveOld，表示这个weak变量已经有值，需要被清理，这个值也有可能是nil
-// 当设置HaveNew是true， 即DoHaveNew，表示有一个新值被赋值给weak变量，这个值也有可能是nil
-// 当设置参数CrashIfDeallocating是true，即DoCrashIfDeallocating，如果newObj已经被释放或者newObj是一个不支持弱引用的类，则暂停进程
-// deallocating或newObj的类不支持弱引用
-// 当设置参数CrashIfDeallocating是false，即DontCrashIfDeallocating，则存储nil
+/**
+* 更新weak变量.
+* 当设置HaveOld是true，即DoHaveOld，表示这个weak变量已经有值，需要被清理，这个值也有可能是nil
+* 当设置HaveNew是true， 即DoHaveNew，表示有一个新值被赋值给weak变量，这个值也有可能是nil
+* 当设置参数CrashIfDeallocating是true，即DoCrashIfDeallocating，如果newObj已经被释放或者newObj是一个不支持弱引用的类，则暂停进程
+* deallocating或newObj的类不支持弱引用
+* 当设置参数CrashIfDeallocating是false，即 DontCrashIfDeallocating，则存储nil
+*/
 
 enum CrashIfDeallocating {
     DontCrashIfDeallocating = false, DoCrashIfDeallocating = true
 };
 template <HaveOld haveOld, HaveNew haveNew,
           CrashIfDeallocating crashIfDeallocating>
-static id 
-storeWeak(id *location, objc_object *newObj)
-{
+static id storeWeak(id *location, objc_object *newObj) {
+    
     assert(haveOld  ||  haveNew);
     
     // 初始化当前正在 +initialize 的类对象为nil
@@ -101,7 +104,7 @@ storeWeak(id *location, objc_object *newObj)
     // and the +initialize machinery by ensuring that no 
     // weakly-referenced object has an un-+initialized isa.
     //通过确保没有弱引用的对象具有未初始化的 isa，防止弱引用机制和 +initialize 机制之间的死锁。
-//// -1-
+// -1-
     if (haveNew  &&  newObj) {
         // 获得新对象的 isa 指针
         Class cls = newObj->getIsa();
