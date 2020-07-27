@@ -16,6 +16,7 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 举个最简单的例子 `www.baidu.com` 就是一个域名，用来做计算机的定位标志；这个定位标志用 IP 地址也是也一样。话说回来，你可以在终端中输入`ping www.baidu.com`就可以获得一个对应的 IP 地址，直接使用 IP 地址放到浏览器里，也一样能访问。我当时获取的就是这样一个 IP ————`180.101.49.11`，放到浏览器里，一样能访问百度。
 
 # 二. 什么要设计 DNS
+
 我认为有两个原因：
 
 1. 一个最简单的原因就是，IP 地址是四段数字，很不容易让人记住，而且还容易记混。就如同，不用电话簿，你能背下几个电话号？
@@ -59,6 +60,7 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 
 ## 域名层级
 在上面，我们提到了，DNS 是**是一个分层的分布式数据库**。DNS服务器就像一棵树一样，从上到下，依次有着不同的能力。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_01.png?raw=true)
 
 与之对应的有四类DNS服务器：
@@ -106,11 +108,9 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 迭代查询的要求有以下两点： 
 
 1. 客户端的请求报文中没有申请使用递归查询，即在 DNS 请求报头部的 RD 字段没有置 1。 
-2. 客户端在 DNS 请求报文中申请使用的是递归查询（也就是RD字段置1了），但在所配置的本地 DNS 服务器上是禁用递归查询（DNS 服务器一般默认支持递归查询的），即在应答 DNS 报文头部的 RA 字段置0。
+2. 客户端在 DNS 请求报文中申请使用的是递归查询（也就是RD字段置1了），但在所配置的本地 DNS 服务器上是禁用递归查询（DNS 服务器一般默认支持递归查询的），即在应答 DNS 报文头部的 RA 字段置 0。
 
-根据我的理解，之所以递归比迭代多，是因为递归查询，在本地 DNS 服务器上只用发出一道请求，其余的都是由更上层的 DNS 服务器去解决，相比于众多的本地 DNS 服务器，显然上层的 DNS 服务器会有更好的查询和传递效率（也更靠谱一些）。
-
-而就一般的情况来说，我们向本地 DNS 服务器查询的过程是一般是递归查询，本地 DNS 服务器再向其他 DNS 服务器获取 IP 地址的过程是是迭代的几率比较大。但是从理论上讲，任何 DNS 查询，都可能是递归的，也都可能是迭代的。
+一般的情况来说，我们向本地 DNS 服务器查询的过程是一般是递归查询，本地 DNS 服务器再向其他 DNS 服务器获取 IP 地址的过程是是迭代的几率比较大。但是从理论上讲，任何 DNS 查询，都可能是递归的，也都可能是迭代的。
 
 # 五. DNS 其实不止用到 UDP
 
@@ -249,18 +249,22 @@ TCP 作为可靠的传输协议，通过序列号、重传等机制能够保证�
 
 
 
-# 推荐视频
+# 推荐
 [DNS是干什么的？修改hosts的原理又是什么？](https://www.bilibili.com/video/BV1Yx411p7KD?from=search&seid=12510614532257440386)
 
+
 # 参考资料
-
-
 
 [Microsoft says yes to future encrypted DNS requests in Windows](https://arstechnica.com/information-technology/2019/11/microsoft-announces-plans-to-support-encrypted-dns-requests-eventually/)
 
 [为什么 DNS 使用 UDP 协议](https://draveness.me/whys-the-design-dns-udp-tcp/)
 
+[Large MTUs and Internet Performance](https://researchrepository.murdoch.edu.au/id/eprint/9920/1/MTUs_and_internet_performance.pdf)
+
 [趣谈网络协议](http://gk.link/a/100HE)
+
+《DNS 与 BIND》
+
 
 ### 时间线
 * 因为疫情期间在外当志愿者，晚上回家无聊翻翻网络知识，权当记录了。      
