@@ -53,7 +53,7 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 
 > 注：TC--（TrunCation），截断————指的是**消息由于长度大于传输通道上允许的长度而被截断**
 
-如果有兴趣了解整个 DNS 的报文，可以查看[这篇文章](https://jocent.me/2017/06/18/dns-protocol-principle.html#_label1)。
+
 
 # 四. 工作原理和流程
 
@@ -248,17 +248,28 @@ TCP 作为可靠的传输协议，通过序列号、重传等机制能够保证�
 3. DNS 可以说是网络的基石之一，但是也并非完美，HttpDNS 就是一种解决方案。
 
 
+
+res_ndestroy(res);
+res_ndestroy(res);//！！改了这里
+
+
+
+
 # 推荐视频
 [DNS是干什么的？修改hosts的原理又是什么？](https://www.bilibili.com/video/BV1Yx411p7KD?from=search&seid=12510614532257440386)
 
 # 参考资料
+
+[这篇文章](https://jocent.me/2017/06/18/dns-protocol-principle.html#_label1)
+
+
 [Microsoft says yes to future encrypted DNS requests in Windows](https://arstechnica.com/information-technology/2019/11/microsoft-announces-plans-to-support-encrypted-dns-requests-eventually/)
 
 [为什么 DNS 使用 UDP 协议](https://draveness.me/whys-the-design-dns-udp-tcp/)
 
 [趣谈网络协议](http://gk.link/a/100HE)
 
-## 时间线
+### 时间线
 * 因为疫情期间在外当志愿者，晚上回家无聊翻翻网络知识，权当记录了。      
 * 初始动笔：2019-02-01       
 * 修改时间：2019-03-20
