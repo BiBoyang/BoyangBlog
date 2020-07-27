@@ -248,7 +248,8 @@ TCP 作为可靠的传输协议，通过序列号、重传等机制能够保证�
 3. DNS 可以说是网络的基石之一，但是也并非完美，HttpDNS 就是一种解决方案。
 
 
-
+# 八. 思维导图
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_DNS_Mind.png?raw=true)
 
 # 推荐视频
 [DNS是干什么的？修改hosts的原理又是什么？](https://www.bilibili.com/video/BV1Yx411p7KD?from=search&seid=12510614532257440386)
