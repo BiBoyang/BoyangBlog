@@ -37,7 +37,7 @@ free(res);
 
 没办法，我点击进入 `res_ninit` 的页面，挨个进行查找。
 
-终于在经过了漫长的查找之后，发现了一份 [Oracle 的文档](https://docs.oracle.com/cd/E36784_01/html/E36875/res-ndestroy-3resolv.html)。
+终于在经过了漫长的翻阅资料之后，发现了一份 [Oracle 的文档](https://docs.oracle.com/cd/E36784_01/html/E36875/res-ndestroy-3resolv.html)。
 
 里面有几段注释让我如获至宝：
 
@@ -115,11 +115,6 @@ res_ndestroy(res);
 free(res);
 // dnsList 就是 DNS 服务器地址
 ```
-
-
-
-
-
 
 # 引用
 

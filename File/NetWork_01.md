@@ -249,18 +249,11 @@ TCP 作为可靠的传输协议，通过序列号、重传等机制能够保证�
 
 
 
-res_ndestroy(res);
-res_ndestroy(res);//！！改了这里
-
-
-
-
 # 推荐视频
 [DNS是干什么的？修改hosts的原理又是什么？](https://www.bilibili.com/video/BV1Yx411p7KD?from=search&seid=12510614532257440386)
 
 # 参考资料
 
-[这篇文章](https://jocent.me/2017/06/18/dns-protocol-principle.html#_label1)
 
 
 [Microsoft says yes to future encrypted DNS requests in Windows](https://arstechnica.com/information-technology/2019/11/microsoft-announces-plans-to-support-encrypted-dns-requests-eventually/)

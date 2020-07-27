@@ -12,7 +12,7 @@
 
 上文讲的 DNS 工作在应用层。
 
-# 0. HTTP 前传
+# 零. HTTP 前传
 
 作为一个 iOS 开发，这里先讲一个故事。
 
@@ -21,14 +21,15 @@
 发售没过多久，在欧洲核子研究中心工作的一个名叫 Emilio Pagiola 的科学家忽悠来经费，买了当时研究所的第一台 NeXT 计算机。这在当时可是个时髦的玩意啊！那里的科学家纷纷前来把玩。在围观的程序员里，有个叫做 Tim Berners-Lee 的科学家，他不仅把玩了计算机，还开始研究起了当时还算时髦的 Objective-C，并打算解决文本传输的问题。
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_06.jpg?raw=true)
 
-到了 1990 年，Tim Berners-Lee 成功的搭建了世界上第一个 HTTP 服务器和浏览器，然后给他起了一个伟大的名字—— **World Wide Web**。
+到了 1990 年，Tim Berners-Lee 成功的搭建了世界上第一个 HTTP 服务器和浏览器，然后给他起了一个伟大的名字 —— **World Wide Web**。
 
-# 1. HTTP历史
+# 一. HTTP历史
 
 讲完上面那个故事，大家实际上也明白 HTTP 被创造的原因了—— **我们需要可靠的传输文本的协议**。
 
 **HTTP** 是 **HyperText Transfer Protocol**的缩写，翻译过来时**超文本传输协议**。
-> 实际上更严谨的说法是 超文本转移协议，但是大家都这么说了，也就这么说了。
+
+> 实际上更严谨的说法是 超文本转移协议，但是大家都这么说了，就以讹传讹了。
 
 最开始的 HTTP 并不完善，被称之为 HTTP/0.9 。到了 1996 年 5 月，版本更新为 1.0，记载于[RFC1945: Hypertext Transfer Protocol -- HTTP/1.0](https://tools.ietf.org/html/rfc1945)。
 
@@ -39,7 +40,7 @@
 而基于 QUIC 的 HTTP/3 的标准正在慢慢推进中，现在可以在 Chrome 中尝试，可以查看[这篇文章](https://quicwg.org/base-drafts/draft-ietf-quic-http.html)查看关于 HTTP/3 的一些事情。
 
 
-## 2. HTTP 基础
+## 二. HTTP 基础
 
 HTTP 是一个应用层协议，使用 TCP 来作为它的传输协议，而非 UDP。HTTP 会先发出一个和服务器的 TCP 连接，一旦连接建立，该客户端就可以和服务器进行传输。TCP 为 HTTP 提供了可靠数据传输服务，服务器发出的每个 HTTP 响应报文都可以最终**完整**的到达客户端；反之亦然。
 
