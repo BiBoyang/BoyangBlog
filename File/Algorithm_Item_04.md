@@ -5,9 +5,6 @@
 
 [路径总和III](https://leetcode-cn.com/problems/path-sum-iii/)
 
-<!--[路径总和IV](https://leetcode-cn.com/problems/path-sum-iv/)
--->
-
 [二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)
 
 # 正文
