@@ -33,3 +33,7 @@
 [RxSwiftStudy](https://github.com/AloneMonkey/RxSwiftStudy)
 
 [RxSwift 中文文档](https://beeth0ven.github.io/RxSwift-Chinese-Documentation/)
+
+[RxSwfit 学习笔记](https://juejin.im/post/5d67d9f1e51d4561ac7bcd03)
+
+[]()
