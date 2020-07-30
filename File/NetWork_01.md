@@ -59,6 +59,7 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 # 四. 工作原理和流程
 
 ## 域名层级
+
 在上面，我们提到了，DNS 是**是一个分层的分布式数据库**。DNS服务器就像一棵树一样，从上到下，依次有着不同的能力。
 
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_01.png?raw=true)
@@ -112,6 +113,21 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 
 
 一般的情况来说，我们向本地 DNS 服务器查询的过程是一般是递归查询，本地 DNS 服务器再向其他 DNS 服务器获取 IP 地址的过程是是迭代的几率比较大。但是从理论上讲，任何 DNS 查询，都可能是递归的，也都可能是迭代的。
+
+
+## 使用命令查看 DNS 解析流程
+
+我们可以使用 `dig` 命令来查看 DNS 的相关信息。
+
+在命令行输入 
+```C++
+dig www.github.com 
+```
+
+
+
+
+
 
 # 五. DNS 其实不止用到 UDP
 
