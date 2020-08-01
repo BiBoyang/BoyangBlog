@@ -115,48 +115,6 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 一般的情况来说，我们向本地 DNS 服务器查询的过程是一般是递归查询，本地 DNS 服务器再向其他 DNS 服务器获取 IP 地址的过程是是迭代的几率比较大。但是从理论上讲，任何 DNS 查询，都可能是递归的，也都可能是迭代的。
 
 
-## 使用命令查看 DNS 解析流程
-
-我们可以使用 `dig` 命令来查看 DNS 的相关信息。
-
-在命令行输入 
-```C++
-dig www.github.com 
-```
-可以得到以下信息：
-```C++
-//<-1->
-; <<>> DiG 9.10.6 <<>> www.github.com
-
-;; global options: +cmd
-//<-2->
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 61986
-;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
-//<-3->
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 4096
-//<-4->
-;; QUESTION SECTION:
-;www.github.com.			IN	A
-
-//<-5->
-;; ANSWER SECTION:
-www.github.com.		3600	IN	CNAME	github.com.
-github.com.		60	IN	A	13.229.188.59
-
-//<-6->
-;; Query time: 45 msec
-;; SERVER: 8.8.8.8#53(8.8.8.8)
-;; WHEN: Sat Aug 01 21:56:27 CST 2020
-;; MSG SIZE  rcvd: 73
-```
-第一部分展示的是 DIG 版本和查询地址。
-
-
-
-
-
 
 
 
