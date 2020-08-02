@@ -114,8 +114,7 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 
 一般的情况来说，我们向本地 DNS 服务器查询的过程是一般是递归查询，本地 DNS 服务器再向其他 DNS 服务器获取 IP 地址的过程是是迭代的几率比较大。但是从理论上讲，任何 DNS 查询，都可能是递归的，也都可能是迭代的。
 
-
-
+可以查看我的[这篇文章](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_14.md)来了解如何使用 dig 命令查看 DNS 信息。
 
 
 # 五. DNS 其实不止用到 UDP
