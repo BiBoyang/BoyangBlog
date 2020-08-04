@@ -15,3 +15,25 @@
 例如，从根到叶子节点（没有子节点的节点）路径 1->2->3 代表数字 123。
 
 对于这道题，其实就是延续上文的解法，使用递归方法。
+
+```C++
+class Solution {
+public:
+    int res = 0;
+    void dfs(TreeNode *root,int sum) {
+        if (root == NULL)return;
+        sum = sum * 10 + root->val;
+        if(root->left == NULL && root->right == NULL) {
+            res += sum;
+        }
+        if(root->left) dfs(root->left, sum);
+        if(root->right) dfs(root->right, sum);
+    }
+    
+    int sumNumbers(TreeNode* root) {
+        if(root == NULL) return 0;
+        dfs(root, 0);
+        return res;
+    }
+};
+```
