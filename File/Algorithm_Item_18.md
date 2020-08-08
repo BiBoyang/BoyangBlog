@@ -1,4 +1,4 @@
-# 哈希表刷题之旅（一）：设计哈希表
+# 哈希表刷题之旅（一）：设计哈希表及哈希表基本用法
 
 # hash ABC
 hash 是一种用于处理查找时非常高效的数据结构。时间复杂度一般情况下可以直接认为是 O(1)。
@@ -126,5 +126,43 @@ int main() {
         cout << "哈希集合为空！" << endl;
     }
 }
+
+------------------
+------------------
+#include <unordered_map>                
+
+int main() {
+    // 1. 初始化哈希表
+    unordered_map<int, int> hashmap;
+    // 2. 插入一个新的（键，值）对
+    hashmap.insert(make_pair(0, 0));
+    hashmap.insert(make_pair(2, 3));
+    // 3. 插入一个新的（键，值）对，或者更新值
+    hashmap[1] = 1;
+    hashmap[1] = 2;
+    // 4. 获得特定键对应的值
+    cout << "The value of key 1 is: " << hashmap[1] << endl;
+    // 5. 删除键
+    hashmap.erase(2);
+    // 6. 检查键是否存在于哈希表中
+    if (hashmap.count(2) <= 0) {
+        cout << "键 2 不在哈希表中" << endl;
+    }
+    // 7. 哈希表的大小
+    cout << "哈希表的大小为: " << hashmap.size() << endl; 
+    // 8. 遍历哈希表
+    for (auto it = hashmap.begin(); it != hashmap.end(); ++it) {
+        cout << "(" << it->first << "," << it->second << ") ";
+    }
+    cout << "在哈希表中" << endl;
+    // 9. 清空哈希表
+    hashmap.clear();
+    // 10. 检查哈希表是否为空
+    if (hashmap.empty()) {
+        cout << "哈希表为空！" << endl;
+    }
+}
+
+
 
 ```
