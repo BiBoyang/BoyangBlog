@@ -95,3 +95,36 @@ bool contains(int key) {
 ```
 
 
+## C++ 中哈希表的用法
+```C++
+#include <unordered_set>               
+
+int main() {
+    // 1. 初始化哈希集
+    unordered_set<int> hashset;   
+    // 2. 新增键
+    hashset.insert(3);
+    hashset.insert(2);
+    hashset.insert(1);
+    // 3. 删除键
+    hashset.erase(2);
+    // 4. 查询键是否包含在哈希集合中
+    if (hashset.count(2) <= 0) {
+        cout << "键 2 不在哈希集合中" << endl;
+    }
+    // 5. 哈希集合的大小
+    cout << "哈希集合的大小为: " << hashset.size() << endl; 
+    // 6. 遍历哈希集合
+    for (auto it = hashset.begin(); it != hashset.end(); ++it) {
+        cout << (*it) << " ";
+    }
+    cout << "在哈希集合中" << endl;
+    // 7. 清空哈希集合
+    hashset.clear();
+    // 8. 查看哈希集合是否为空
+    if (hashset.empty()) {
+        cout << "哈希集合为空！" << endl;
+    }
+}
+
+```
