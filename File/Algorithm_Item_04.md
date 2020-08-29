@@ -1,4 +1,4 @@
-# 二叉树的刷题之旅（三）：路径之和 
+# 二叉树的刷题之旅（三）：路径之和（上）
 [路径总和](https://leetcode-cn.com/problems/path-sum/)<br>[路径总和II](https://leetcode-cn.com/problems/path-sum-ii/)<br>[路径总和III](https://leetcode-cn.com/problems/path-sum-iii/)<br>[二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)
 
 # 正文
