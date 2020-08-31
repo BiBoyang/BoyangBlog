@@ -1,10 +1,10 @@
 # 二叉树的刷题之旅（四）：路径之和（下）
 
 1. [求根到叶子节点数字之和](https://leetcode-cn.com/problems/sum-root-to-leaf-numbers/)
-2. 二叉树的所有路径    
-3. 二叉树中最长的连续序列    
-4. 二叉树最长连续序列
-5. 最长同值路径   
+2. [二叉树的所有路径](https://leetcode-cn.com/problems/binary-tree-paths/)
+3. [二叉树中最长的连续序列](https://leetcode-cn.com/problems/binary-tree-longest-consecutive-sequence-ii/)    
+4. [二叉树最长连续序列](https://leetcode-cn.com/problems/binary-tree-longest-consecutive-sequence/)
+5. [最长同值路径](https://leetcode-cn.com/problems/longest-univalue-path/)   
 
 
 # 正文
