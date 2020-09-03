@@ -20,19 +20,19 @@
 class Solution {
 public:
     int res = 0;
-    void dfs(TreeNode *root,int sum) {
+    void helper(TreeNode *root,int sum) {
         if (root == NULL)return;
         sum = sum * 10 + root->val;
         if(root->left == NULL && root->right == NULL) {
             res += sum;
         }
-        if(root->left) dfs(root->left, sum);
-        if(root->right) dfs(root->right, sum);
+        if(root->left) helper(root->left, sum);
+        if(root->right) helper(root->right, sum);
     }
     
     int sumNumbers(TreeNode* root) {
         if(root == NULL) return 0;
-        dfs(root, 0);
+        helper(root, 0);
         return res;
     }
 };

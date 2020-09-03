@@ -85,6 +85,64 @@ public:
 1. 不断地递归进入下一层的同时减少 sum 的值；
 2. 明确终止条件。
 
+有了这个结论，我们可以继续处理下面的几道题。
+
+
+#### 路径求和
+
+给定一个二叉树，它的每个结点都存放一个 0-9 的数字，每条从根到叶子节点的路径都代表一个数字。计算从根到叶子节点生成的所有数字之和。
+
+例如，从根到叶子节点（没有子节点的节点）路径 1->2->3 代表数字 123。
+
+对于这道题，其实就是延续上面的解法，不过减法要换成加法，继续使用递归。
+
+```C++
+class Solution {
+public:
+    int res = 0;
+    void helper(TreeNode *root,int sum) {
+        if (root == NULL)return;
+        sum = sum * 10 + root->val;
+        if(root->left == NULL && root->right == NULL) {
+            res += sum;
+        }
+        if(root->left) helper(root->left, sum);
+        if(root->right) helper(root->right, sum);
+    }
+    int sumNumbers(TreeNode* root) {
+        if(root == NULL) return 0;
+        helper(root, 0);
+        return res;
+    }
+};
+```
+
+而要获取二叉树所有从根节点到叶子节点的路径，也是类似的方法。
+
+```C++
+class Solution {
+public:
+    vector<string> res;
+    void helper(TreeNode* root,string str) {
+        if (root == NULL) return;  
+        if (root->left == NULL && root->right == NULL) {
+            str += to_string(root->val);
+            res.push_back(str);
+        }
+        str = str + to_string(root->val) + "->";
+        if(root->left) helper(root->left, str);
+        if(root->right) helper(root->right, str);
+    }
+    vector<string> binaryTreePaths(TreeNode* root) {
+        if(root == NULL) return res;
+        string str = "";
+        helper(root, str);
+        return res;
+    }
+};
+```
+
+
 ## 如果没有根节点参与
 以上两题，都是**根节点参与其中**的，解题思路实际上只是不停的递归下去；那么如果可以没有根节点参与的情况下呢？这个路径如果可以拐弯呢？那么就变得复杂起来了。
 
