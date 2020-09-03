@@ -40,5 +40,26 @@ public:
 
 而要获取二叉树所有从根节点到叶子节点的路径，也是类似的方法。
 ```C++
-
+class Solution {
+public:
+    vector<string> res;
+    void helper(TreeNode* root,string str) {
+        if (root == NULL) return;  
+        if (root->left == NULL && root->right == NULL) {
+            str += to_string(root->val);
+            res.push_back(str);
+        }
+        str = str + to_string(root->val) + "->";
+        if(root->left) helper(root->left, str);
+        if(root->right) helper(root->right, str);
+    }
+    vector<string> binaryTreePaths(TreeNode* root) {
+        if(root == NULL) return res;
+        string str = "";
+        helper(root, str);
+        return res;
+    }
+};
 ```
+
+以上两道题，都是需要从根节点直接
