@@ -54,5 +54,41 @@ public:
 
 继续下去，假如要寻找二叉树中最长的连续序列路径的长度，即要么递增要么递减，且路径可以是子-父-子的关系，那么该如何寻找呢？
 
+可以分别考虑子节点逆序最大长度与顺序最大长度。
+
+```C++
+class Solution {
+public:
+    int res = 0;
+    //pair 第一位表示递减。第二位表示递增
+    pair<int, int> helper(TreeNode* root) {
+        if (root == NULL) return {0, 0};
+        auto l = helper(root->left);
+        auto r = helper(root->right);
+        int l1 = 0;
+        int l2 = 0;
+        int r1 = 0;
+        int r2 = 0;
+        if (root->right && root->right->val + 1 == root->val) {
+            r1 = r.first;
+        } else if (root->right && root->right->val - 1 == root->val) {
+            r2 = r.second;
+        }
+        if (root->left && root->left->val + 1 == root->val) {
+            l1 = l.first;
+        } else if (root->left && root->left->val - 1 == root->val) {
+            l2 = l.second;
+        }
+        int len = max(l1 + 1 + r2, l2 + 1 + r1);
+        res = max(res, len);
+        return {max(l1, r1) + 1, max(l2, r2) + 1};
+    }
+    int longestConsecutive(TreeNode* root) {
+        helper(root);
+        return res;
+    }
+};
+```
+
 
 
