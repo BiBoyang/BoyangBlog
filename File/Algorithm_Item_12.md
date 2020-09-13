@@ -21,9 +21,8 @@
 * ‘=’左边的 `->next` 一般指的是该节点中存的 next（链表节点包括两个部分组成，一个是 val，一个是 next 用于指向下一个部分的），而右边的 `->next` 一般来讲是指的指向的某个具体节点
 
 
-# 经典双指针
+# 经典双指针模板
 
-## 模板
 ```C++
 // Initialize slow & fast pointers
 ListNode* slow = head;
