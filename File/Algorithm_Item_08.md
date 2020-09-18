@@ -1,6 +1,33 @@
 # 字符串匹配算法 🚧
 
+字符串匹配算法详解。
+
+给定一个 haystack 字符串和一个 needle 字符串，在 haystack 字符串中找出 needle 字符串出现的第一个位置 (从0开始)。如果不存在，则返回  -1。
+
+设定加入匹配成功，haystack 从 i 位置开始匹配，needle 从 j 位置开始匹配。
+
+
 # 双指针暴力
+
+这种查找非常易于理解。主要分为两个步骤：
+
+1. 如果当前字符匹配成功，即 haystack[i] == needle[j]，则继续往后匹配；
+2. 如果匹配失败，即 haystack[i] ！= needle[j]，则 i++，j = 0。
+
+画图举例。假定 haystack 为 'ACCBBADC'，needle 为 'CBB'。
+
+第一步。haystack[0] 为 A，needle[0] 为 C ，不匹配，则执行步骤 2。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_01.png?raw=true)
+
+第二步。haystack[0] 为 C，needle[0] 为 C ，匹配，则执行步骤 1。
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_02.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_03.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_04.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_05.png?raw=true)
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_06.png?raw=true)
+
+
 ```C++
 class Solution {
 public:
