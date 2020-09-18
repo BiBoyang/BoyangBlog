@@ -28,7 +28,7 @@
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_04.png?raw=true)
 第五步。haystack[2] 为 B，needle[1] 为 B ，匹配，则执行步骤 1，向后匹配。
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_05.png?raw=true)
-第二步。haystack[3] 为 C，needle[0] 为 C ，匹配，则执行步骤 1，向后匹配。
+第六步。haystack[3] 为 C，needle[2] 为 C ，匹配，匹配成功。
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_06.png?raw=true)
 
 
