@@ -37,6 +37,7 @@
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_05.png?raw=true)
 
 第六步。haystack[3] 为 C，needle[2] 为 C ，匹配，匹配成功。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_06.png?raw=true)
 
 代码如下。
@@ -80,31 +81,37 @@ KMP 算法主要有两步：
 1. 如果 `j = -1`，或者字符匹配成功，即 `haystack[i] == needle[j]`，都让 i++、j++，继续匹配下一个字符；
 2. 如果j != -1，且当前字符匹配失败（即 `haystack[i] != needle[j]`），则令 i 不变，`j = next[j]`。这意味着失配时，needle 相对于 haystack 向右移动了 `j - next [j]` 位。
 
+KMP 算法的核心，在于一个叫做**部分匹配表（The Partial Match Table）**的东西，理解 KMP 算法最重要的是理解 PMT 里数字的含义。
+
 
 画图举例。假定 haystack 为 **abcaabbab**，needle 为 **abbab**。
 
 第一步，先求得前后缀数组。
 
+要先说明，这里说的前缀、后缀，是字符串的前后缀，即字符串 A = 字符串 B + 非空字符串 S，那么 B 可以被称为 A 的前缀。举例，”String“ 的前缀有 “S”、“St”、“Str”、“Stri”、“Strin”。后缀同理。
+
 | needle字符串  | a | ab  | abb | abba | abbab |
 |---|---|---|---|---|---|
-| 相同前后缀  | 无 | 无 | 无 | a| ab|
-| 前后缀数量  | 0 | 0  | 0 | 1| 2|
+| 最长相同前后缀 | 无 | 无 | 无 | a| ab|
+| PMT  | 0 | 0  | 0 | 1| 2 |
 
+如果在第 j 位失配，则影响 j 指针回溯的位置的其实是第 j −1 位的 PMT 值。
 
-第二步，在数组前添加 -1。
+第二步，为了编程方便，在数组前添加 -1。得到 next 数组。
 
 | needle字符串分割  | a | b  | b | a | b |
 |---|---|---|---|---|---|
-| next数组  | -1 | 0 | 0 | 0| 1|
+| next 数组  | -1 | 0 | 0 | 0| 1|
 
-代码如下。
+代码如下。这是模式 needle 对于自己的匹配。
+
 ```C++
 vector<int> getnext(string str) {
     int len = str.size();
     vector<int> next;
     next.push_back(-1);
     int j = 0,k = -1;
-    while(j < len-1) {
+    while(j < len) {
         if(k == -1 || str[j] == str[k]) {
             j++;
             k++;
@@ -116,32 +123,9 @@ vector<int> getnext(string str) {
     return next;
 }
 ```
-取得 next 数组之后，即执行后续计算的两步。
 
-```C++
-int strStr(string haystack, string needle) {
-    if(needle.empty()) return 0;
-    int i = 0;
-    int j = 0;
-    int leni = haystack.size();
-    int lenj = needle.size();
-    vector<int> next;
-    next = getnext(needle);
-    while((i < leni) && (j < lenj)) {
-        if((j == -1) || (haystack[i] == needle[j])) {
-            i++;
-            j++;
-        }else {
-            j = next[j];
-        }
-    }
-    if(j == lenj) {
-        return i - j;
-    } else {
-        return -1;
-    }
-}
-```
+
+
 依旧以上面的为例。
 
 先求得 `abbab`的 next 数组为 **[-1,0,0,0,1]**。
@@ -172,7 +156,32 @@ needle 向右移动 1 位后，haystack[3] == needle[0]，继续向后。
 
 needle 向右移动 1 位之后，haystack[4] == needle[0]，并继续向右。
 
+代码如下。
 
+取得 next 数组之后，即执行后续计算的两步。
+
+```C++
+int strStr(string haystack, string needle) {
+    if(needle.empty()) return 0;
+    int i = 0;
+    int j = 0;
+    vector<int> next;
+    next = getnext(needle);
+    while((i < haystack.size();) && (j < needle.size())) {
+        if((j == -1) || (haystack[i] == needle[j])) {
+            i++;
+            j++;
+        }else {
+            j = next[j];
+        }
+    }
+    if(j == needle.size()) {
+        return i - j;
+    } else {
+        return -1;
+    }
+}
+```
 
 
 
