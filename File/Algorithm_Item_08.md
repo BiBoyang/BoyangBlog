@@ -21,13 +21,21 @@
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_01.png?raw=true)
 
 第二步。haystack[1] 为 C，needle[0] 为 C ，匹配，则执行步骤 1，向后匹配。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_02.png?raw=true)
+
 第三步。haystack[2] 为 C，needle[1] 为 B ，不匹配，则执行步骤 2。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_03.png?raw=true)
+
 第四步。haystack[2] 为 C，needle[0] 为 C ，匹配，则执行步骤 1，向后匹配。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_04.png?raw=true)
+
 第五步。haystack[2] 为 B，needle[1] 为 B ，匹配，则执行步骤 1，向后匹配。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_05.png?raw=true)
+
 第六步。haystack[3] 为 C，needle[2] 为 C ，匹配，匹配成功。
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_06.png?raw=true)
 
@@ -134,12 +142,35 @@ int strStr(string haystack, string needle) {
     }
 }
 ```
+依旧以上面的为例。
 
+先求得 `abbab`的 next 数组为 **[-1,0,0,0,1]**。
 
+先从头开始匹配，发现 haystack[0] == needle[0]，并继续向后。
 
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_07.png?raw=true)
 
+发现，haystack[2] != needle[2]，则 j 赋值为 0(next[2])。 
 
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_08.png?raw=true)
 
+needle 向右移动 2 位之后，发现 haystack[2] != needle[0]，则 j 赋值为 -1 (next[0])。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_09.png?raw=true)
+
+之后 i 变成 3，j 变成 0，相当于 needle 向右移动 1 位。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_10.png?raw=true)
+
+needle 向右移动 1 位后，haystack[3] == needle[0]，继续向后。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_11.png?raw=true)
+
+发现，haystack[4] != needle[1]，则 j 赋值为 0 (next[1])。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_12.png?raw=true)
+
+needle 向右移动 1 位之后，haystack[4] == needle[0]，并继续向右。
 
 
 
