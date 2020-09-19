@@ -11,10 +11,10 @@
 
 这种查找非常易于理解。主要分为两个步骤：
 
-1. 如果当前字符匹配成功，即 haystack[i] == needle[j]，则继续往后匹配；
-2. 如果匹配失败，即 haystack[i] ！= needle[j]，则 i++，j = 0。
+1. 如果当前字符匹配成功，即 `haystack[i] == needle[j]`，则继续往后匹配；
+2. 如果匹配失败，即 `haystack[i] ！= needle[j]`，则 i++，j = 0。
 
-画图举例。假定 haystack 为 'ACCBBADC'，needle 为 'CBB'。
+画图举例。假定 haystack 为 **ACCBBADC**，needle 为 **CBB**。
 
 第一步。haystack[0] 为 A，needle[0] 为 C ，不匹配，则执行步骤 2。
 
@@ -56,79 +56,93 @@ public:
 };
 ```
 
-这个时间复杂度在最坏的情况下，是O((M-N)N),假如 N = (M / 2)，则运行时间是O( N^2 )，最优情况为O(N)。
+这个时间复杂度在最坏的情况下，是 `O((M-N)N)`,假如 `N = (M / 2)`，则运行时间是`O( N^2 )`，最优情况为 `O(N)`。
 
 那么有没有更快的方法呢？答案是肯定的，继续往下看。
 
 # Knuth–Morris–Pratt 算法
+
 Knuth–Morris–Pratt 算法，即 KMP 算法，是由 Knuth、Morris、Pratt 三人设计的线性时间字符串匹配算法。
 
 KMP 算法主要有两步：
 1. 计算、构建 next 数组；
 2. 根据 next 数组直接匹配。
 
-构建 next 数组也是分为两步：
-1. 如果 j = -1，或者字符匹配成功，即 haystack[i] == needle[j]，都让 i++、j++，继续匹配下一个字符；
-2. 
+有了 next 数组之后，计算过程也是分为两步：
+1. 如果 `j = -1`，或者字符匹配成功，即 `haystack[i] == needle[j]`，都让 i++、j++，继续匹配下一个字符；
+2. 如果j != -1，且当前字符匹配失败（即 `haystack[i] != needle[j]`），则令 i 不变，`j = next[j]`。这意味着失配时，needle 相对于 haystack 向右移动了 `j - next [j]` 位。
 
 
+画图举例。假定 haystack 为 **abcaabbab**，needle 为 **abbab**。
+
+第一步，先求得前后缀数组。
+
+| needle字符串  | a | ab  | abb | abba | abbab |
+|---|---|---|---|---|---|
+| 相同前后缀  | 无 | 无 | 无 | a| ab|
+| 前后缀数量  | 0 | 0  | 0 | 1| 2|
 
 
+第二步，在数组前添加 -1。
 
+| needle字符串分割  | a | b  | b | a | b |
+|---|---|---|---|---|---|
+| next数组  | -1 | 0 | 0 | 0| 1|
+
+代码如下。
+```C++
+vector<int> getnext(string str) {
+    int len = str.size();
+    vector<int> next;
+    next.push_back(-1);
+    int j = 0,k = -1;
+    while(j < len-1) {
+        if(k == -1 || str[j] == str[k]) {
+            j++;
+            k++;
+            next.push_back(k);
+        }else {
+            k = next[k];
+        }
+    }   
+    return next;
+}
+```
+取得 next 数组之后，即执行后续计算的两步。
 
 ```C++
-class Solution {
-public:
-    vector<int> getnext(string str)
-        {
-            int len=str.size();
-            vector<int> next;
-            next.push_back(-1);//next数组初值为-1
-            int j=0,k=-1;
-            while(j<len-1)
-            {
-                if(k==-1||str[j]==str[k])//str[j]后缀 str[k]前缀
-                {
-                    j++;
-                    k++;
-                    next.push_back(k);
-                }
-                else
-                {
-                    k=next[k];
-                }
-            }
-            return next;
+int strStr(string haystack, string needle) {
+    if(needle.empty()) return 0;
+    int i = 0;
+    int j = 0;
+    int leni = haystack.size();
+    int lenj = needle.size();
+    vector<int> next;
+    next = getnext(needle);
+    while((i < leni) && (j < lenj)) {
+        if((j == -1) || (haystack[i] == needle[j])) {
+            i++;
+            j++;
+        }else {
+            j = next[j];
         }
-    int strStr(string haystack, string needle) {
-        if(needle.empty())
-            return 0;
-        
-        int i=0;//源串
-        int j=0;//子串
-        int len1=haystack.size();
-        int len2=needle.size();
-        vector<int> next;
-        next=getnext(needle);
-        while((i<len1)&&(j<len2))
-        {
-            if((j==-1)||(haystack[i]==needle[j]))
-            {
-                i++;
-                j++;
-            }
-            else
-            {
-                j=next[j];//获取下一次匹配的位置
-            }
-        }
-        if(j==len2)
-            return i-j;
-        
+    }
+    if(j == lenj) {
+        return i - j;
+    } else {
         return -1;
     }
-};
+}
 ```
+
+
+
+
+
+
+
+
+
 
 
 # BM 算法
