@@ -4,7 +4,7 @@
 
 给定一个 haystack 字符串和一个 needle 字符串，在 haystack 字符串中找出 needle 字符串出现的第一个位置 (从0开始)。如果不存在，则返回  -1。
 
-设定加入匹配成功，haystack 从 i 位置开始匹配，needle 从 j 位置开始匹配。
+设定假如匹配成功，haystack 从 i 位置开始匹配，needle 从 j 位置开始匹配；haystack 长度为 M，needle 长度为 N。
 
 
 # 双指针暴力
@@ -31,6 +31,7 @@
 第六步。haystack[3] 为 C，needle[2] 为 C ，匹配，匹配成功。
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_06.png?raw=true)
 
+代码如下。
 
 ```C++
 class Solution {
@@ -55,11 +56,80 @@ public:
 };
 ```
 
+这个时间复杂度在最坏的情况下，是O((M-N)N),假如 N = (M / 2)，则运行时间是O( N^2 )，最优情况为O(N)。
+
+那么有没有更快的方法呢？答案是肯定的，继续往下看。
+
+# Knuth–Morris–Pratt 算法
+Knuth–Morris–Pratt 算法，即 KMP 算法，是由 Knuth、Morris、Pratt 三人设计的线性时间字符串匹配算法。
+
+KMP 算法主要有两步：
+1. 计算、构建 next 数组；
+2. 根据 next 数组直接匹配。
+
+构建 next 数组也是分为两步：
+1. 如果 j = -1，或者字符匹配成功，即 haystack[i] == needle[j]，都让 i++、j++，继续匹配下一个字符；
+2. 
 
 
-# RK 算法
 
-# KMP 算法
+
+
+
+```C++
+class Solution {
+public:
+    vector<int> getnext(string str)
+        {
+            int len=str.size();
+            vector<int> next;
+            next.push_back(-1);//next数组初值为-1
+            int j=0,k=-1;
+            while(j<len-1)
+            {
+                if(k==-1||str[j]==str[k])//str[j]后缀 str[k]前缀
+                {
+                    j++;
+                    k++;
+                    next.push_back(k);
+                }
+                else
+                {
+                    k=next[k];
+                }
+            }
+            return next;
+        }
+    int strStr(string haystack, string needle) {
+        if(needle.empty())
+            return 0;
+        
+        int i=0;//源串
+        int j=0;//子串
+        int len1=haystack.size();
+        int len2=needle.size();
+        vector<int> next;
+        next=getnext(needle);
+        while((i<len1)&&(j<len2))
+        {
+            if((j==-1)||(haystack[i]==needle[j]))
+            {
+                i++;
+                j++;
+            }
+            else
+            {
+                j=next[j];//获取下一次匹配的位置
+            }
+        }
+        if(j==len2)
+            return i-j;
+        
+        return -1;
+    }
+};
+```
+
 
 # BM 算法
 
