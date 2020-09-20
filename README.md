@@ -42,10 +42,25 @@
 
 [二叉树的刷题之旅（三）：路径之和 I ](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_04.md)
 
+[二叉树的刷题之旅（四）：路径之和 II](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_05.md)
+
 [面试真题：字符串压缩与解压缩](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_11.md)
 
-[字符串匹配算法（上）🚧](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_08.md))
+[字符串匹配算法（上）🚧](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_08.md)
 
+[链表刷题之旅（一）： 链表中的环](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_12.md)
+
+[链表刷题之旅（二）：反转链表](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_13.md)
+
+[链表刷题之旅（三）:移除链表元素](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_14.md)
+
+[链表刷题之旅（四）：奇偶链表 & 回文链表](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_15.md)
+
+[链表刷题之旅（五）：两数相加](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_16.md)
+
+[链表刷题之旅（六）：合并链表](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_17.md)
+
+[位运算的刷题之旅（一）：位运算符基础方法](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_07.md)
 
 ##  📖 源码解读
 |  Name | Article_Link  |  Info |
