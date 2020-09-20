@@ -1,13 +1,13 @@
-# 字符串匹配算法 🚧
+# 字符串匹配算法 （上）🚧
 
 字符串匹配算法详解。
 
 给定一个 haystack 字符串和一个 needle 字符串，在 haystack 字符串中找出 needle 字符串出现的第一个位置 (从0开始)。如果不存在，则返回  -1。
 
-设定假如匹配成功，haystack 从 i 位置开始匹配，needle 从 j 位置开始匹配；haystack 长度为 M，needle 长度为 N。
+设定假如匹配成功，haystack 从 i 位置开始匹配，needle 从 j 位置开始匹配；haystack 长度为 M，needle 长度为 N。被匹配的也可以称之为“文本串”，匹配者被称之为“模式串”。
 
 
-# 双指针暴力
+## 双指针暴力
 
 这种查找非常易于理解。主要分为两个步骤：
 
@@ -69,7 +69,7 @@ public:
 
 那么有没有更快的方法呢？答案是肯定的，继续往下看。
 
-# Knuth–Morris–Pratt 算法
+## Knuth–Morris–Pratt 算法
 
 Knuth–Morris–Pratt 算法，即 KMP 算法，是由 Knuth、Morris、Pratt 三人设计的线性时间字符串匹配算法。
 
@@ -183,7 +183,7 @@ needle 向右移动 1 位之后，haystack[4] == needle[0]，并继续向右。
 
 
 
-### 优化 getNext
+### 优化 getNext 函数
 
 在上述第二步失配，然后进入第三步也继续失配，这里就浪费了一次移动。
 
@@ -191,35 +191,34 @@ needle 向右移动 1 位之后，haystack[4] == needle[0]，并继续向右。
 
 所以我们要在 getNext 函数中做修改。
 ```C++
-vector<int> getNext(string str) {
-    int len = str.size();
-    vector<int> next;
-    next.push_back(-1);
-    int j = 0,k = -1;
-    while(j < len) {
-        if(k == -1 || str[j] == str[k]) {
-            j++;
-            k++;
-            if(str[j]!=str[k]){
-                next.push_back(k);
+vector<int> getnext(string str) {
+        int len = str.size();
+        vector<int> next;
+        next.push_back(-1);
+        int j = 0,k = -1;
+        while(j < len) {
+            if(k == -1 || str[j] == str[k]) {
+                j++;
+                k++;
+                if(str[j]!=str[k]) {
+                    next.push_back(k);
+                }else {
+                    next.push_back(next[k]);
+                }
             }else {
-                next.push_back(next[k]);
+                k = next[k];
             }
-        }else {
-            k = next[k];
-        }
-    }   
-    return next;
-}
+        }   
+        return next;
+    }
 ```
 
+KMP 算法的时间复杂度分为两个部分，匹配过程的时间复杂度为O(M)，计算 getNext 时间复杂度的O(N)。即整体的时间复杂度是O(M+N)，也可以可以被看作 O(N)，即线性时间。
 
 
 
 
-# BM 算法
-
-# Sunday 算法
+## Sunday 算法
 
 ```C++
 class Solution {
@@ -228,35 +227,40 @@ public:
         if(needle.empty())
             return 0;
         
-        int slen = haystack.size();
-        int tlen = needle.size();
+        int hayLen = haystack.size();
+        int nedLen = needle.size();
         int i = 0,j = 0;//i指向源串首位 j指向子串首位
-        int k;
-        int m = tlen;//第一次匹配时 源串中参与匹配的元素的下一位
+        int k = 0;
+        int m = nedLen;//第一次匹配时 源串中参与匹配的元素的下一位
         
-        for(;i<slen;) {
-            if(haystack[i]!=needle[j]) {
-                for(k = tlen-1;k >= 0;k--)//遍历查找此时子串与源串[i+tlen+1]相等的最右位置
+        for(;i<hayLen;) {
+            if(haystack[i] == needle[j]) {
+                if(j == nedLen - 1)//若j为子串末位 匹配成功 返回源串此时匹配首位
+                    return i-j;
+                i++;
+                j++;
+
+            } else {
+
+                for(k = nedLen-1;k >= 0;k--)//遍历查找此时子串与源串[i+tlen+1]相等的最右位置
                 {
                     if(needle[k]==haystack[m])
                         break;
                 }
                 i = m-k;//i为下一次匹配源串开始首位 Sunday算法核心：最大限度跳过相同元素
                 j = 0;//j依然为子串首位
-                m = i+tlen;//m为下一次参与匹配的源串最后一位元素的下一位
-                if(m>slen)//当下一次参与匹配的源串字数的最后一位的下一位超过源串长度时
+                m = i+nedLen;//m为下一次参与匹配的源串最后一位元素的下一位
+                if(m > hayLen)//当下一次参与匹配的源串字数的最后一位的下一位超过源串长度时
                     return -1;
-            } else {
-                if(j == tlen - 1)//若j为子串末位 匹配成功 返回源串此时匹配首位
-                    return i-j;
-                i++;
-                j++;
+
             }
         }
         return -1;//当超过源串长度时 
     }
 };
-
 ```
 
 
+## 后续
+
+Rabin Karp 算法、Boyer-Moore算法。
