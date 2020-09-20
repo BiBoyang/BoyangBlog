@@ -129,19 +129,20 @@ vector<int> getNext(string str) {
 ```C++
 int strStr(string haystack, string needle) {
     if(needle.empty()) return 0;
-    int i = 0;
-    int j = 0;
+    int i = 0,j = 0;  
+    int hayLen = haystack.size(),nedLen = needle.size();
     vector<int> next;
     next = getNext(needle);
-    while((i < haystack.size();) && (j < needle.size())) {
-        if((j == -1) || (haystack[i] == needle[j])) {
+        
+    while((i < hayLen) && (j < nedLen)) {
+        if( (j == -1) || (haystack[i] == needle[j])){
             i++;
             j++;
-        }else {
+        } else {
             j = next[j];
         }
     }
-    if(j == needle.size()) {
+    if(j == nedLen) {
         return i - j;
     } else {
         return -1;
@@ -149,9 +150,7 @@ int strStr(string haystack, string needle) {
 }
 ```
 
-
-
-依旧以上面的为例。
+依旧假定 haystack 为 **abcaabbab**，needle 为 **abbab**。
 
 先求得 `abbab`的 next 数组为 **[-1,0,0,0,1]**。
 
@@ -213,7 +212,7 @@ vector<int> getnext(string str) {
     }
 ```
 
-KMP 算法的时间复杂度分为两个部分，匹配过程的时间复杂度为O(M)，计算 getNext 时间复杂度的O(N)。即整体的时间复杂度是O(M+N)，也可以可以被看作 O(N)，即线性时间。
+KMP 算法的时间复杂度分为两个部分，匹配过程的时间复杂度为 O(M)，计算 getNext 时间复杂度的 O(N)。即整体的时间复杂度是 O(M+N)，也可以可以被看作 O(N)，即线性时间。
 
 
 
@@ -226,7 +225,7 @@ Sunday 算法是从前向后扫描**模式串**的，比 KMP 更好理解，步�
     * 如果不存在，则直接移动**模式串**到更后一位，即**移动位数 = 模式串长度 + 1**；
     * 如果存在，则让模式串中最右侧的匹配元素和其对齐，即**移动位数 = 最右端的该元素到末尾的距离 + 1**；
 
-我们可以发现，Sunday 算法最显著的特点就是**非常高的移动距离**。在理想情况下，可以做到 O(m / n) 的时间复杂度，性能非常卓越；但是一旦遇到模式串相同字符过多的时候，时间复杂度会下降，最差为 O(m*n)。
+我们可以发现，Sunday 算法最显著的特点就是**非常高的移动距离**。在理想情况下，可以做到 O(m/n) 的时间复杂度，性能非常卓越；但是一旦遇到模式串相同字符过多的时候，时间复杂度会下降，最差为 O(m*n)。
 
 下面是最优和最劣两种情况的例子：
 ```C++
@@ -276,4 +275,4 @@ public:
 
 ## 后续
 
-Rabin Karp 算法、Boyer-Moore算法。
+Rabin Karp 算法、Boyer-Moore算法待续。
