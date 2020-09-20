@@ -106,7 +106,7 @@ KMP 算法的核心，在于一个叫做**部分匹配表（The Partial Match Ta
 代码如下。这是模式 needle 对于自己的匹配。
 
 ```C++
-vector<int> getnext(string str) {
+vector<int> getNext(string str) {
     int len = str.size();
     vector<int> next;
     next.push_back(-1);
@@ -124,41 +124,7 @@ vector<int> getnext(string str) {
 }
 ```
 
-
-
-依旧以上面的为例。
-
-先求得 `abbab`的 next 数组为 **[-1,0,0,0,1]**。
-
-先从头开始匹配，发现 haystack[0] == needle[0]，并继续向后。
-
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_07.png?raw=true)
-
-发现，haystack[2] != needle[2]，则 j 赋值为 0(next[2])。 
-
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_08.png?raw=true)
-
-needle 向右移动 2 位之后，发现 haystack[2] != needle[0]，则 j 赋值为 -1 (next[0])。
-
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_09.png?raw=true)
-
-之后 i 变成 3，j 变成 0，相当于 needle 向右移动 1 位。
-
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_10.png?raw=true)
-
-needle 向右移动 1 位后，haystack[3] == needle[0]，继续向后。
-
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_11.png?raw=true)
-
-发现，haystack[4] != needle[1]，则 j 赋值为 0 (next[1])。
-
-![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_12.png?raw=true)
-
-needle 向右移动 1 位之后，haystack[4] == needle[0]，并继续向右。
-
-代码如下。
-
-取得 next 数组之后，即执行后续计算的两步。
+取得 next 数组之后，即执行后续计算的两步。剩余代码代码如下。
 
 ```C++
 int strStr(string haystack, string needle) {
@@ -166,7 +132,7 @@ int strStr(string haystack, string needle) {
     int i = 0;
     int j = 0;
     vector<int> next;
-    next = getnext(needle);
+    next = getNext(needle);
     while((i < haystack.size();) && (j < needle.size())) {
         if((j == -1) || (haystack[i] == needle[j])) {
             i++;
@@ -182,6 +148,72 @@ int strStr(string haystack, string needle) {
     }
 }
 ```
+
+
+
+依旧以上面的为例。
+
+先求得 `abbab`的 next 数组为 **[-1,0,0,0,1]**。
+
+第一步，先从头开始匹配，发现 haystack[0] == needle[0]，并继续向后。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_07.png?raw=true)
+
+第二步，发现，haystack[2] != needle[2]，则 j 赋值为 0(next[2])。 
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_08.png?raw=true)
+
+第三步，needle 向右移动 2 位之后，发现 haystack[2] != needle[0]，则 j 赋值为 -1 (next[0])。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_09.png?raw=true)
+
+第四步，之后 i 变成 3，j 变成 0，相当于 needle 向右移动 1 位。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_10.png?raw=true)
+
+第五步，needle 向右移动 1 位后，haystack[3] == needle[0]，继续向后。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_11.png?raw=true)
+
+第六步，发现，haystack[4] != needle[1]，则 j 赋值为 0 (next[1])。
+
+![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/string_matches_12.png?raw=true)
+
+needle 向右移动 1 位之后，haystack[4] == needle[0]，并继续向右。
+
+
+
+### 优化 getNext
+
+在上述第二步失配，然后进入第三步也继续失配，这里就浪费了一次移动。
+
+这里的问题，是因为在第一次失配（haystack[i] != needle[j]）的时候，执行了 j = next[j]，而再下一步，则会是 needle[next[j]] 去比较 haystack[i]，但是 上一步已经有了结果，必然会继续失配，所以必然不可以让 needle[j] = needle[next[j]]。
+
+所以我们要在 getNext 函数中做修改。
+```C++
+vector<int> getNext(string str) {
+    int len = str.size();
+    vector<int> next;
+    next.push_back(-1);
+    int j = 0,k = -1;
+    while(j < len) {
+        if(k == -1 || str[j] == str[k]) {
+            j++;
+            k++;
+            if(str[j]!=str[k]){
+                next.push_back(k);
+            }else {
+                next.push_back(next[k]);
+            }
+        }else {
+            k = next[k];
+        }
+    }   
+    return next;
+}
+```
+
+
 
 
 
