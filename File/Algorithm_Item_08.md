@@ -220,8 +220,25 @@ KMP 算法的时间复杂度分为两个部分，匹配过程的时间复杂度�
 
 ## Sunday 算法
 
-Sunday 算法是从后向前扫描**模式串**的，
+Sunday 算法是从前向后扫描**模式串**的，比 KMP 更好理解，步骤如下：
+1. 开始先都进行匹配；
+2. 发生失配，则判断**文本串**中参与匹配的元素的下一位，是否存在于**模式串**中；
+    * 如果不存在，则直接移动**模式串**到更后一位，即**移动位数 = 模式串长度 + 1**；
+    * 如果存在，则让模式串中最右侧的匹配元素和其对齐，即**移动位数 = 最右端的该元素到末尾的距离 + 1**；
 
+我们可以发现，Sunday 算法最显著的特点就是**非常高的移动距离**。在理想情况下，可以做到 O(m / n) 的时间复杂度，性能非常卓越；但是一旦遇到模式串相同字符过多的时候，时间复杂度会下降，最差为 O(m*n)。
+
+下面是最优和最劣两种情况的例子：
+```C++
+//最优
+a b c a d e f g
+d e f g
+//最劣
+aaaabaaaabaaaabaaaabaaaa
+aaaaa
+```
+
+实现代码如下所示：
 
 ```C++
 class Solution {
@@ -232,32 +249,26 @@ public:
         
         int hayLen = haystack.size();
         int nedLen = needle.size();
-        int i = 0,j = 0;//i指向源串首位 j指向子串首位
+        int i = 0,j = 0;
         int k = 0;
         int m = nedLen;//匹配时，文本串中参与匹配的元素的下一位
         
         for(;i<hayLen;) {
             if(haystack[i] == needle[j]) {
-                //若 j 为模式串串末位 匹配成功 返回源串此时匹配首位
-                if(j == nedLen - 1) {
-                    return i-j;
-                }
+                if(j == nedLen - 1) return i-j;
                 i++;
                 j++;
             } else {
-                //遍历查找此时子串与源串[i+tlen+1]相等的最右位置
-                for(k = nedLen-1;k >= 0;k--) {
+                for(k = nedLen - 1;k >= 0;k--) {
                     if(needle[k]==haystack[m]) break;
                 }
                 i = m-k;//i为下一次匹配源串开始首位 Sunday算法核心：最大限度跳过相同元素
-                j = 0;//j依然为子串首位
-                m = i+nedLen;//m为下一次参与匹配的源串最后一位元素的下一位
-                if(m > hayLen)//当下一次参与匹配的源串字数的最后一位的下一位超过源串长度时
-                    return -1;
-
+                j = 0;
+                m = i + nedLen;
+                if(m > hayLen) return -1;
             }
         }
-        return -1;//当超过源串长度时 
+        return -1;
     }
 };
 ```
