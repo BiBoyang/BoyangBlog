@@ -11,48 +11,46 @@
 
 DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一个分层的分布式数据库，也是一个使得主机能够查询到 IP 地址的**应用层**协议。因为有了它，使得我们可以方便的直接使用域名，而非可能随时更换的 IP 地址；可以说，**DNS 就是一本因特网的电话簿**。
 
-说到域名系统，就不得不说明一下域名是什么？
+说到域名系统，就不得不先说一下域名是什么。
 
-举个最简单的例子 `www.baidu.com` 就是一个域名，用来做计算机的定位标志；这个定位标志用 IP 地址也是也一样。话说回来，你可以在终端中输入`ping www.baidu.com`就可以获得一个对应的 IP 地址，直接使用 IP 地址放到浏览器里，也一样能访问。我当时获取的就是这样一个 IP ————`180.101.49.11`，放到浏览器里，一样能访问百度。
+举个最简单的例子， `www.baidu.com` 就是一个域名，用来做终端的定位标志；这个定位标志用 IP 地址也是可以的。话说到这里，你可以在终端中输入`ping www.baidu.com`就可以获得一个对应的 IP 地址，直接使用 IP 地址放到浏览器里，会发现一样能访问到百度。
 
 # 二. 什么要设计 DNS
 
-我认为有两个原因：
+一般来说有以下几个原因：
 
-1. 一个最简单的原因就是，IP 地址是四段数字，很不容易让人记住，而且还容易记混。就如同，不用电话簿，你能背下几个电话号？
-2. 服务器的 IP 地址可能会发生改变
-3. 假如你之前连接的服务器 IP 从不变动，但是你进行的长途的旅行，从北京跑到了西雅图，你总不会还要连接半个地球那边的服务器吧？DNS 可以让一个域名映射多个 IP 地址。
+1. IP 地址是四段数字，不是很容易让人记住，还容易记混。就如同，不用电话簿，普通人根本无法背下很多电话号码；
+2. 服务器自身的 IP 地址可能会发生改变；
+3. 假如你进行的长途的旅行，从北京跑到了西雅图，你总不会还要连接半个地球那边的服务器吧？DNS 可以让一个域名映射多个 IP 地址。
 
-简单的说，就是 DNS 让我们使用者和提供服务者之间提供了一道枢纽，我们并不需要每时每刻的直接接触到 IP 地址，避免一些不必要的问题。当然，这并非天衣无缝。
+总结下来，就是 DNS 让我们使用者和提供服务者之间提供了一道枢纽，我们并不需要每时每刻的直接接触到 IP 地址，避免一些不必要的问题。当然，这并非天衣无缝。
 
 # 三. 相关文档
+
 在[维基百科](https://en.wikipedia.org/wiki/Domain_Name_System)中，记录了所有有关的 RFC 文件，我只记录一些我认为比较重要或者有意义的文件（实际上我也没一一去阅读它们）。
 
 1. [RFC882 : DOMAIN NAMES - CONCEPTS and FACILITIES](https://tools.ietf.org/html/rfc882)
 2. [RFC883 : DOMAIN NAMES - IMPLEMENTATION and SPECIFICATION](https://tools.ietf.org/html/rfc883)
-    1. 在1983年11月，发布了第一版的 DNS 设计。为什么需要 DNS ，以及缓存、分布式式数据库的内容都在这里提出。
+    1. 在1983年11月，发布了第一版的 DNS 设计。设计 DNS 的缘由，以及缓存、分布式数据库的内容都在这里提出。
 3. [RFC1034 : DOMAIN NAMES - CONCEPTS AND FACILITIES](https://tools.ietf.org/html/rfc1034)
 4. [RFC1035 : DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION](https://tools.ietf.org/html/rfc1035)
-    1. 修改和完善了之前的设计方案，添加了 TCP 作为 UDP 的补充。
-    2. UDP 承载的消息限制为512字节，再长的话，会被截断并且设置 TC 位。
-    3. UDP 在区域传送不被接受，需要找个办法重新传输。
-
+    1. 修改和完善了之前的设计方案，添加了 TCP 协议作为 UDP 的补充；
+    2. UDP 承载的消息限制为 512 字节，再长的话，会被截断并且设置 TC 位。
 5. [RFC1123:Requirements for Internet Hosts -- Application and Support](https://tools.ietf.org/html/rfc1123)
-    1. 未来的 DNS 记录类型可能会超过512字节，有可能会被截断，并设置 TC 。
+    1. 未来的 DNS 记录类型可能会超过 512 字节，要做好准备；
     2. 我们需要 TCP！
-
 6. [RFC6891 : Extension Mechanisms for DNS (EDNS(0))](https://tools.ietf.org/html/rfc6891)
     1. EDNS 为 DNS 提供了扩展功能，让 DNS 通过 UDP 协议携带最多 4096 字节的数据；
 7. [RFC7766 : DNS Transport over TCP - Implementation Requirements](https://tools.ietf.org/html/rfc7766)
     1. 所有的 DNS 服务器，都必须同时支持 TCP 和 UDP ；
-    2. RFC1123中的”未来“已经来到了；
+    2. RFC1123 中的”未来“已经来到了；
     3. EDNS 并不可靠。
 8. [RFC7858 : Specification for DNS over Transport Layer Security (TLS)](https://tools.ietf.org/html/rfc7858)
     1. 引入 TLS 来保障隐私。
 9. [RFC8484 : DNS Queries over HTTPS (DoH)](https://tools.ietf.org/html/rfc8484)
     1. 引入 HTTPS。
 
-> 注：TC--（TrunCation），截断————指的是**消息由于长度大于传输通道上允许的长度而被截断**
+> 注：TC--（TrunCation），截断：指的是**消息由于长度大于传输通道上允许的长度而被截断**
 
 
 
@@ -70,9 +68,9 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 3. 权威 DNS 服务器 
 4. 本地 DNS 服务器
 
-与此对应，域名的也是有如同上图的层级系统。DNS 解析器需要从根 DNS 服务器查找到顶级域名服务器的 IP 地址，又从顶级 DNS 服务器查找到权威 DNS 服务器的 IP 地址，最终从权威 DNS 服务器查出了对应服务的 IP 地址（这是递归查询的流程，下面会讲还有另外一种方式）。
+与此对应，域名的也是有如同上图的层级系统。DNS 解析器需要从根 DNS 服务器查找到顶级域名服务器的 IP 地址，又从顶级 DNS 服务器查找到权威 DNS 服务器的 IP 地址，最终从权威 DNS 服务器查出了对应服务的 IP 地址（这是**递归查询**的流程，下面会讲还有另外一种方式）。
 
-而且，在获得过 IP 地址之后，各级 DNS 服务器会缓存一段时间，以便下次获取的时候更快。
+而且，在获得过 IP 地址之后，各级 DNS 服务器会将其缓存一段时间，以便下次获取的时候更快。
 
 ## 解析流程
 
@@ -80,10 +78,10 @@ DNS，全名 **Domain Name System** ，翻译过来就是域名系统，是一�
 
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_05.jpg?raw=true)
 
-1. 客户端会发出一个 DNS 请求，问`www.163.com`的 IP 是啥啊，并发给本地域名服务器 (本地 DNS )；
+1. 客户端会发出一个 DNS 请求，问 `www.baidu.com`的 IP 是啥啊，并发给本地域名服务器 (本地 DNS )；
 2. 本地 DNS 收到来自客户端的请求。现在本机的缓存上查找。如果能找到，它直接就返回 IP 地址。如果没有，本地 DNS 会往上询问；
 3. 根 DNS 收到来自本地 DNS 的请求，发现后缀是 `.com` ，继续往顶级域名服务器询问；
-4. 本地DNS转向问顶级域名服务器，顶级域名服务器就是大名鼎鼎的比如 `.com`、`.net`、 `.org`这些一级域名，它负责管理二级域名，比如 `163.com`，所以它能提供一条更清晰的方向。
+4. 本地DNS转向问顶级域名服务器，顶级域名服务器就是大名鼎鼎的比如 `.com`、`.net`、 `.org`这些一级域名，它负责管理二级域名，比如 `baidu.com`，所以它能提供一条更清晰的方向。
 5. 顶级 DNS 服务器发出权威 DNS 服务器的地址；
 6. 本地 DNS 转向权威 DNS 服务器询问；
 7. 权限 DNS 服务器查询后将对应的 IP 地址 x.x.x.x 告诉本地 DNS ；

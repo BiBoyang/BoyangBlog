@@ -6,7 +6,7 @@
 这里有几种典型的例题：
 * 最长上升子序列(LIS):Longest IncreasingSubsequence
 * 最长连续序列(LCS):Longest Consecutive Sequence
-* 最长连续递增序列(LCISLCIS):Longest Continuous Increasing Subsequence
+* 最长连续递增序列(LCIS):Longest Continuous Increasing Subsequence
 * 最长公共子序列(LCSLCS): Longest Common Subsequence
 
 一一来解决。
