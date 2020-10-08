@@ -12,6 +12,7 @@
 -->
 
 
+## 连续递增序列
 先从最简单的开始说起。给定一个未经排序的整数数组 nums，找到最长且连续的的递增序列，并返回该序列的长度。
 
 我们可以非常清楚的知道，每一位的递增子序列，都是从前面一步一步加上来的。
@@ -27,7 +28,10 @@ if(nums[i - 1] < nums[i]) {
 }
 ```
 
-接着，如果把限制条件里的连续去除，只需要找到其中最长上升子序列的长度，那该如何呢？
+
+## 求连续序列长度
+
+如果把限制条件里的连续去除，只需要找到其中最长上升子序列的长度，那该如何呢？
 
 同样，用一维数组 dp 表示数组中每一位的最长长度。如果 nums[j] < nums[i]，则
 dp[i] = max(dp[j] + 1,dp[i])，状态转移方程如下：
@@ -121,4 +125,30 @@ public:
 };
 ```
 
+## 俄罗斯套娃信封问题
 
+
+```C++
+class Solution {
+public:
+    
+    int maxEnvelopes_1(vector<vector<int>>& envelopes) {
+        if(envelopes.empty())return 0;
+        //先按w排序，若w相同，则按h由高到低排序；若w不同，则按w由小到大排序
+        sort(envelopes.begin(),envelopes.end(),[](const vector<int>& a,const vector<int>& b){
+            return a[0]<b[0]||(a[0]==b[0]&&a[1]>b[1]);
+        });
+        int n=envelopes.size(),res=0;
+        vector<int> dp(n,1);
+        for(int i=0;i<n;++i){
+            for(int j=0;j<i;++j){
+                if(envelopes[j][1]<envelopes[i][1]){
+                    dp[i]=max(dp[i],dp[j]+1);
+                }
+            }
+            res=max(res,dp[i]);
+        }
+        return res;
+    }
+}
+```

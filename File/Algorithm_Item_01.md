@@ -203,9 +203,8 @@ bool isInArea(int a,int b,int r,int c) {
 int total = 1;//走过的范围内的区域
 int step = 1;//每一轮移动的步长
 while(total < R * C) {
-    
     //向东走
-      c0++;
+    c0++;
     total++；
     //向南走
     r0++;
@@ -219,7 +218,9 @@ while(total < R * C) {
     total++；
     step++;
 ```
+
 完整代码如下：
+
 ```C++
 class Solution {
 public:
@@ -237,11 +238,9 @@ public:
         temp[0] = r0;
         temp[1] = c0;
         res.push_back(temp);
-
-        int step = 1;//每一轮移动的步长
+       int step = 1;//每一轮移动的步长
 
         while(total < R * C) {
-            
             //向东走
             int n = 1;
             while(n <= step) {
@@ -254,8 +253,7 @@ public:
                 }
                 n++;
             }
-
-            //向南走
+           //向南走
             n = 1;
             while(n <= step) {
                 r0++;
@@ -267,8 +265,7 @@ public:
                 }
                 n++;
             }
-
-            step++;
+           step++;
             //向西走
             n = 1;
             while(n <= step) {
@@ -281,8 +278,7 @@ public:
                 }
                 n++;
             }
-
-            //向北走
+           //向北走
             n = 1;
             while(n <= step) {
                 r0--;
