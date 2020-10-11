@@ -149,7 +149,11 @@ public:
         if(envelopes.empty()) return 0;
         //先按w排序，若w相同，则按h由高到低排序；若w不同，则按w由小到大排序
         sort(envelopes.begin(),envelopes.end(),[](const vector<int>& a,const vector<int>& b){
-            return a[0]<b[0] || (a[0] == b[0] && a[1] > b[1]);
+            if(a[0] == b[0]){
+                return a[1] < b[1];
+            } else {
+                a[0] < b[0];
+            }
         });
         int n = envelopes.size(),res=0;
         vector<int> dp(n,1);
