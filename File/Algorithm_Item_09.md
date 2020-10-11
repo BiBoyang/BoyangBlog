@@ -126,29 +126,40 @@ public:
 ```
 
 ## 俄罗斯套娃信封问题
-俄罗斯套娃信封，是一个条件比较复杂的 LIS 问题，
+俄罗斯套娃信封，是一个条件比较复杂的 LIS 问题。
 
+题目是这样的：给了一些有明确宽度（w 表示）和高度（h 表示）的信封，当信封 a 的宽度和高度都比信封 b 大的时候，就可以将信封 b 放入到信封 a 中，以此类推，如同俄罗斯套娃一样。计算最多能有多少个信封组成这样一个组合。
 
+### 难点
+
+非常容易发现，这道题其实就是递增子序列问题的一个变种，难点不在于得到需要使用动态规划这个结论，而在于如何处理数据。
+
+第一步的处理方法其实非常容易想到：将 w 按照从小到大排序，那么对于 w 就是一个递增序列了。
+
+关键在于第二步，我们要将 w 相同的书籍，按照 h 从大到小顺序排列。
+
+由于 w 相等，那么只有 h 由大到小排序才不会计算重复的子序列（即 w 相等，只有 h 由大到小排序才不会重复计算套娃信封）。比如 [1,4]、[4,6]、[4,7]，若按h由小到大排序降维之后的数组为[4,6,7]，这样形成的可套娃的序列长度为3，这个是不正确的，因为只有(w2 > w1,h2 > h1)才能进行套娃。若我们按h由大到小排序之后降维之后的数组为 [4,7,6]，这样可形成两个长度为2的可套娃子序列 [3,4]、[4,7] 和 [3,4]、[4,6]，这样便满足条件了。
+
+接着就按照正常的流程，计算 dp[i] 即可。
 
 ```C++
 class Solution {
 public:
-    
     int maxEnvelopes_1(vector<vector<int>>& envelopes) {
-        if(envelopes.empty())return 0;
+        if(envelopes.empty()) return 0;
         //先按w排序，若w相同，则按h由高到低排序；若w不同，则按w由小到大排序
         sort(envelopes.begin(),envelopes.end(),[](const vector<int>& a,const vector<int>& b){
-            return a[0]<b[0]||(a[0]==b[0]&&a[1]>b[1]);
+            return a[0]<b[0] || (a[0] == b[0] && a[1] > b[1]);
         });
-        int n=envelopes.size(),res=0;
+        int n = envelopes.size(),res=0;
         vector<int> dp(n,1);
-        for(int i=0;i<n;++i){
-            for(int j=0;j<i;++j){
-                if(envelopes[j][1]<envelopes[i][1]){
-                    dp[i]=max(dp[i],dp[j]+1);
+        for(int i = 0;i < n;i++){
+            for(int j = 0;j < i;j++){
+                if(envelopes[j][1] < envelopes[i][1]){
+                    dp[i] = max(dp[i],dp[j]+1);
                 }
             }
-            res=max(res,dp[i]);
+            res = max(res,dp[i]);
         }
         return res;
     }
