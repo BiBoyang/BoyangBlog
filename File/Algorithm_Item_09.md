@@ -145,27 +145,32 @@ public:
 ```C++
 class Solution {
 public:
-    int maxEnvelopes_1(vector<vector<int>>& envelopes) {
-        if(envelopes.empty()) return 0;
-        //先按w排序，若w相同，则按h由高到低排序；若w不同，则按w由小到大排序
+    int maxEnvelopes(vector<vector<int>>& envelopes) {
+        int len = envelopes.size();
+        if(len == 0) return 0;
+        int res = 0;
+        vector<int> dp(len,1);
+
         sort(envelopes.begin(),envelopes.end(),[](const vector<int>& a,const vector<int>& b){
-            if(a[0] == b[0]){
-                return a[1] < b[1];
-            } else {
-                a[0] < b[0];
+            if(a[0] == b[0]) {
+                return a[1] > b[1];
+            } else{
+                 return a[0] < b[0];
             }
         });
-        int n = envelopes.size(),res=0;
-        vector<int> dp(n,1);
-        for(int i = 0;i < n;i++){
+        // 0 < j < i
+        for(int i = 0;i < len;i++){
             for(int j = 0;j < i;j++){
                 if(envelopes[j][1] < envelopes[i][1]){
-                    dp[i] = max(dp[i],dp[j]+1);
+                    dp[i] = max(dp[i],dp[j] + 1);
                 }
             }
-            res = max(res,dp[i]);
+            res=max(res,dp[i]);
         }
         return res;
     }
-}
+};
+
 ```
+
+
