@@ -30,7 +30,7 @@
 |---|---|
 | [Working with Metal: Overview](https://developer.apple.com/videos/play/wwdc2014/603/) |  Metal 概述 |
 | [Working with Metal: Fundamentals](https://developer.apple.com/videos/play/wwdc2014/604/) |  Metal 基本原理 |
-| [Working with Metal: Advanced](https://developer.apple.com/videos/play/wwdc2014/605/) |  Metal 高级 |
+| [Working with Metal: Advanced](https://developer.apple.com/videos/play/wwdc2014/605/) |  Metal 高级 |603、604
 
 
 
