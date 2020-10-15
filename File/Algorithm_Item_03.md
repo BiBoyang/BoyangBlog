@@ -1,13 +1,13 @@
 # 二叉树的刷题之旅（二）：深度问题
 
-[104. 二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)     
-
-[111. 二叉树的最小深度](https://leetcode-cn.com/problems/minimum-depth-of-binary-tree/)     
-
-[559. N叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-n-ary-tree/)     
+* [104. 二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/)     
+* [111. 二叉树的最小深度](https://leetcode-cn.com/problems/minimum-depth-of-binary-tree/)     
+* [559. N叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-n-ary-tree/)     
 
 # 二叉树的最大深度
+
 最简单的办法就是使用 DFS 的递归，每递归一次，就选择左子树深度和右子树深度最大的那个 + 1。
+
 ```C++
 class Solution {
 public:
@@ -23,7 +23,7 @@ public:
 };
 ```
 
-我们知道，但凡使用递归解决的问题，都可以考虑一下`栈`。
+我们知道，但凡使用递归解决的问题，都可以考虑一下<font color=red>栈</font>。
 
 所以我们从包含根结点且相应深度为 1 的栈开始。然后我们继续迭代：**将当前结点弹出栈并推入子结点。每一步都会更新深度。**
 
@@ -144,8 +144,7 @@ public:
 ```
 
 # 总结
+
 总的来说，非必要情况下，直接使用递归就能很好的解决深度问题。时间复杂度和空间复杂度上都要优于迭代。
 
-递归的方法非常好理解，注意边界条件就可以了。
-
-迭代的情况下，重点是要同时记录节点和节点的深度，再去进行判断。
+递归的方法非常好理解，注意边界条件就可以了；迭代的情况下，重点是要同时记录节点和节点的深度，再去进行判断。

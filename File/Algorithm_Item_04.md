@@ -1,5 +1,10 @@
 # 二叉树的刷题之旅（三）：路径之和（上）
-[路径总和](https://leetcode-cn.com/problems/path-sum/)<br>[路径总和II](https://leetcode-cn.com/problems/path-sum-ii/)<br>[路径总和III](https://leetcode-cn.com/problems/path-sum-iii/)<br>[二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)<br>[求根到叶子节点数字之和](https://leetcode-cn.com/problems/sum-root-to-leaf-numbers/)<br>[二叉树的所有路径](https://leetcode-cn.com/problems/binary-tree-paths/)
+* [路径总和](https://leetcode-cn.com/problems/path-sum/) 
+* [路径总和II](https://leetcode-cn.com/problems/path-sum-ii/)
+* [路径总和III](https://leetcode-cn.com/problems/path-sum-iii/)
+* [二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)
+* [求根到叶子节点数字之和](https://leetcode-cn.com/problems/sum-root-to-leaf-numbers/)
+* [二叉树的所有路径](https://leetcode-cn.com/problems/binary-tree-paths/)
 
 # 正文
 路径总和是二叉树系列的一种经典题型，即**通过一个值，来找到二叉树中的路径**。
