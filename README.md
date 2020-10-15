@@ -1,23 +1,23 @@
 # 伯阳的笔记地窖
 
 ![](https://github.com/BiBoyang/Study/blob/master/Image/changbaoshan.png?raw=true)
-标注：
+<!--标注：
 🚧：施工中 
 🤓：随便看看
 👀：值得细看
 🔄：需要返工
 🐕：需要返工
 🤔：正在学习
-
+-->
 
 ## 📱 iOS
 |  Name | Article_Link  |  Info |
 |:-------:|:-------:|:------|
-| **类簇**  |  [类簇-官方文档](https://github.com/BiBoyang/Study/blob/master/File/001.md)<br>[iOS中的类簇](https://github.com/BiBoyang/Study/blob/master/File/002.md)🤓|   |
-| **倒计时**  |  [iOS四种倒计时记录](https://github.com/BiBoyang/Study/blob/master/File/003.md)🐕 |   |
+| **类簇**  |  [类簇-官方文档](https://github.com/BiBoyang/Study/blob/master/File/001.md)<br>[iOS中的类簇](https://github.com/BiBoyang/Study/blob/master/File/002.md)|   |
+| **倒计时**  |  [iOS四种倒计时记录](https://github.com/BiBoyang/Study/blob/master/File/003.md) |   |
 |  **基本数据结构** |  [NSArray研究](https://github.com/BiBoyang/Study/blob/master/File/004.md)👀<br>[iOS中isEqual和Hash的笔记（一）](https://github.com/BiBoyang/Study/blob/master/File/hash_01.md) |   |
 | **有趣的面试题**  | [有趣的面试题_1.GCD、property、Tagged Pointer](https://github.com/BiBoyang/Study/blob/master/File/InterviewQue_01%20.md)   
-| APM之路<br>(**天坑**) |  [iOS性能优化之路](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_04.md)🐕<br>[iOS启动速度优化](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_03.md)🐕<br>[检测内存泄漏](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_10.md)🐕<br>[iOS电量优化之路（一）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md)🐕<br>[iOS电量优化之路（二）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_02.md)<br>[iOS启动优化简述（一）：总览](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_StartupTime_01.md)|
+| APM之路<br>(**天坑**) |  [iOS性能优化之路](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_04.md)<br>[iOS启动速度优化](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_03.md)<br>[检测内存泄漏](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_10.md)<br>[iOS电量优化之路（一）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md)<br>[iOS电量优化之路（二）](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_02.md)<br>[iOS启动优化简述（一）：总览](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_StartupTime_01.md)|
  **Runtime** | [@property的研究（一）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Property_01.md)<br>[@property的研究（二）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Property_02.md)<br>[@property的研究（三）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Property_03.md)<br>[@property的研究（四）](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Property_04.md) |
 |  **Block** | [block(一)：block的本质](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_01.md)<br>[block(二)：block截获变量](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_02.md)<br>[block(三)：copy 和 release](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_03.md)<br>[block(四)：strong 和 weak](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_04.md)<br>[block(五)：有趣的 block 面试题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Block_05.md)   |   |
 |KVO|[夜半无事--探究KVO的实现](https://github.com/BiBoyang/Study/blob/master/File/KVO_00.md)|  |
@@ -66,14 +66,14 @@
 ##  📖 源码解读
 |  Name | Article_Link  |  Info |
 |:-------:|:-------:|:------|
-| **MLeaksFinder**  |  [MLeaksFinder源码解读](https://github.com/BiBoyang/BoyangBlog/blob/master/File/006.md)👀|v0.2 | 
+| **MLeaksFinder**  |  [MLeaksFinder源码解读](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_APM_10.md)👀|v0.2 | 
 | **SDWebImage**  | [SDWebImage源码解读 (一)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_01.md)<br>[SDWebImage源码解读 (二)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_02.md)<br>[SDWebImage源码解读 (三)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_03.md)<br>[SDWebImage源码解读 (四)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_04.md)<br>[SDWebImage源码解读 (五)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_05.md)<br>[SDWebImage源码解读 (六)](https://github.com/BiBoyang/Study/blob/master/File/code_reader_06.md)  |  v4.4.1 |
 
 ## 🐯汇编学习🚧
 ||||
 
 ## ♥️ WWDC
-[WWDC Session 分类](https://github.com/BiBoyang/BoyangBlog/blob/master/File/WWDC/WWDC_00.md)||
+* [WWDC Session 整理](https://github.com/BiBoyang/BoyangBlog/blob/master/File/WWDC/WWDC_00.md)
 
 
 ## 📘语言学习
@@ -116,13 +116,13 @@
 
 
 ## 🍎杂谈
-[2019年终总结](https://github.com/BiBoyang/BoyangBlog/blob/master/File/005.md)
+* [2019年终总结](https://github.com/BiBoyang/BoyangBlog/blob/master/File/005.md)
 
 ## 🍎转载
-[Mac OS X 背后的故事](https://github.com/BiBoyang/BoyangBlog/blob/master/File/006.md)
+* [Mac OS X 背后的故事](https://github.com/BiBoyang/BoyangBlog/blob/master/File/006.md)
 
 ## 🍎教程
-[shell教程](https://www.runoob.com/linux/linux-shell.html)
+* [shell教程](https://www.runoob.com/linux/linux-shell.html)
 
 
 ## ♥️ 联系方式
