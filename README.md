@@ -64,7 +64,7 @@
 
 [动态规划战个痛快之线性动态规划（一）：递增子序列问题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
 
-[动态规划战个痛快之线性动态规划（一）：递增子序列问题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
+[动态规划战个痛快之线性动态规划（二）：最大子数组和系列](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
 
 ##  📖 源码解读
 |  Name | Article_Link  |  Info |
