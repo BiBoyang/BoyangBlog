@@ -62,6 +62,10 @@
 
 [位运算的刷题之旅（一）：位运算符基础方法](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_07.md)
 
+[动态规划战个痛快之线性动态规划（一）：递增子序列问题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
+
+[动态规划战个痛快之线性动态规划（一）：递增子序列问题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
+
 ##  📖 源码解读
 |  Name | Article_Link  |  Info |
 |:-------:|:-------:|:------|
