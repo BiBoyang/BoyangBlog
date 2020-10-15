@@ -107,7 +107,7 @@
 ##  📒读书笔记
 |  Name | Article_Link  |  Info |
 |---|---|---|
-| Effective Objective-C  |  [读书小记](https://github.com/BiBoyang/Study/blob/master/File/iOS_APM_01.md) |   |
+| Effective Objective-C  | [读书小记](https://github.com/BiBoyang/BoyangBlog/blob/master/File/009.md) |   |
 |深入理解计算机系统|[第九章：内存](https://github.com/BiBoyang/BoyangBlog/blob/master/File/memory_01.md)<br>[第12章：并发](https://github.com/BiBoyang/Study/blob/master/File/CSAPP_12.md)||
 
 ## 🍎 操作系统

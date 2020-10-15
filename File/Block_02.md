@@ -1,9 +1,5 @@
 
 
-> * 原作于：2018-01-02        
-> * GitHub Repo：[BoyangBlog](https://github.com/BiBoyang/BoyangBlog)
-
-
 
 # 0. 截获自动变量值
 block 中，block 表达式截获所使用的自动变量的值，是保存该自动变量的瞬间值。在执行完 block 之后，即使改写 block 中使用的自动变量的值，也不会影响 block 执行时自动变量的值————这就是“截获”的意思；。
