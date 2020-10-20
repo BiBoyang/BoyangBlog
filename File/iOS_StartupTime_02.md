@@ -79,6 +79,9 @@ Core Animation 是基于直接作用域 GPU 的 Metal 和基于CPU 的 Core Grap
 
 
 
+
+
+
 ![](https://raw.githubusercontent.com/RickeyBoy/Rickey-iOS-Notes/master/backups/iOSRender/CApipeline.png)
 
 
