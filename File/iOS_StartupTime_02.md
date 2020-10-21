@@ -73,6 +73,8 @@ Core Animation 并不如名字一样只是用于绘制动画的，实际上，�
 
 todo：分析UIView 和CALayer
 
+
+
 Core Animation 是基于直接作用域 GPU 的 Metal 和基于CPU 的 Core Graphics。
 
 <!--![](https://upload-images.jianshu.io/upload_images/1776554-90c595e36d3694bd.png)-->
