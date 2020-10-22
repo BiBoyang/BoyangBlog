@@ -71,6 +71,8 @@ Core Animation 并不如名字一样只是用于绘制动画的，实际上，�
 
 ![](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/CoreAnimation_guide/Art/ca_architecture_2x.png)
 
+
+
 todo：分析UIView 和CALayer
 
 
