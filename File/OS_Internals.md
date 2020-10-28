@@ -38,6 +38,8 @@
 2. Mach-O File Format Reference(https://github.com/aidansteele/osx-abi-macho-file-format-reference/blob/master/Mach-O_File_Format.pdf)
 3. Writing Bad @$$ Malware for OS X (https://www.blackhat.com/docs/us-15/materials/us-15-Wardle-Writing-Bad-A-Malware-For-OS-X.pdf)
 4. dumpdecrypted(https://github.com/stefanesser/dumpdecrypted)
+
+
 # 7. In the Darkness,Bind Them: dyld  internals
 
 在黑暗中绑定他们：dyld 核心
