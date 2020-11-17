@@ -2,30 +2,35 @@
 
 内存是移动设备上的共享资源，如果一个 App 无法正确地进行内存管理的话，将会导致内存消耗殆尽，闪退以及性能的严重下降。
 我们的App的许多功能模块共用了同一份内存空间，如果其中的某一个模块消耗了特别多的内存资源的话，将会对整个 App 造成严重影响。
-> 注意：我们下文中的各种情景，都是基于ARC。
+> 注意：我们下文中的各种情景，都是基于 ARC。
 
-## 一般检测内存泄露的几种方式
+# 一般检测内存泄露的几种方式
 我们在开发的时候，有些非常明显的内存泄露，编译器会直接发现并警告出来的，比如下图
+
 ## 静态检测
 ![静态内存泄露.png](https://upload-images.jianshu.io/upload_images/1342490-634f558aac3ed8e7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-或者，我们也可以使用Product->Analyze，进一步的发现一些浅显简单的内存泄露，当然，这种方式实际上并不是我们研究的重点，因为这种方式太简单浅显了。
+
+或者，我们也可以使用 Product->Analyze，进一步的发现一些浅显简单的内存泄露，当然，这种方式实际上并不是我们研究的重点，因为这种方式太简单浅显了。
 
 ## Instrument
-Instrument现在是Xcode自带的一个测试工具了。我们可以使用里面的Leaks/Allocations进行内存泄露的排查。
+Instrument 现在是 Xcode 自带的一个测试工具了。我们可以使用里面的 Leaks/Allocations 进行内存泄露的排查。
 
 > 从苹果的开发者文档里可以看到，一个 app 的内存分三类：
->* **Leaked memory**: Memory unreferenced by your application that cannot be used again or freed (also detectable by using the Leaks instrument).
->* **Abandoned memory**: Memory still referenced by your application that has no useful purpose.
->* **Cached memory**: Memory still referenced by your application that might be used again for better performance.
+
+> * **Leaked memory**: Memory unreferenced by your application that cannot be used again or freed (also detectable by using the Leaks instrument).
+> * **Abandoned memory**: Memory still referenced by your application that has no useful purpose.
+> * **Cached memory**: Memory still referenced by your application that might be used again for better performance.
 
 Leaks 工具只负责检测 Leaked memory,在 MRC 时代 Leaked memory 很常见，因为很容易忘了调用 release，但在 ARC 时代更常见的内存泄露是循环引用导致的 Abandoned memory，Leaks 工具查不出这类内存泄露，应用有限。
+
 对于 Abandoned memory，可以用 Instrument 的 Allocations 检测出来。检测方法是用 Mark Generation 的方式，当你每次点击 Mark Generation 时，Allocations 会生成当前 App 的内存快照，而且 Allocations 会记录从上回内存快照到这次内存快照这个时间段内，新分配的内存信息。举一个最简单的例子：
+
 我们可以不断重复 push 和 pop 同一个 UIViewController，理论上来说，push 之前跟 pop 之后，app 会回到相同的状态。因此，在 push 过程中新分配的内存，在 pop 之后应该被 dealloc 掉，除了前几次 push 可能有预热数据和 cache 数据的情况。如果在数次 push 跟 pop 之后，内存还不断增长，则有内存泄露。因此，我们在每回 push 之前跟 pop 之后，都 Mark Generation 一下，以此观察内存是不是无限制增长。这个方法在 WWDC 的视频里：[Session 311 - Advanced Memory Analysis with Instruments](https://link.jianshu.com?t=http://developer.apple.com/videos/wwdc/2010/)，以及苹果的开发者文档：[Finding Abandoned Memory](https://link.jianshu.com?t=https://developer.apple.com/library/mac/recipes/Instruments_help_articles/FindingAbandonedMemory/FindingAbandonedMemory.html) 里有介绍。
 
 > 用这种方法来发现内存泄露还是很不方便的：
->* 首先，你得打开 Allocations
->* 其次，你得一个个场景去重复的操作
->* 无法及时得知泄露，得专门做一遍上述操作，十分繁琐
+> * 首先，你得打开 Allocations
+> * 其次，你得一个个场景去重复的操作
+> * 无法及时得知泄露，得专门做一遍上述操作，十分繁琐
 
 ## MLeaksFinder
 [MLeaksFinder](https://link.jianshu.com/?t=https://github.com/Zepo/MLeaksFinder) 提供了内存泄露检测更好的解决方案。
@@ -65,7 +70,7 @@ _INTERNAL_MLF_ENABLED 作为条件编译的表达式判断条件，用于控制M
 
 #### 2.MLeaksMessenger
 这个文件主要负责展示内存泄露。
-MLeaksMessenger.h中有两个方法
+`MLeaksMessenger.h` 中有两个方法
 ```
 + (void)alertWithTitle:(NSString *)title message:(NSString *)message;
 + (void)alertWithTitle:(NSString *)title
@@ -73,7 +78,8 @@ MLeaksMessenger.h中有两个方法
               delegate:(id<UIAlertViewDelegate>)delegate
  additionalButtonTitle:(NSString *)additionalButtonTitle;
 ```
-我们查看.m文件可以发现，后一个方法实际上是第一个方法的**Designated Initializer**，我们可以称之为**全能初始化方法**
+我们查看.m文件可以发现，后一个方法实际上是第一个方法的 **Designated Initializer**，我们可以称之为**全能初始化方法**
+
 ```
 #import "MLeaksMessenger.h"
 static __weak UIAlertView *alertView;
@@ -98,24 +104,31 @@ static __weak UIAlertView *alertView;
 }
 @end
 ```
-> 这里运用了一个技巧：使用静态全局变量用__weak修饰变量。
-**static __weak UIAlertView *alertView;***
-     第一次调用**[alertView dismissWithClickedButtonIndex:0 animated:NO];**这个方法的时候，alertView为nil,  **[alertView dismissWithClickedButtonIndex:0 animated:NO]**不产生任何操作，只是一个弹框。
-     再次调用这个方法(即点击查看retain cycle)，会通过alertView来dimiss现有的弹框，再显示新的弹框。所以alertView是记录当前显示的内存泄漏的弹框。同时设置__weak修饰让这个全局变量弱引用。一旦弹框消失，自动设置为nil.
+
+> 这里运用了一个技巧：使用静态全局变量用 `__weak` 修饰变量。
+
+* **static __weak UIAlertView *alertView;**
+        第一次调用**[alertView dismissWithClickedButtonIndex:0 animated:NO];**这个方法的时候，alertView为nil,  **[alertView dismissWithClickedButtonIndex:0 animated:NO]**不产生任何操作，只是一个弹框。
+        再次调用这个方法(即点击查看retain cycle)，会通过alertView来dimiss现有的弹框，再显示新的弹框。所以alertView是记录当前显示的内存泄漏的弹框。同时设置__weak修饰让这个全局变量弱引用。一旦弹框消失，自动设置为nil.
 
 ### 3.MLeakedObjectProxy
 这个文件是检测内存泄露的核心文件
 对外提供了两个方法：
+
 ```
 + (BOOL)isAnyObjectLeakedAtPtrs:(NSSet *)ptrs;
 + (void)addLeakedObject:(id)object;
 ```
-第一个方法用来判断ptrs（NSSet类型）中是否有泄漏的对象，如果有返回True
-第二个方法是将对象加入泄漏对象的集合，同时调用MLeaksMessenger的弹窗方法
-无论是判断还是比较，始终需要一个集合来保存所有泄漏对象。自然而然检查MLeakedObjectProxy。
-全局static变量**static NSMutableSet** * **leakedObjectPtrs;***就是用来做比较的对象。
-上面两个方法都只在 NSObject的category的 **assertNotDealloc** 中调用。
+
+第一个方法用来判断 ptrs（NSSet类型）中是否有泄漏的对象，如果有返回 True
+第二个方法是将对象加入泄漏对象的集合，同时调用 MLeaksMessenger 的弹窗方法
+无论是判断还是比较，始终需要一个集合来保存所有泄漏对象。自然而然检查 MLeakedObjectProxy。
+
+全局 static 变量 **static NSMutableSet** 、 **leakedObjectPtrs;** 就是用来做比较的对象。
+上面两个方法都只在 NSObject 的 category 的 **assertNotDealloc** 中调用。
+
 让我们看一下.m文件中方法的实现：
+
 ```
 //用来检查当前泄漏对象是否已经添加到泄漏对象集合中，如果是，就不再添加也不再提示开发者
 + (BOOL)isAnyObjectLeakedAtPtrs:(NSSet *)ptrs {
@@ -177,11 +190,13 @@ static __weak UIAlertView *alertView;
 }
 }
 ```
+
 在上述两个方法的实现中，我们发现了几个要点
 > * 使用这两个方法必须要在主线程中使用
->*  待检查的对象，必须要检查是否已经被记录，以防止重复添加，造成循环
+> *  待检查的对象，必须要检查是否已经被记录，以防止重复添加，造成循环
 
 展示循环引用的核心代码在下面：
+
 ```
 #pragma mark - UIAlertViewDelegate
 
@@ -247,12 +262,16 @@ static __weak UIAlertView *alertView;
     return result;
 }
 ```
-我们发现，MLeaksFinder在展示循环引用的时候，使用的是**Facebook**开源的 **FBRetainCycleDetector** 工具。
+
+我们发现，MLeaksFinder 在展示循环引用的时候，使用的是 **Facebook** 开源的  **FBRetainCycleDetector** 工具。
 我们先通过 MLeaksFinder 找到内存泄漏的对象，然后再过 FBRetainCycleDetector 检测该对象有没有循环引用。
-有关FBRetainCycleDetector，我们可以查阅[这篇文章](https://code.facebook.com/posts/583946315094347/automatic-memory-leak-detection-on-ios/?spm=a2c4e.11153940.blogcont68473.11.3d804fa4z2vkPs)（需要科学上网）。
-我们实际上可以了解，FBRetainCycleDetector是将一个对象，一个ViewController,或者一个block当成一个节点，相关的强引用关系则是线。他们实际上会形成有向无环图（DAG 图），我们则需要在其中寻找可能存在的环，这里使用了深度优先搜索算法来遍历它，并找到循环节点。
+有关 FBRetainCycleDetector，我们可以查阅[这篇文章](https://code.facebook.com/posts/583946315094347/automatic-memory-leak-detection-on-ios/?spm=a2c4e.11153940.blogcont68473.11.3d804fa4z2vkPs)（需要科学上网）。
+
+我们实际上可以了解，FBRetainCycleDetector 是将一个对象，一个 ViewController,或者一个 block 当成一个节点，相关的强引用关系则是线。他们实际上会形成有向无环图（DAG 图），我们则需要在其中寻找可能存在的环，这里使用了深度优先搜索算法来遍历它，并找到循环节点。
+
 ### 4.NSObject+MemoryLeak
-这个文件主要用来存储对象的父子节点的树形结构，method swizzle逻辑 ，白名单以及实施判断对象是否发生内存泄漏。
+这个文件主要用来存储对象的父子节点的树形结构，method swizzle 逻辑 ，白名单以及实施判断对象是否发生内存泄漏。
+
 ```
 - (BOOL)willDealloc {
     NSString *className = NSStringFromClass([self class]);
