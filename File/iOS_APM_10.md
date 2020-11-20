@@ -270,6 +270,8 @@ static __weak UIAlertView *alertView;
 我们实际上可以了解，FBRetainCycleDetector 是将一个对象，一个 ViewController,或者一个 block 当成一个节点，相关的强引用关系则是线。他们实际上会形成有向无环图（DAG 图），我们则需要在其中寻找可能存在的环，这里使用了深度优先搜索算法来遍历它，并找到循环节点。
 
 ### 4.NSObject+MemoryLeak
+
+
 这个文件主要用来存储对象的父子节点的树形结构，method swizzle 逻辑 ，白名单以及实施判断对象是否发生内存泄漏。
 
 ```
@@ -292,15 +294,17 @@ static __weak UIAlertView *alertView;
 }
 ```
 这个方法对外的时候主要是用来提供给各个方法退出的时候调用的。而内部，则是先筛选不会报告的若干情况，以下是三个判断条件：
->* [[NSObject classNamesInWhiteList] containsObject:className]为True.
+
+> * [[NSObject classNamesInWhiteList] containsObject:className]为True.
 显而易见，这个方法是判断是否加入白名单
->* [senderPtr isEqualToNumber:@((uintptr_t)self)]为True.
+> * [senderPtr isEqualToNumber:@((uintptr_t)self)]为True.
 介绍在下方
- >* __strong id strongSelf = weakSelf;中的strongify为nil.
+> * __strong id strongSelf = weakSelf;中的strongify为nil.
 这里先设置 __weak id weakSelf = self;，然后在进行__strong id strongSelf = weakSelf，假如对象已经被释放，strongSelf为nil 调用该方法什么也不发生。
 
 这里我说明下第二条：
-正在执行target-Action的target对象不监测内存泄漏。当用户触发执行Target-Action方法的时候，实际上在执行action方法前，是sender对象先执行**sendAction:to:forEvent**方法，然后**UIApplicatoin**执行
+
+正在执行 target-Action 的 target 对象不监测内存泄漏。当用户触发执行 Target-Action 方法的时候，实际上在执行action方法前，是sender对象先执行**sendAction:to:forEvent**方法，然后**UIApplicatoin**执行
 **sendAction:to:from:forEvent:**方法，其中from就是sender对象.
 这里使用方法交换截获**sendAction:to:from:forEvent:**,然后截获了当前sender对象保存在kLatestSenderKey中。判断两者是否相同。
 这里的原因涉及到了target-action原理，当前实际上会形成一个循环引用，这里推荐[这篇文章](http://southpeak.github.io/2015/12/13/cocoa-uikit-uicontrol/),我们可以得出结论
