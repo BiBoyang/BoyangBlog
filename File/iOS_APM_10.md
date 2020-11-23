@@ -293,6 +293,7 @@ static __weak UIAlertView *alertView;
     return YES;
 }
 ```
+
 这个方法对外的时候主要是用来提供给各个方法退出的时候调用的。而内部，则是先筛选不会报告的若干情况，以下是三个判断条件：
 
 > * [[NSObject classNamesInWhiteList] containsObject:className]为True.
@@ -304,14 +305,18 @@ static __weak UIAlertView *alertView;
 
 这里我说明下第二条：
 
-正在执行 target-Action 的 target 对象不监测内存泄漏。当用户触发执行 Target-Action 方法的时候，实际上在执行action方法前，是sender对象先执行**sendAction:to:forEvent**方法，然后**UIApplicatoin**执行
-**sendAction:to:from:forEvent:**方法，其中from就是sender对象.
-这里使用方法交换截获**sendAction:to:from:forEvent:**,然后截获了当前sender对象保存在kLatestSenderKey中。判断两者是否相同。
-这里的原因涉及到了target-action原理，当前实际上会形成一个循环引用，这里推荐[这篇文章](http://southpeak.github.io/2015/12/13/cocoa-uikit-uicontrol/),我们可以得出结论
->对于_target成员变量，在UIControlTargetAction的初始化方法中调用了objc_storeWeak，即这个成员变量对外部传进来的target对象是以weak的方式引用的。
+正在执行 target-Action 的 target 对象不监测内存泄漏。当用户触发执行 Target-Action 方法的时候，实际上在执行 action 方法前，是 sender 对象先执行 **sendAction:to:forEvent** 方法，然后 **UIApplicatoin** 执行 
+**sendAction:to:from:forEvent:** 方法，其中 from 就是 sender 对象。
 
-而如果发生恩泄露，则会调用以下方法：
-```
+这里使用方法交换截获 **sendAction:to:from:forEvent:**,然后截获了当前 sender 对象保存在 `kLatestSenderKey` 中。判断两者是否相同。
+
+这里的原因涉及到了 target-action 原理，当前实际上会形成一个循环引用，这里推荐[这篇文章](http://southpeak.github.io/2015/12/13/cocoa-uikit-uicontrol/),我们可以得出结论
+
+> 对于 target 成员变量，在 UIControlTargetAction 的初始化方法中调用了 objc_storeWeak，即这个成员变量对外部传进来的 target 对象是以 weak 的方式引用的。
+
+而如果发生泄露，则会调用以下方法：
+
+```C++
 - (void)assertNotDealloc {
     if ([MLeakedObjectProxy isAnyObjectLeakedAtPtrs:[self parentPtrs]]) {
         return;
@@ -322,17 +327,20 @@ static __weak UIAlertView *alertView;
     NSLog(@"Possibly Memory Leak.\nIn case that %@ should not be dealloced, override -willDealloc in %@ by returning NO.\nView-ViewController stack: %@", className, className, [self viewStack]);
 }
 ```
+
 这里面就是直接的判断方法了，作用在之前提过。
-**-(void)willReleaseObject:(id)object relationship:(NSString *)relationship;***这个方法我没有查阅到相关引用，可能是已经废弃。如果有知道的，请不吝赐教。
+
+**-(void)willReleaseObject:(id)object relationship:(NSString *)relationship;** 这个方法我没有查阅到相关引用，可能是已经废弃。如果有知道的，请不吝赐教。
 
 接下来分析下面三个关键的方法：
-```
+```C++
 - (void)willReleaseChild:(id)child;
 - (void)willReleaseChildren:(NSArray *)children;
 - (NSArray *)viewStack;
 ```
-- (void)willReleaseChild:(id)child 其实只是将child对象添加到一个数组中执行 - (void)willReleaseChildren:(NSArray *)children方法
-```
+`-(void)willReleaseChild:(id)child` 其实只是将 child 对象添加到一个数组中执行 `-(void)willReleaseChildren:(NSArray *)children` 方法
+
+```C++
 - (void)willReleaseChild:(id)child {
     if (!child) {
         return;
@@ -341,8 +349,10 @@ static __weak UIAlertView *alertView;
     [self willReleaseChildren:@[ child ]];
 }
 ```
-第一个方法只在UIViewController+MemoryLeak中执行，
-```
+
+第一个方法只在 `UIViewController+MemoryLeak` 中执行，
+
+```C++
 - (BOOL)willDealloc {
     if (![super willDealloc]) {
         return NO;
@@ -358,8 +368,9 @@ static __weak UIAlertView *alertView;
     return YES;
 }
 ```
+
 而后一个方法则在很多地方都有执行，其内部实现如下
-```
+```C++
 - (void)willReleaseChildren:(NSArray *)children {
     //NSArray *viewStack = [self viewStack];
     //NSSet *parentPtrs = [self parentPtrs];
@@ -371,13 +382,14 @@ static __weak UIAlertView *alertView;
     }
 }
 ```
-注释掉无关的代码，我们实际上发现，这里循环调用**willDealloc**方法。而注释掉的方法则是递归self.view，写入一个栈**viewStack**当中，最后在Alertview中展示出来。
+
+注释掉无关的代码，我们实际上发现，这里循环调用 **willDealloc** 方法。而注释掉的方法则是递归 self.view，写入一个栈 **viewStack** 当中，最后在 Alertview 中展示出来。
 构造堆栈信息的原理就是，递归遍历子对象，然后将父对象 class name 加上子对象 class name，一步步构造出一个 view stack。出现泄漏则直接打印此对象的 view stack 即可。
 
+`+(void)addClassNamesToWhitelist:(NSArray *)classNames;` 方法则一目了然，用于添加白名单。
 
-**+(void)addClassNamesToWhitelist:(NSArray *)classNames;***方法则一目了然，用于添加白名单。
 最后一个方法
-```
+```C++
 + (void)swizzleSEL:(SEL)originalSEL withSEL:(SEL)swizzledSEL {
     //通过预编译控制是否hook方法
 #if _INTERNAL_MLF_ENABLED
@@ -421,31 +433,34 @@ static __weak UIAlertView *alertView;
 }
 ```
 
-> 中间那一段BOOL类型的使用原因 
-" 周全起见，有两种情况要考虑一下。第一种情况是要复写的方法(overridden)并没有在目标类中实现(notimplemented)，而是在其父类中实现了。第二种情况是这个方法已经存在于目标类中(does existin the class itself)。这两种情况要区别对待。 (译注: 这个地方有点要明确一下，它的目的是为了使用一个重写的方法替换掉原来的方法。但重写的方法可能是在父类中重写的，也可能是在子类中重写的。) 对于第一种情况，应当先在目标类增加一个新的实现方法(override)，然后将复写的方法替换为原先(的实现(original one)。 对于第二情况(在目标类重写的方法)。这时可以通过method_exchangeImplementations来完成交换."
+中间那一段BOOL类型的使用原因 :
+
+" 周全起见，有两种情况要考虑一下。第一种情况是要复写的方法(overridden)并没有在目标类中实现(notimplemented)，而是在其父类中实现了。第二种情况是这个方法已经存在于目标类中(does existin the class itself)。这两种情况要区别对待。 (译注: 这个地方有点要明确一下，它的目的是为了使用一个重写的方法替换掉原来的方法。但重写的方法可能是在父类中重写的，也可能是在子类中重写的。) 对于第一种情况，应当先在目标类增加一个新的实现方法(override)，然后将复写的方法替换为原先(的实现(original one)。 对于第二情况(在目标类重写的方法)。这时可以通过 `method_exchangeImplementations` 来完成交换."
 
 这个方法为其他分类统一给出了一个Method Swizzling的方法。
-### 其他类
+
+## 其他类
+
 关于其他类，基本上都是实现了交换方法。不细说。
 
-### 总结
+# 总结
 
-MleaksFinder中使用了AOP的思想，不会插入到业务代码当中，即插即用。检测流程可以简化为：
->1. 给分类统一提供一个交换方法的方法（此方法保证一定可以交换方法）
-> 2.  然后在运行中统一遍历view，viewController，将名字加入栈中
->3. 规避掉一些方法（白名单，Target-Action方法）
->4.  检测是否有循环引用
+MleaksFinder 中使用了 AOP 的思想，不会插入到业务代码当中，即插即用。检测流程可以简化为：
+> 1. 给分类统一提供一个交换方法的方法（此方法保证一定可以交换方法）
+> 2.  然后在运行中统一遍历 view，viewController，将名字加入栈中
+> 3. 规避掉一些方法（白名单，Target-Action方法）
+> 4.  检测是否有循环引用
 
 
-但是，MLeaksFinder还是有些局限性。我们需要将其添加进cocoaPods当中，会影响App包的大小，另一方面，我们有时候需要随时添加一些白名单，另外，由于本身设计时考虑不完全，或者apple本身的错误，也会产生一些不必要的错误。
+但是，MLeaksFinder 还是有些局限性。我们有时候需要随时添加一些白名单，另外，由于本身设计时考虑不完全，或者 apple 本身的错误，也会产生一些不必要的错误。
 > 发生的缺点：
-1.cocoaPods加入时无法区分编译环境
-2.iOS 11.2之后textField都会报错（这个应该是apple的错误）
-3.本身加上引用也会占用一部分大小
-4.有时debug会闪退（这个可能是Facebook的错误，但是由于cocoaPods无法修改）
+1. cocoaPods 加入时无法区分编译环境
+2. iOS 11.2之后 textField 都会报错（这个应该是 apple 的错误）
+3. 本身加上引用也会占用一部分大小
+4. 有时 debug 会闪退（这个可能是 Facebook 的错误，但是由于 cocoaPods 无法修改）
 
 这时候，我们就需要发动自己的头脑了。
-在当时的实际开发当中，我借鉴了MLeaksFinder的代码设计思路，将其改进。我当时实现了一个大的监测工具，将页面FPS监测，内存泄露检测，页面卡顿检测陆续的加入其中，并在使用时手动引入，在需要发布时，再手动取出，以减小包的大小。
+
 
 [MLeaksFinder 新特性](http://wereadteam.github.io/2016/07/20/MLeaksFinder2/)
 [UIKit: UIControl](http://southpeak.github.io/2015/12/13/cocoa-uikit-uicontrol/)
