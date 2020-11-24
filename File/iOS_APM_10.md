@@ -1,13 +1,17 @@
 # 从MLeaksFinder理解如何实时监测内存泄露
 
 内存是移动设备上的共享资源，如果一个 App 无法正确地进行内存管理的话，将会导致内存消耗殆尽，闪退以及性能的严重下降。
+
 我们的App的许多功能模块共用了同一份内存空间，如果其中的某一个模块消耗了特别多的内存资源的话，将会对整个 App 造成严重影响。
+
 > 注意：我们下文中的各种情景，都是基于 ARC。
 
 # 一般检测内存泄露的几种方式
+
 我们在开发的时候，有些非常明显的内存泄露，编译器会直接发现并警告出来的，比如下图
 
 ## 静态检测
+
 ![静态内存泄露.png](https://upload-images.jianshu.io/upload_images/1342490-634f558aac3ed8e7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 或者，我们也可以使用 Product->Analyze，进一步的发现一些浅显简单的内存泄露，当然，这种方式实际上并不是我们研究的重点，因为这种方式太简单浅显了。
@@ -15,7 +19,7 @@
 ## Instrument
 Instrument 现在是 Xcode 自带的一个测试工具了。我们可以使用里面的 Leaks/Allocations 进行内存泄露的排查。
 
-> 从苹果的开发者文档里可以看到，一个 app 的内存分三类：
+从苹果的开发者文档里可以看到，一个 app 的内存分三类：
 
 > * **Leaked memory**: Memory unreferenced by your application that cannot be used again or freed (also detectable by using the Leaks instrument).
 > * **Abandoned memory**: Memory still referenced by your application that has no useful purpose.
@@ -27,21 +31,24 @@ Leaks 工具只负责检测 Leaked memory,在 MRC 时代 Leaked memory 很常见
 
 我们可以不断重复 push 和 pop 同一个 UIViewController，理论上来说，push 之前跟 pop 之后，app 会回到相同的状态。因此，在 push 过程中新分配的内存，在 pop 之后应该被 dealloc 掉，除了前几次 push 可能有预热数据和 cache 数据的情况。如果在数次 push 跟 pop 之后，内存还不断增长，则有内存泄露。因此，我们在每回 push 之前跟 pop 之后，都 Mark Generation 一下，以此观察内存是不是无限制增长。这个方法在 WWDC 的视频里：[Session 311 - Advanced Memory Analysis with Instruments](https://link.jianshu.com?t=http://developer.apple.com/videos/wwdc/2010/)，以及苹果的开发者文档：[Finding Abandoned Memory](https://link.jianshu.com?t=https://developer.apple.com/library/mac/recipes/Instruments_help_articles/FindingAbandonedMemory/FindingAbandonedMemory.html) 里有介绍。
 
-> 用这种方法来发现内存泄露还是很不方便的：
+用这种方法来发现内存泄露还是很不方便的：
 > * 首先，你得打开 Allocations
 > * 其次，你得一个个场景去重复的操作
 > * 无法及时得知泄露，得专门做一遍上述操作，十分繁琐
 
 ## MLeaksFinder
 [MLeaksFinder](https://link.jianshu.com/?t=https://github.com/Zepo/MLeaksFinder) 提供了内存泄露检测更好的解决方案。
-1、只需要引入 MLeaksFinder，就可以自动在 App 运行过程检测到内存泄露的对象并立即提醒，
-2、无需打开额外的工具。
-3、也无需为了检测内存泄露而一个个场景去重复地操作。
+
+1. 只需要引入 MLeaksFinder，就可以自动在 App 运行过程检测到内存泄露的对象并立即提醒，
+2. 无需打开额外的工具。
+3. 也无需为了检测内存泄露而一个个场景去重复地操作。
 
 原理：当一个 ViewController 被 pop 或 dismiss 之后，我们认为该 ViewController，包括它上面的子 ViewController，以及它的 View，View 的 subView 等等，都很快会被释放，如果某个 View 或者 ViewController 没释放，我们就认为该对象泄漏了。
-### 源码解读
-#### 1.MLeaksFinder.h
-```
+## 源码解读
+
+### 1.MLeaksFinder.h
+
+```C++
 #import "NSObject+MemoryLeak.h"
 
 //#define MEMORY_LEAKS_FINDER_ENABLED 0
@@ -68,10 +75,12 @@ Leaks 工具只负责检测 Leaked memory,在 MRC 时代 Leaked memory 很常见
 ```
 _INTERNAL_MLF_ENABLED 作为条件编译的表达式判断条件，用于控制MLeaksFinder的其他文件是否参与编译，在发布环境下，_INTERNAL_MLF_ENABLED为0，那么相当于该库的功能关闭。如果需要无论是调试环境还是发布环境都关闭代码，可以解注释#define MEMORY_LEAKS_FINDER_ENABLED 0. _INTERNAL_MLF_RC_ENABLED表示是否导入**FBAssociationManager**来监测循环引用。默认不开启
 
-#### 2.MLeaksMessenger
+### 2.MLeaksMessenger
+
 这个文件主要负责展示内存泄露。
+
 `MLeaksMessenger.h` 中有两个方法
-```
+```C++
 + (void)alertWithTitle:(NSString *)title message:(NSString *)message;
 + (void)alertWithTitle:(NSString *)title
                message:(NSString *)message
@@ -80,7 +89,7 @@ _INTERNAL_MLF_ENABLED 作为条件编译的表达式判断条件，用于控制M
 ```
 我们查看.m文件可以发现，后一个方法实际上是第一个方法的 **Designated Initializer**，我们可以称之为**全能初始化方法**
 
-```
+```C++
 #import "MLeaksMessenger.h"
 static __weak UIAlertView *alertView;
 @implementation MLeaksMessenger
@@ -115,7 +124,7 @@ static __weak UIAlertView *alertView;
 这个文件是检测内存泄露的核心文件
 对外提供了两个方法：
 
-```
+```C++
 + (BOOL)isAnyObjectLeakedAtPtrs:(NSSet *)ptrs;
 + (void)addLeakedObject:(id)object;
 ```
