@@ -13,6 +13,7 @@ iOS 使用一个专用的动态链接器，也就是 dyld 来实现这些目标�
 本文主要描述 dyld 的基本工作原理，以及它是入额链接和绑定符号的，以及 苹果最重要的组件之一 ———— `CoreSymbolication`。
 以及dyld3提出的共享缓存-dyld shared cache。
 
+* dyld 版本为750.6。
 
 ## before dyld
 
@@ -87,16 +88,47 @@ uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* 
 
 ### dyld_main
 
-可以这么说，dyld_main 是 dyld 进行花式操作的真正的入口，之前的过程都是在做准备。
+可以这么说，dyld_main 是 dyld 进行花式操作的真正的入口，之前的过程都是在做准备。这里进行的大部分 dyld 的操作，非常复杂。
 
-```C++
-setContext(mainExecutableMH, argc, argv, envp, apple);
+由于代码过长和无用代码过多，这里就不把代码贴上来了。
 
-configureProcessRestrictions
+# setContext
 
-dyld shared cache
 
-```
+
+
+获取上下文
+
+# configureProcessRestrictions
+检测进程是否受限
+
+# getHostInfo
+
+获取程序架构信息
+
+# load shared cache
+checkSharedRegionDisable 检查共享缓存是否开启
+
+# load closure
+sClosureMode
+加载缓存
+
+# loadInsertedDylib
+
+加载动态库
+
+# link main executable
+链接主程序 rebase、 rebinding
+
+# link any inserted libraries
+链接动态库
+# apply interposing
+
+# run all initializers
+
+# sMainExecutable
+
+
 
 
 
