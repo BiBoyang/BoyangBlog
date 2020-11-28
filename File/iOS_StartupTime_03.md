@@ -1,4 +1,4 @@
-# iOS启动优化简述：dyld
+# iOS启动优化简述：pre-main 阶段和 dyld 简析
 
 
 # 简介
@@ -9,13 +9,16 @@
 
 iOS 使用一个专用的动态链接器，也就是 dyld 来实现这些目标，它是iOS系统重要组成部分，在 App 被打包成 Mach-O 格式上传之后，dyld 负责将它重新变成可以执行的程序。
 
+本文主要讲述从点击图标到代码执行到 main() 之前的这个过程。以及 dyld 的基本工作原理。
 
-本文主要描述 dyld 的基本工作原理，以及它是如何链接和绑定符号的，以及 苹果最重要的组件之一 ———— `CoreSymbolication`。
-以及dyld3提出的共享缓存-dyld shared cache。
+<!--它是如何链接和绑定符号的，还有苹果最重要的组件之一 ———— `CoreSymbolication`。
+以及dyld3提出的共享缓存-dyld shared cache。-->
 
 * dyld 版本为750.6。
 
-## before dyld
+
+
+## 从头开始 before dyld
 
 用户点击 App 图标的时候，系统会调用 exec() 函数来执行，在 UNIX 提供了 6 种 exec函数，实际使用到的是里面的 execve() 函数。主要作用是根据指定的文件名，从内存中找到可执行的文件。
 
@@ -25,6 +28,7 @@ iOS 使用一个专用的动态链接器，也就是 dyld 来实现这些目标�
 
 整个流程图如下。
 
+此处应有图片
 
 ```
 _dyld_start
@@ -45,14 +49,17 @@ runLibSystemInitializer
 
 
 ### _dyld_start
-从 Mach-O 的header中获取 读取 LC_LOAD_DYLINKER，找到入口。从这里开始运行 dyld。
+
+从 Mach-O 的 header中获取 读取 LC_LOAD_DYLINKER，找到入口。从这里开始运行 dyld。
 
 在文件中，我们可以发现它会直接调用 dyldbootstrap::start 方法
+
+此处应有图
 
 
 ### dyldbootstrap::start
 
-代码在`dyldInitialization.cpp`中可以查看，我们直接查看代码。
+代码在 `dyldInitialization.cpp`中可以查看，我们直接查看代码。
 
 ```C++
 //  This is code to bootstrap dyld.  This work in normally done for a program by dyld and crt.
@@ -82,9 +89,10 @@ uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* 
 }
 ```
 
-**dyldbootstrap::start** 负责的第一个任务就是**rebaseDyld**，如果内核提供了一个非 0 的滑动值（由dyld_start地址与其实际加载地址之间的差异决定），那么 dyld 就必须检查其数据段中的指针，并对其重设基地址。也就是 ASLR（Address space layout randomization） 技术。接下来执行 **mach_init()** 函数（在 rebaseDyld 函数中）, 初始化 mach，允许 dyld 使用 mach 进行消息传递。
 
-然后，**__guard_setup(apple)** 函数初始化堆栈检查器，进行栈溢出保护；最后计算滑动值等相关参数，并调用 **dyld_main**。
+**dyldbootstrap::start** 负责的第一个任务就是 **rebaseDyld**，如果内核提供了一个非 0 的滑动值（由 dyld_start地址与其实际加载地址之间的差异决定），那么 dyld 就必须检查其数据段中的指针，并对其重设基地址。也就是 ASLR（Address space layout randomization） 技术。接下来执行 **mach_init()** 函数（在 rebaseDyld 函数中）, 初始化 mach，允许 dyld 使用 mach 进行消息传递。
+
+然后，**__guard_setup(apple)** 函数初始化堆栈检查器，进行栈溢出保护；最后计算滑动值并获取主程序等相关参数，并调用 **dyld_main**。
 
 ### dyld_main
 
@@ -97,24 +105,28 @@ uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* 
 ```C++
 setContext(mainExecutableMH, argc, argv, envp, apple);
 ...
+sExecPath = _simple_getenv(apple, "executable_path");
+...
 sExecShortName = ::strrchr(sExecPath, '/');
 	if ( sExecShortName != NULL )
 		++sExecShortName;
 	else
 		sExecShortName = sExecPath;
 ...		
-configureProcessRestrictions
+configureProcessRestrictions(mainExecutableMH, envp);
 ```
 
+这里使用 setContext 函数，将传入的 mainExecutableMH 等 Mach-O 文件的头部信息进行分析，设置上下文。这里 Executable 的意思就是操作系统操作的可执行文件，也就是 Mach-O 文件。
 
-获取上下文
+接着使用 _simple_getenv 和 strrchr，来获取可执行文件的路径，然后使用 configureProcessRestrictions 函数来检测当前的进程是否受到限制。
 
-# configureProcessRestrictions
-检测进程是否受限
+# 设置环境信息
 
-# getHostInfo
+[点击这里](https://www.manpagez.com/man/1/dyld/osx-10.3.php)，可以查阅关于这些环境变量代表的不通用法
 
-获取程序架构信息
+使用比较多的，也就是 DYLD_PRINT_OPTS 以及 DYLD_PRINT_STATISTICS 了。
+
+
 
 # load shared cache
 checkSharedRegionDisable 检查共享缓存是否开启
@@ -139,6 +151,22 @@ sClosureMode
 # sMainExecutable
 
 
+
+## 命令详解
+
+
+DYLD_PRINT_LIBRARIES_POST_LAUNCH
+
+DYLD_BIND_AT_LAUNCH
+
+DYLD_PRINT_OPTS  打印相关参数
+
+DYLD_PRINT_ENV  打印环境变量
+
+DYLD_DISABLE_DOFS
+
+DYLD_PRINT_STATISTICS 打印启动时间
+DYLD_PRINT_STATISTICS_DETAILS 精确打印启动时间
 
 
 
