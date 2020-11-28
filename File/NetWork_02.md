@@ -40,7 +40,7 @@
 而基于 QUIC 的 HTTP/3 的标准正在慢慢推进中，现在可以在 Chrome 中尝试，可以查看[这篇文章](https://quicwg.org/base-drafts/draft-ietf-quic-http.html)查看关于 HTTP/3 的一些事情。
 
 
-## 二. HTTP 基础
+# 二. HTTP 基础
 
 HTTP 是一个应用层协议，使用 TCP 来作为它的传输协议，而非 UDP。HTTP 会先发出一个和服务器的 TCP 连接，一旦连接建立，该客户端就可以和服务器进行传输。TCP 为 HTTP 提供了可靠数据传输服务，服务器发出的每个 HTTP 响应报文都可以最终**完整**的到达客户端；反之亦然。
 
@@ -55,11 +55,13 @@ HTTP 有两种连接方法：**非持续连接**和**持续连接**。
 所以说，我们一般采用**持续连接**的方式来解决这个问题。在 TCP 连接上之后，会经过一段超时时间（可配置的超时间隔）之后，HTTP 服务器再将它关闭。
 
 # 3. HTTP 报文结构
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_07.png?raw=true)
 
 报文结构如图所示。
 
 从客户端发往服务器的是**请求报文（request message）**，从服务器发往客户端的是**响应报文（response message）**。
+
 HTTP 报文包含三个部分：
 1. **起始行**       
         报文的第一行就是起始行，在请求报文中用来说明要做什么。
@@ -84,6 +86,7 @@ HTTP 报文包含三个部分：
 |Warning| 错误通知|
 
 # 4. HTTP 状态码
+
 服务器返回的**响应报文**中第一行为状态行，包含了状态码以及原因短语，用来告知客户端请求的结果。
 
 | 状态码 | 类别 | 原因短语 |
@@ -95,6 +98,7 @@ HTTP 报文包含三个部分：
 | 5XX | Server Error（服务器错误状态码） | 服务器处理请求出错 |
 
 而伴随每个状态码，HTTP还会发送一条解释性的原因短语。整个的状态码如下图所示。
+
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_08.png?raw=true)
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_09.png?raw=true)
 ![](https://github.com/BiBoyang/BoyangBlog/blob/master/Image/NetWork_10.png?raw=true)
@@ -104,6 +108,7 @@ HTTP 报文包含三个部分：
 ![](https://http.cat/200)
 
 # 5. HTTP 方法
+
 简单的说，HTTP 中的方法就是告知服务器，客户端的意图是什么。
 
 这里简述几个我认为有意义的方法。
@@ -132,7 +137,7 @@ HTTP 报文包含三个部分：
 
 > Methods can also have the property of "idempotence" in that (aside from error or expiration issues) the side-effects of N > 0 identical requests is the same as for a single request.
 
-从定义上看，HTTP 方法的幂等性是指一次和多次请求某一个资源应该具有同样的副作用。
+从定义上看，HTTP 方法的幂等性是指**一次和多次请求某一个资源应该具有同样的副作用**。
 
 安全性指的是**不会改变服务器状态，也就是说它只是可读的。**
 
@@ -185,21 +190,24 @@ POST 的语义是根据请求负荷（报文主体）对指定的资源做出处
 7. 日志    
         缓存可选地创建一个日志文件条目来描述这个事物。
 
-缓存的更多细节，包括缓存的首部字段，可以查看[HTTP缓存控制小结](https://imweb.io/topic/5795dcb6fb312541492eda8c)。
+缓存的更多细节，包括缓存的首部字段，可以查看 [HTTP缓存控制小结](https://imweb.io/topic/5795dcb6fb312541492eda8c)。
 
 # 7. cookie
-cookie 是 HTTP/1.1 提出的，用于识别用户，实现持久化会话。可以笼统的分为两种：**会话cookie**和**持久cookie**。
+cookie 是 HTTP/1.1 提出的，用于识别用户，实现持久化会话。可以笼统的分为两种：**会话 cookie** 和**持久 cookie**。
+
 会话 cookie 是一种临时 cookie ，用户推出浏览器的时候，会话 cookie 就被删除了。而持久 cookie 会被存储起来，甚至电脑重启还存在。
 
 会话 cookie 和持久 cookie 唯一的区别就是它们的过期时间。
 
 ### cookie 如果工作的
+
 当用户初次访问服务器的时候，服务器实际上对用户一无所知。不过服务器可以给客户打上一个独特的 cookie （Set-Cookie）。理论上 cookie 能包含任意信息，不过它们一般只包含一个服务器为了进行跟踪而产生的独特的识别码，它可能不止是一串数字，可能会包含一些信息：
 ```C++
 Cookie: name="Bill";phone="6666666"
 ```
 
 ### 和 Session 的关系
+
 session 从字面上讲，就是会话。而实际上 session 是一个抽象的概念，我们可以通过 cookie 来实现 session（也有别的方法）。
 
 session 是存在服务端的，保存更多的用户数据。session 的运行依赖于 session id ，而一般情况下，我们会把 session id 存储在 cookie 中，也可以放到 URL 中。
@@ -208,7 +216,7 @@ session 是存在服务端的，保存更多的用户数据。session 的运行�
 
 
 
-# 8. HTTP/1.1和HTTP/1 多出来了什么
+# 8. HTTP/1.1 和 HTTP/1 多出来了什么
 
 1. HTTP/1.1 默认是持久连接
 2. HTTP/1.1 支持管线化处理
@@ -217,7 +225,9 @@ session 是存在服务端的，保存更多的用户数据。session 的运行�
 5. HTTP/1.1 支持分块传输编码
 
 这里讲一下前两个。
+
 ### 持久连接
+
 在 HTTP/1.0 中，每次发出一个请求，都会进行一次 TCP 三次握手，但是请求完成之后这个连接就结束了。
 
 为了不造成浪费，启用了**持久连接**，将之前用过的 TCP 连接重用，这样就只有第一次请求会导致两次往返延迟，后续请求只会导致一次往返延迟。
@@ -227,8 +237,6 @@ session 是存在服务端的，保存更多的用户数据。session 的运行�
 持久连接可以让我们重用已有的连接来完成多次应用请求，但多次请求必须严格满足先进先出（FIFO）的队列顺序：发送请求->等待响应完成->再发送客户端队列中的下一个请求。
 
 管线化可以让我们对上述流程进行一个优化：将 FIFO 队列从客户端（请求队列）迁移到服务器（响应队列）。这样通过尽早分派请求，减少响应阻塞。可以进一步消除额外的网络往返。
-
-
 
 
 # 总结
@@ -243,6 +251,7 @@ HTTP 是目前最成功的互联网协议之一，HTTP/1 实际上是一个残�
 
 
 # 引用
+
 [HTTP 基础概述](https://github.com/halfrost/Halfrost-Field/blob/master/contents/Protocol/HTTP.md)
     
 [HTTP Cats](https://http.cat/)           
@@ -258,6 +267,7 @@ HTTP 是目前最成功的互联网协议之一，HTTP/1 实际上是一个残�
 《计算机网络：自顶向下方法》
 
 ### 时间线
+
 * 因为疫情期间在外当志愿者，晚上回家无聊翻翻网络知识，权当记录了。      
 * 初始动笔：2019-02-03       
 * 修改时间：2019-03-25
