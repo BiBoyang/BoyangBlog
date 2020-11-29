@@ -120,11 +120,27 @@ configureProcessRestrictions(mainExecutableMH, envp);
 
 接着使用 _simple_getenv 和 strrchr，来获取可执行文件的路径，然后使用 configureProcessRestrictions 函数来检测当前的进程是否受到限制。
 
-# 设置环境信息
+# 检查环境信息
 
 [点击这里](https://www.manpagez.com/man/1/dyld/osx-10.3.php)，可以查阅关于这些环境变量代表的不通用法
 
-使用比较多的，也就是 DYLD_PRINT_OPTS 以及 DYLD_PRINT_STATISTICS 了。
+使用比较多的，也就是 DYLD_PRINT_OPTS（打印参数） 、DYLD_PRINT_ENV（打印环境变量） 以及 DYLD_PRINT_STATISTICS（打印启动时间） 了。举个例子，可以在 Xcode 中 `Edit scheme` -> `Run` -> `Auguments` 将环境变量 **DYLD_PRINT_STATISTICS** 设为 1 。
+
+之后控制台会输出类似内容：
+```C++
+Total pre-main time: 400.15 milliseconds (100.0%)
+         dylib loading time: 211.53 milliseconds (52.8%)
+        rebase/binding time:   5.03 milliseconds (1.2%)
+            ObjC setup time:  26.33 milliseconds (6.5%)
+           initializer time: 157.05 milliseconds (39.2%)
+           slowest intializers :
+             libSystem.B.dylib :   6.30 milliseconds (1.5%)
+    libMainThreadChecker.dylib :  63.60 milliseconds (15.8%)
+           DoraemonLoadAnalyze :  24.14 milliseconds (6.0%)
+                    PalmTicket :  99.58 milliseconds (24.8%)
+```
+就可以查看启动时间了。
+
 
 
 

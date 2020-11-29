@@ -91,7 +91,7 @@
 
 |Name|Article_Link|Info|
 |---|---|---|
-|伯阳的网络笔记|[DNS 是如何工作的](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_01.md)<br>[HTTP 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_02.md)<br>[HTTP/2 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_03.md)<br>[TCP 基础概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_04.md)<br>[UDP & IP 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_05.md)<br>[TLS 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_06.md)<br>[HTTPS 概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_07.md)||
+|伯阳的网络笔记|[DNS 是如何工作的](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_01.md)<br>[HTTP 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_02.md)<br>[HTTP/2 基础](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_03.md)<br>[TCP 基础概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_04.md)<br>[UDP & IP 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_05.md)<br>[TLS 简述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_06.md)<br>[HTTPS 概述](https://github.com/BiBoyang/BoyangBlog/blob/master/File/NetWork_07.md)<br>[如何正确的获取 DNS 地址](https://github.com/BiBoyang/BoyangBlog/blob/41633056dd694e15af3b0b8254b2fa981e79c7df/File/NetWork_13.md)||
 
 
 ## 📘内存管理🚧
