@@ -158,8 +158,13 @@ sClosureMode
 # link main executable
 链接主程序 rebase、 rebinding
 
+
+
 # link any inserted libraries
+
 链接动态库
+
+
 # apply interposing
 
 # run all initializers
