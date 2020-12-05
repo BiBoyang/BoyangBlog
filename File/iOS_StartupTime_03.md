@@ -148,6 +148,8 @@ Total pre-main time: 400.15 milliseconds (100.0%)
 checkSharedRegionDisable 检查共享缓存是否开启
 
 # load closure
+
+
 sClosureMode
 加载缓存
 
