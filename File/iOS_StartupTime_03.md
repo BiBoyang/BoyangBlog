@@ -144,6 +144,8 @@ Total pre-main time: 400.15 milliseconds (100.0%)
 
 
 
+
+
 # load shared cache
 checkSharedRegionDisable 检查共享缓存是否开启
 
