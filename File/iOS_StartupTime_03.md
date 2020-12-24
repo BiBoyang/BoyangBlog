@@ -14,6 +14,7 @@ iOS 使用一个专用的动态链接器，也就是 dyld 来实现这些目标�
 <!--它是如何链接和绑定符号的，还有苹果最重要的组件之一 ———— `CoreSymbolication`。
 以及dyld3提出的共享缓存-dyld shared cache。-->
 
+
 * dyld 版本为750.6。
 
 
