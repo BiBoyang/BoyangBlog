@@ -22,6 +22,8 @@ iOS 使用一个专用的动态链接器，也就是 dyld 来实现这些目标�
 
 ## 从头开始 before dyld
 
+
+
 用户点击 App 图标的时候，系统会调用 exec() 函数来执行，在 UNIX 提供了 6 种 exec函数，实际使用到的是里面的 execve() 函数。主要作用是根据指定的文件名，从内存中找到可执行的文件。
 
 接着在mach-O文件中，读取 LC_LOAD_DYLINKER，就找到了 dyld 的入口，这个入口被称为 _dyld_start ，被编码在 dyldStartup.s 中，然后调用 dyldbootstrap::start
