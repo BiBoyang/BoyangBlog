@@ -31,6 +31,7 @@
 * [官方源码地址](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_04.md)
 
 ## ♥️算法和数据结构
+
 * [螺旋矩阵三连击](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm/Spiral_Matrix.md)
 
 * [二叉树的刷题之旅（一）：遍历](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm/Binary_Tree_01.md)
@@ -57,11 +58,11 @@
 
 * [链表刷题之旅（六）：合并链表](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm/Linked_List_06.md)
 
-* [位运算的刷题之旅（一）：位运算符基础方法](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_07.md)
+* [位运算的刷题之旅（一）：位运算符基础方法](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm/Algorithm_Item_07.md)
 
-* [动态规划战个痛快之线性动态规划（一）：递增子序列问题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
+* [动态规划战个痛快之线性动态规划（一）：递增子序列问题](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm/DP_01.md)
 
-* [动态规划战个痛快之线性动态规划（二）：最大子数组和系列](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm_Item_09.md)
+* [动态规划战个痛快之线性动态规划（二）：最大子数组和系列](https://github.com/BiBoyang/BoyangBlog/blob/master/File/Algorithm/DP_02.md)
 
 ##  📖 源码解读
 |  Name | Article_Link  |  Info |
