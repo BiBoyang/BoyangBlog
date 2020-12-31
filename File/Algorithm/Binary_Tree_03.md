@@ -44,9 +44,8 @@ public:
         if((root->left == NULL) && (root->right == NULL)) {
             if(sum == 0) isHasPath = true;
         }
-    if(root->left) dfs(root->left,sum);
-    if(root->right) dfs(root->right,sum);
-	   
+        if(root->left) dfs(root->left,sum);
+        if(root->right) dfs(root->right,sum);
     }
     bool hasPathSum(TreeNode* root, int sum) {
         if(root) dfs(root, sum);
@@ -233,11 +232,11 @@ public:
         // 计算右边分支最大值
         int rightMax = max(maxPath(root->right),0);
         // 计算 左->根->右 路线上的最大值
-        int lmr = root->val + left +right;
+        int lmr = root->val + leftMax +rightMax;
         // 左->根->右 和 历史最大值做对比
         sum = max(sum, lmr);
         // 返回经过root的单边最大分支给上游
-        return root->val + max(left,right);
+        return root->val + max(leftMax,rightMax);
     }
 };
 ```
