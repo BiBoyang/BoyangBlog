@@ -161,7 +161,7 @@ dyld3 最大的特点就是 dyld 缓存了，也就是 Shared Libary Cache（SLC
 
 程序会先调用 checkSharedRegionDisable 检查共享缓存是否开启，然后检查是否有缓存，若有，则使用缓存；若无，则写入缓存。
 
-在`SharedCacheRuntime.cpp`中，我们可以查看整个缓存的机制。
+在`SharedCacheRuntime.cpp` 中，我们可以查看整个缓存的机制。
 
 
 # 实例化主程序
@@ -183,6 +183,7 @@ const linkedit_data_command** codeSigCmd,
 const encryption_info_command** encryptCmd
 )
 ```
+
 比如说：
 * libCount 
     依赖的动态库的数量 
@@ -199,12 +200,14 @@ if	( sEnv.DYLD_INSERT_LIBRARIES != NULL ) {
 				loadInsertedDylib(*lib);
 		}
 ```
-越狱的朋友应该对`sEnv.DYLD_INSERT_LIBRARIES`比较熟悉了，很多越狱插件，都是在这个步骤进行操作的。
+
+越狱的朋友应该对 `sEnv.DYLD_INSERT_LIBRARIES` 比较熟悉了，很多越狱插件，都是在这个步骤进行操作的。
 
 
 # 链接主程序 & 动态库
 
 ```C++
+
 #pragma mark --------链接主程序
 		// link main executable *********
 		gLinkContext.linkingMainExecutable = true;
