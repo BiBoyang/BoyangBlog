@@ -29,6 +29,7 @@
 * [如何获取 LinkMap](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_02.md)
 * [获取OC汇编代码](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_03.md)
 * [官方源码地址](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_04.md)
+* [如何在 Xcode 和真机断连时调试](https://github.com/BiBoyang/BoyangBlog/blob/master/File/iOS_Tips/iOS_Tips_05.md)
 
 ## ♥️算法和数据结构
 
