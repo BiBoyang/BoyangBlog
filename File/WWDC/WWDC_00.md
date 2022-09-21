@@ -164,7 +164,19 @@
 | [Introduction to SwiftUI](https://developer.apple.com/videos/play/wwdc2020/10119/)| SwiftUI 介绍|
 
 
-
+# WWDC 2021
+|link  | info  |  
+|---|---|
+| [Understand and eliminate hangs from your app](https://developer.apple.com/videos/play/wwdc2021/10258/) | 理解并消除App的卡死  |
+|  |   |
+|  |   |
+|  |   |
+|  |   |
+|  |   |
+|  |   |
+|  |   |
+|  |   |
+|  |   |
 
 
 
