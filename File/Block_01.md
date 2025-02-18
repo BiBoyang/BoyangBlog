@@ -38,12 +38,9 @@ typedef return_type (^BlockTypeName)(var_type);
 - (void)requestForSomething:(Model)model handle:(BlockTypeName)handle;
 ```
 
-
-
-
 # 3. block的实现
 
-在LLVM的文件中，我找到了一份文档，[Block_private.h](https://llvm.org/svn/llvm-project/compiler-rt/tags/Apple/Libcompiler_rt-16/BlocksRuntime/Block_private.h)，这里可以查看到block的实现情况
+在LLVM的文件中，我找到了一份文档，[Block_private.h](https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/BlocksRuntime/Block_private.h)，这里可以查看到block的实现情况
 
 * 注：实际上真实的代码结构和使用 clang 指令转换过来的代码，是有可能不一样的。
 
@@ -126,6 +123,7 @@ struct __block_impl {
 
 
 接着, **__main_block_impl_0** 因为包含了 __block_impl ，我们可以将它打开,直接看成
+
 ```C++
 __main_block_impl_0{
     void *isa;
@@ -141,18 +139,21 @@ __main_block_impl_0{
 
 我们常见的block是有三种：
 
-> * __NSGlobalBlock
-> * __NSStackBlock
-> * __NSMallocBlock
+ * __NSGlobalBlock
+ * __NSStackBlock
+ * __NSMallocBlock
 
 比如说
+
 ```C++
 void (^block)(void) = ^{
     NSLog(@"biboyang");
 };
 block();
 ```
+
 或者
+
 ```C++
 static int age = 10;
     void(^block)(void) = ^{
@@ -160,10 +161,12 @@ static int age = 10;
     };
 block();
 ```
+
 像是这种，没有对外捕获变量的，就是 GlobaBlock 。
 
 
 而我们在写一个捕获变量的。
+
 ```C++
     int b = 10;
     void(^block2)(void) = ^{
@@ -173,6 +176,7 @@ block();
 ```
 
 这种 block，在 MRC 中，是 StackBlock 。在 ARC 中，因为编译器做了优化，自动进行了 copy ，这种就是 MallocBlock 了。
+虽然在 ARC 中 strong 和 copy 均可正确管理 Block 内存，但 Apple 官方推荐使用 copy 以明确语义，同时兼容 MRC 历史代码（但是现在已经很难找到使用 MRC 的项目了）。
 
 做这种优化的原因很好理解：
 
@@ -202,10 +206,12 @@ ARC 环境下，一旦 block 赋值就会触发 copy，block 就会 copy 到堆�
 # 从报错看内存
 
 如果我们把 block 设置为 nil ，然后去调用，会发生什么？
+
 ```C++
 void (^block)(void) = nil;
 block();
 ```
+
 当我们运行的时候，它会崩溃，报错信息为 **Thread 1: EXC_BAD_ACCESS (code=1, address=0x10)**。
 
 ![置为nil的block](https://raw.githubusercontent.com/BiBoyang/Study/master/Image/block_5.png)
@@ -222,6 +228,14 @@ block();
 * 若obj为 NSNull:[obj message] 将抛出异常NSException
 
 它直接访问到了函数指针，因为前三位分别是 void、int、int，大小分别是 8、4、4，加一块就为 16 ，所以在 64 位中，就表示出 0x10 地址的崩溃。
+
+```C
+// Block_layout 内存布局（64位系统）：
+// isa (8字节) | flags (4) | reserved (4) | invoke (8) | descriptor (8) | variables...
+// 访问 invoke 的地址为 Block_layout 起始地址 + 16 字节（0x10）
+```
+
+
 如果是在 32 位的系统中，void 的大小是 4，崩溃的地址应该就是 0x0c。
 
 
@@ -230,6 +244,6 @@ block();
 ## 引用
 
 
-[Blocks Programming Topics](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html#//apple_ref/doc/uid/TP40007502-CH1-SW1)     
+[Blocks Programming Topics - Apple Developer](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html#//apple_ref/doc/uid/TP40007502-CH1-SW1)     
 [Working with Blocks](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/WorkingwithBlocks/WorkingwithBlocks.html)        
 [fuckingblocksyntax.com](http://fuckingblocksyntax.com/)
